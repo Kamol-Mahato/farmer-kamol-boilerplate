@@ -1,6 +1,6 @@
 export default function AnnouncementBar() {
   return (
-    <div className="fixed top-0 left-0 w-full bg-green-950 text-white text-sm py-1.5 overflow-hidden z-[60]">
+    <div className="fixed top-0 left-0 w-full bg-green-950 text-white text-xl py-1.5 overflow-hidden z-[60]">
       <div className="animate-marquee whitespace-nowrap inline-block">
         {[...Array(3)].map((_, i) => (
           <span key={i}>

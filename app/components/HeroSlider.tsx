@@ -4,7 +4,6 @@ import Link from "next/link"
 
 const slides = [
   { type: "youtube", src: "https://www.youtube.com/embed/TKLERsfVMgI?autoplay=1&mute=1&controls=0" },
-  { type: "facebook", src: "https://www.facebook.com/plugins/video.php?href=https://fb.watch/HJX25pV8U-/&autoplay=1&mute=1&width=800" },
 ]
 
 const products = [
@@ -38,7 +37,7 @@ export default function HeroSlider() {
   return (
     <div className="bg-green-900 text-white">
       {/* ── PC LAYOUT ── */}
-      <div className="hidden md:grid md:grid-cols-2 h-[420px]">
+      <div className="hidden md:grid md:grid-cols-2 h-[300px]">
 
         {/* বাম — Slider */}
         <div className="relative overflow-hidden">
@@ -76,7 +75,7 @@ export default function HeroSlider() {
 
         {/* ডান — Products */}
         <div className="bg-green-800 flex flex-col items-center justify-center px-8 relative overflow-hidden">
-          <p className="text-yellow-400 text-sm font-bold uppercase tracking-widest mb-6">আমাদের পণ্য</p>
+         
 
           {products.map((p, i) => (
             <div
@@ -95,17 +94,6 @@ export default function HeroSlider() {
               </Link>
             </div>
           ))}
-
-          {/* Product dots */}
-          <div className="absolute bottom-4 flex gap-2">
-            {products.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setProductIndex(i)}
-                className={`h-1.5 rounded-full transition-all ${productIndex === i ? "bg-yellow-400 w-5" : "bg-green-600 w-1.5"}`}
-              />
-            ))}
-          </div>
         </div>
       </div>
 
@@ -142,16 +130,17 @@ export default function HeroSlider() {
           </button>
         </div>
 
-        {/* Mobile Dots */}
-        <div className="flex justify-center gap-2 py-3 bg-green-900">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              className={`w-3 h-3 rounded-full transition-all ${current === i ? "bg-yellow-400 w-6" : "bg-green-600"}`}
-            />
-          ))}
-        </div>
+        {/* Mobile Dots - পরে দরকার হলে uncomment করো
+<div className="flex justify-center gap-2 py-3 bg-green-900">
+  {slides.map((_, i) => (
+    <button
+      key={i}
+      onClick={() => setCurrent(i)}
+      className={`w-3 h-3 rounded-full transition-all ${current === i ? "bg-yellow-400 w-6" : "bg-green-600"}`}
+    />
+  ))}
+</div>
+*/}
       </div>
     </div>
   )

@@ -1,6 +1,14 @@
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 
+type Product = {
+  id: number
+  name: string
+  pricePerUnit: number
+  unit: string
+  images: { imageUrl: string }[]
+}
+
 export default async function ShopPage() {
   const products = await prisma.product.findMany({
     where: { isActive: true },
