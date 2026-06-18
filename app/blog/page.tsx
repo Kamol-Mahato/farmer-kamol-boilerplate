@@ -28,9 +28,9 @@ useEffect(() => {
     : blogs
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 pt-28">
-      <h1 className="text-3xl font-bold text-green-800 mb-2">ব্লগ</h1>
-      <p className="text-gray-500 mb-6">কৃষি, পশুপালন ও খামার বিষয়ক লেখা</p>
+    <div className="max-w-6xl mx-auto px-1 py-16 pt-8 text-center">
+      <h2 className="text-2xl font-bold text-green-800 mb-2">আমাদের কৃষি বিষয়ক ব্লগ গুলো এখানে আছে</h2>
+      <p className="text-gray-500 mb-8">কৃষি, পশুপালন ও খামার বিষয়ক লেখা</p>
 
       {/* Category Filter */}
       <div className="flex gap-2 flex-wrap mb-8">

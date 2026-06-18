@@ -1,70 +1,63 @@
-datasource db {
-  provider = "postgresql"
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "postgresql"
+}
+
 model SystemControlCenter {
-  id                     Int     @id @default(1)
-  enableOtpForGuest      Boolean @default(false)
-  defaultLanguage        String  @default("BN")
-  heroYoutubeUrl         String  @default("https://www.youtube.com/watch?v=default")
-  maskCustomerData       Boolean @default(true)
-  disableLiveCourierAPI  Boolean @default(true)
-  paperSizeMode          String  @default("POS")
-  invoicePrefix          String  @default("FK")
-  useFreeWhatsAppOnly    Boolean @default(true)
-  useGoogleSMTP          Boolean @default(true)
-  minAmountForPaidSMS    Int     @default(2000)
-  strictTxnUniqueCheck   Boolean @default(true)
-  autoAdjustPrice        Boolean @default(true)
-  qrCodeDestination      String  @default("TRACK")
-  enableReviews          Boolean @default(false)
-  enableCoupons          Boolean @default(false)
-  enableWishlist         Boolean @default(false)
-  enablePaymentGateway   Boolean @default(false)
+  id                    Int     @id @default(1)
+  enableOtpForGuest     Boolean @default(false)
+  defaultLanguage       String  @default("BN")
+  heroYoutubeUrl        String  @default("https://www.youtube.com/watch?v=default")
+  maskCustomerData      Boolean @default(true)
+  disableLiveCourierAPI Boolean @default(true)
+  paperSizeMode         String  @default("POS")
+  invoicePrefix         String  @default("FK")
+  useFreeWhatsAppOnly   Boolean @default(true)
+  useGoogleSMTP         Boolean @default(true)
+  minAmountForPaidSMS   Int     @default(2000)
+  strictTxnUniqueCheck  Boolean @default(true)
+  autoAdjustPrice       Boolean @default(true)
+  qrCodeDestination     String  @default("TRACK")
+  enableReviews         Boolean @default(false)
+  enableCoupons         Boolean @default(false)
+  enableWishlist        Boolean @default(false)
+  enablePaymentGateway  Boolean @default(false)
 }
 
 model User {
-  id                 Int                  @id @default(autoincrement())
-  phone              String               @unique
+  id                 Int                 @id @default(autoincrement())
+  phone              String              @unique
   name               String?
   password           String?
-  role               Role                 @default(CUSTOMER)
-  isActive           Boolean              @default(true)
-  walletBalance      Float                @default(0.0)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  customerOrders     Order[]              @relation("CustomerToOrder")
-  createdOrders      Order[]              @relation("AgentToOrder")
+  role               Role                @default(CUSTOMER)
+  isActive           Boolean             @default(true)
+  walletBalance      Float               @default(0.0)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   agentLogs          AgentLog[]
-  walletTransactions WalletTransaction[]
+  createdOrders      Order[]             @relation("AgentToOrder")
+  customerOrders     Order[]             @relation("CustomerToOrder")
   reviews            ProductReview[]
-}
-
-enum Role {
-  CUSTOMER
-  AGENT
-  ADMIN
-  SUPER_ADMIN
+  walletTransactions WalletTransaction[]
 }
 
 model Category {
-  id            Int         @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
   name          String
-  slug          String      @unique
+  slug          String     @unique
   description   String?
   imageUrl      String?
-  displayOrder  Int         @default(0)
-  isVisible     Boolean     @default(true)
+  displayOrder  Int        @default(0)
+  isVisible     Boolean    @default(true)
   parentId      Int?
-  parent        Category?   @relation("CategoryToSub", fields: [parentId], references: [id], onDelete: Cascade)
-  subCategories Category[]  @relation("CategoryToSub")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  parent        Category?  @relation("CategoryToSub", fields: [parentId], references: [id], onDelete: Cascade)
+  subCategories Category[] @relation("CategoryToSub")
   products      Product[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
 }
 
 model Product {
@@ -73,7 +66,6 @@ model Product {
   slug                String                   @unique
   description         String?
   categoryId          Int?
-  category            Category?                @relation(fields: [categoryId], references: [id])
   pricePerUnit        Float
   discountPrice       Float?
   unit                String                   @default("কেজি")
@@ -83,31 +75,32 @@ model Product {
   isActive            Boolean                  @default(true)
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
-  images              ProductImage[]
-  batches             ProductBatch[]
-  packagingRecipes    ProductPackagingRecipe[]
   orderItems          OrderItem[]
+  category            Category?                @relation(fields: [categoryId], references: [id])
+  batches             ProductBatch[]
+  images              ProductImage[]
+  packagingRecipes    ProductPackagingRecipe[]
   reviews             ProductReview[]
 }
 
 model ProductImage {
   id        Int      @id @default(autoincrement())
   productId Int
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   imageUrl  String
   isPrimary Boolean  @default(false)
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model ProductBatch {
   id               Int      @id @default(autoincrement())
   productId        Int
-  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   batchNumber      String
   productionDate   DateTime
   expiryDate       DateTime
   quantityProduced Float
   notes            String?
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model PackagingMaterial {
@@ -122,22 +115,22 @@ model PackagingMaterial {
 model ProductPackagingRecipe {
   id           Int               @id @default(autoincrement())
   productId    Int
-  product      Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
   materialId   Int
-  material      PackagingMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
   quantityUsed Int               @default(1)
+  material     PackagingMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  product      Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model ProductReview {
   id         Int      @id @default(autoincrement())
   productId  Int
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId     Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating     Int
   comment    String?
   isApproved Boolean  @default(false)
   createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Coupon {
@@ -155,18 +148,11 @@ model Coupon {
   orders         Order[]
 }
 
-enum DiscountType {
-  PERCENTAGE
-  FIXED
-}
-
 model Order {
   id                Int             @id @default(autoincrement())
   customerId        Int
-  customer          User            @relation("CustomerToOrder", fields: [customerId], references: [id], onDelete: Cascade)
   orderSource       OrderSource     @default(WEBSITE)
   createdById       Int
-  creator           User            @relation("AgentToOrder", fields: [createdById], references: [id])
   deliveryAddress   String
   customerNote      String?
   internalNote      String?
@@ -174,7 +160,6 @@ model Order {
   deliveryCharge    Float
   discountAmount    Float           @default(0.0)
   couponId          Int?
-  coupon            Coupon?         @relation(fields: [couponId], references: [id])
   finalCodAmount    Float
   courierProvider   String?
   courierTrackingId String?         @unique
@@ -187,9 +172,113 @@ model Order {
   paymentAmountPaid Float           @default(0.0)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
-  orderItems        OrderItem[]
-  invoice           Invoice?
   courierSummary    CourierSummary?
+  invoice           Invoice?
+  coupon            Coupon?         @relation(fields: [couponId], references: [id])
+  creator           User            @relation("AgentToOrder", fields: [createdById], references: [id])
+  customer          User            @relation("CustomerToOrder", fields: [customerId], references: [id], onDelete: Cascade)
+  orderItems        OrderItem[]
+}
+
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  orderId    Int
+  productId  Int
+  quantity   Float
+  finalPrice Float
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model CourierSummary {
+  id              Int      @id @default(autoincrement())
+  orderId         Int      @unique
+  courierStatus   String
+  collectedAmount Float    @default(0.0)
+  codFee          Float    @default(0.0)
+  deliveryCharge  Float    @default(0.0)
+  netPayout       Float    @default(0.0)
+  isDiscrepancy   Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id             Int      @id @default(autoincrement())
+  orderId        Int      @unique
+  invoiceNumber  String   @unique
+  subTotal       Float
+  deliveryCharge Float
+  discountAmount Float    @default(0.0)
+  advancePaid    Float    @default(0.0)
+  finalCodAmount Float
+  barcodeString  String
+  qrCodeUrl      String
+  printCount     Int      @default(0)
+  lastPrintedBy  Int?
+  secureToken    String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model NavigationMenu {
+  id           Int              @id @default(autoincrement())
+  title        String
+  url          String
+  displayOrder Int              @default(0)
+  isVisible    Boolean          @default(true)
+  parentId     Int?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  parentMenu   NavigationMenu?  @relation("MenuToSubMenu", fields: [parentId], references: [id], onDelete: Cascade)
+  subMenus     NavigationMenu[] @relation("MenuToSubMenu")
+}
+
+model AgentLog {
+  id         Int      @id @default(autoincrement())
+  agentId    Int
+  action     String
+  details    String
+  targetId   Int?
+  targetType String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+  agent      User     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+}
+
+model WalletTransaction {
+  id        Int           @id @default(autoincrement())
+  userId    Int
+  amount    Float
+  type      WalletTxnType
+  reason    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Blog {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  content     String
+  image       String?
+  category    String
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  CUSTOMER
+  AGENT
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
 }
 
 enum OrderStatus {
@@ -219,95 +308,17 @@ enum PaymentStatus {
   PARTIAL_PAID
 }
 
-model OrderItem {
-  id         Int     @id @default(autoincrement())
-  orderId    Int
-  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId  Int
-  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity   Float
-  finalPrice Float
-}
-
-model CourierSummary {
-  id              Int      @id @default(autoincrement())
-  orderId         Int      @unique
-  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  courierStatus   String
-  collectedAmount Float    @default(0.0)
-  codFee          Float    @default(0.0)
-  deliveryCharge  Float    @default(0.0)
-  netPayout       Float    @default(0.0)
-  isDiscrepancy   Boolean  @default(false)
-  updatedAt       DateTime @updatedAt
-}
-
-model Invoice {
-  id             Int      @id @default(autoincrement())
-  orderId        Int      @unique
-  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  invoiceNumber  String   @unique
-  subTotal       Float
-  deliveryCharge Float
-  discountAmount Float    @default(0.0)
-  advancePaid    Float    @default(0.0)
-  finalCodAmount Float
-  barcodeString  String
-  qrCodeUrl      String
-  printCount     Int      @default(0)
-  lastPrintedBy  Int?
-  secureToken    String   @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
-model NavigationMenu {
-  id           Int              @id @default(autoincrement())
-  title        String
-  url          String
-  displayOrder Int              @default(0)
-  isVisible    Boolean          @default(true)
-  parentId     Int?
-  parentMenu   NavigationMenu?  @relation("MenuToSubMenu", fields: [parentId], references: [id], onDelete: Cascade)
-  subMenus     NavigationMenu[] @relation("MenuToSubMenu")
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-}
-
-model AgentLog {
-  id         Int      @id @default(autoincrement())
-  agentId    Int
-  agent      User     @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  action     String
-  details    String
-  targetId   Int?
-  targetType String?
-  ipAddress  String?
-  createdAt  DateTime @default(now())
-}
-
-model WalletTransaction {
-  id        Int           @id @default(autoincrement())
-  userId    Int
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount    Float
-  type      WalletTxnType
-  reason    String
-  createdAt DateTime      @default(now())
-}
-
 enum WalletTxnType {
   CREDIT
   DEBIT
 }
-model Blog {
-  id          Int      @id @default(autoincrement())
-  title       String
-  slug        String   @unique
-  content     String
-  image       String?
-  category    String
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+model YoutubeVideo {
+  id           Int      @id @default(autoincrement())
+  title        String
+  youtubeUrl   String
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

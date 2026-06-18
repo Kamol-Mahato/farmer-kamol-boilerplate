@@ -33,7 +33,7 @@ export default function CustomerDashboard() {
     // লোকাল স্টোরেজ থেকে লগইন করা ইউজারের ডাটা চেক করা
     const storedUser = localStorage.getItem("user")
     if (!storedUser) {
-      router.push("/login")
+      router.replace("/login")
       return
     }
 

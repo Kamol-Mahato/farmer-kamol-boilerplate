@@ -20,6 +20,7 @@ export async function GET(
         pricePerUnit: true,
         unit: true,
         stockQty: true,
+        images: true,
       },
     })
 

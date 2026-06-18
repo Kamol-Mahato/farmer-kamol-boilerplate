@@ -2,18 +2,23 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 
+type Product = {
+  id: number
+  name: string
+  slug: string
+  pricePerUnit: number
+  discountPrice: number | null
+  unit: string
+  images: { imageUrl: string; isPrimary: boolean }[]
+}
+
 const slides = [
-  { type: "youtube", src: "https://www.youtube.com/embed/TKLERsfVMgI?autoplay=1&mute=1&controls=0" },
+  { type: "youtube", src: "https://www.youtube.om/embed/TKLERsfVMgI?autoplay=1&mute=1&controls=0" },
 ]
 
-const products = [
-  { icon: "🍯", name: "সুন্দরবনের খাঁটি মধু", price: "৳ ৬৫০", unit: "৫০০ গ্রাম", href: "/shop/sundarban-khati-modhu" },
-  { icon: "🫙", name: "গাওয়া ঘি (দেশি গরুর)", price: "৳ ৮৫০", unit: "৫০০ গ্রাম", href: "/shop/gawa-ghee-deshi-goru" },
-  { icon: "🌿", name: "খাঁটি সরিষার তেল", price: "৳ ৩২০", unit: "প্রতি লিটার", href: "/shop/khati-sorishar-tel" },
-  { icon: "🥚", name: "দেশি মুরগির ডিম", price: "৳ ১৮০", unit: "প্রতি ডজন", href: "/shop/deshi-morgir-dim" },
-]
+const EMOJI_FALLBACK = ["🍯", "🫙", "🌿", "🥚", "🌾", "🐄"]
 
-export default function HeroSlider() {
+export default function HeroSlider({ featuredProducts = [] }: { featuredProducts?: Product[] }) {
   const [current, setCurrent] = useState(0)
   const [productIndex, setProductIndex] = useState(0)
 
@@ -25,19 +30,20 @@ export default function HeroSlider() {
   }, [])
 
   useEffect(() => {
+    if (featuredProducts.length === 0) return
     const timer = setInterval(() => {
-      setProductIndex(prev => (prev + 1) % products.length)
+      setProductIndex(prev => (prev + 1) % featuredProducts.length)
     }, 2500)
     return () => clearInterval(timer)
-  }, [])
+  }, [featuredProducts.length])
 
   function prev() { setCurrent(p => (p - 1 + slides.length) % slides.length) }
   function next() { setCurrent(p => (p + 1) % slides.length) }
 
   return (
-    <div className="bg-green-900 text-white">
+    <div className="bg-green-900">
       {/* ── PC LAYOUT ── */}
-      <div className="hidden md:grid md:grid-cols-2 h-[300px]">
+      <div className="hidden md:grid md:grid-cols-2 h-[270px]">
 
         {/* বাম — Slider */}
         <div className="relative overflow-hidden">
@@ -55,45 +61,60 @@ export default function HeroSlider() {
               />
             </div>
           ))}
-
-          {/* Left Arrow */}
-          <button
-            onClick={prev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition"
-          >
-            ‹
-          </button>
-
-          {/* Right Arrow */}
-          <button
-            onClick={next}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition"
-          >
-            ›
-          </button>
+          <button onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition">‹</button>
+          <button onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center text-lg transition">›</button>
         </div>
 
-        {/* ডান — Products */}
-        <div className="bg-green-800 flex flex-col items-center justify-center px-8 relative overflow-hidden">
-         
-
-          {products.map((p, i) => (
-            <div
-              key={i}
-              className={`absolute inset-0 flex flex-col items-center justify-center px-8 transition-opacity duration-700 ${productIndex === i ? "opacity-100" : "opacity-0"}`}
-            >
-              <div className="text-8xl mb-4">{p.icon}</div>
-              <h3 className="text-xl font-bold text-white text-center mb-1">{p.name}</h3>
-              <p className="text-green-300 text-sm mb-1">{p.unit}</p>
-              <p className="text-yellow-400 text-2xl font-extrabold mb-5">{p.price}</p>
-              <Link
-                href={p.href}
-                className="bg-yellow-400 hover:bg-yellow-300 text-green-900 px-6 py-2 rounded-xl font-bold text-sm transition"
-              >
-                🛒 অর্ডার করুন
-              </Link>
+        {/* ডান — Featured Products */}
+        <div className="relative overflow-hidden">
+          {featuredProducts.length === 0 ? (
+            <div className="w-full h-full flex items-center justify-center bg-green-800">
+              <p className="text-green-300 text-sm">কোনো ফিচার্ড পণ্য নেই</p>
             </div>
-          ))}
+          ) : (
+            featuredProducts.map((p, i) => {
+              const imageUrl = p.images?.[0]?.imageUrl || "/uploads/1781611130414-modhu.jpg"
+              return (
+                <div
+                  key={p.id}
+                  className={`absolute inset-0 transition-opacity duration-700 ${productIndex === i ? "opacity-100" : "opacity-0"}`}
+                >
+                  {/* পুরো ছবি */}
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={p.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-green-700">
+                      <span className="text-8xl">{EMOJI_FALLBACK[i % EMOJI_FALLBACK.length]}</span>
+                    </div>
+                  )}
+
+                  {/* নিচে ডানে — details overlay */}
+<div className="absolute bottom-0 right-0 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-tl-2xl flex flex-col gap-1">
+  <h3 className="text-base font-bold text-green-900">{p.name}</h3>
+  <p className="text-gray-500 text-xs">{p.unit}</p>
+  {p.discountPrice ? (
+    <div className="flex items-center gap-2">
+      <span className="text-gray-400 line-through text-xs">৳ {p.pricePerUnit}</span>
+      <span className="text-yellow-600 text-lg font-extrabold">৳ {p.discountPrice}</span>
+    </div>
+  ) : (
+    <p className="text-yellow-600 text-lg font-extrabold">৳ {p.pricePerUnit}</p>
+  )}
+  <Link
+    href={`/order?productId=${p.id}`}
+    className="bg-yellow-400 hover:bg-yellow-300 text-green-900 px-6 py-2 rounded-xl font-bold text-xs transition text-center mt-1"
+  >
+    🛒 অর্ডার করুন
+  </Link>
+</div>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 
@@ -114,33 +135,9 @@ export default function HeroSlider() {
               />
             </div>
           ))}
-
-          {/* Mobile Arrows */}
-          <button
-            onClick={prev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center transition"
-          >
-            ‹
-          </button>
-          <button
-            onClick={next}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center transition"
-          >
-            ›
-          </button>
+          <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center transition">‹</button>
+          <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center transition">›</button>
         </div>
-
-        {/* Mobile Dots - পরে দরকার হলে uncomment করো
-<div className="flex justify-center gap-2 py-3 bg-green-900">
-  {slides.map((_, i) => (
-    <button
-      key={i}
-      onClick={() => setCurrent(i)}
-      className={`w-3 h-3 rounded-full transition-all ${current === i ? "bg-yellow-400 w-6" : "bg-green-600"}`}
-    />
-  ))}
-</div>
-*/}
       </div>
     </div>
   )

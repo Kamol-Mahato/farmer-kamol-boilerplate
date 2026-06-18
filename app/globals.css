@@ -5,19 +5,12 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  /* 🌍 পুরো ওয়েবসাইটের সব বাংলা লেখায় Hind Siliguri ফন্ট গ্লোবালি অ্যাক্টিভেট করা হলো */
   font-family: var(--font-hind-siliguri), Arial, Helvetica, sans-serif !important;
 }
+
 @keyframes marquee {
   0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
@@ -27,4 +20,40 @@ body {
   display: inline-block;
   animation: marquee 90s linear infinite;
   will-change: transform;
+}
+
+input, textarea, select {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280 !important;
+  font-weight: 700 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  input, textarea, select {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #6b7280 !important;
+    font-weight: 700 !important;
+  }
+}
+label {
+  color: #000000 !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+}
+@keyframes bounce-once {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-12px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(-4px); }
+}
+
+.animate-bounce-once {
+  animation: bounce-once 0.8s ease;
 }

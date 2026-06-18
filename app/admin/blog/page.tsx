@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 export default function AdminBlogPage() {
   const router = useRouter()
   const [blogs, setBlogs] = useState<any[]>([])
+  const [dbCategories, setDbCategories] = useState<any[]>([]) // ১. ক্যাটাগরির জন্য নতুন স্টেট
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     title: "",
@@ -15,10 +16,18 @@ export default function AdminBlogPage() {
     isPublished: false,
   })
 
+  // ২. ব্লগ লিস্ট এবং ক্যাটাগরি লিস্ট ফেচ করা
   useEffect(() => {
+    // ব্লগ ফেচ করা
     fetch("/api/blog")
       .then(res => res.json())
       .then(data => setBlogs(data))
+
+    // ডাটাবেজ থেকে ক্যাটাগরি ফেচ করা
+    fetch("/api/categories") // আপনার ক্যাটাগরি API রুট অনুযায়ী পাথ দিন
+      .then(res => res.json())
+      .then(data => setDbCategories(data))
+      .catch(err => console.error("ক্যাটাগরি লোড করতে সমস্যা হয়েছে:", err))
   }, [])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
@@ -29,10 +38,10 @@ export default function AdminBlogPage() {
     }))
   }
 
- function generateSlug(title: string) {
-  const timestamp = Date.now()
-  return `blog-${timestamp}`
-}
+  function generateSlug(title: string) {
+    const timestamp = Date.now()
+    return `blog-${timestamp}`
+  }
 
   async function handleSubmit() {
     setLoading(true)
@@ -81,6 +90,8 @@ export default function AdminBlogPage() {
             placeholder="Slug (auto)"
             className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500 text-gray-400"
           />
+
+          {/* ৩. সম্পূর্ণ অটোমেটেড সিলেক্ট বক্স */}
           <select
             name="category"
             value={form.category}
@@ -88,12 +99,13 @@ export default function AdminBlogPage() {
             className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500"
           >
             <option value="">Category select করুন</option>
-            <option value="পশুপালন">পশুপালন</option>
-            <option value="মৎস্য চাষ">মৎস্য চাষ</option>
-            <option value="কৃষি">কৃষি</option>
-            <option value="মধু">মধু</option>
-            <option value="সাধারণ">সাধারণ</option>
+            {dbCategories.map((cat: any) => (
+              <option key={cat.id || cat.name} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
           </select>
+
           <input
             name="image"
             value={form.image}

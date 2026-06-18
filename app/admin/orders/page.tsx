@@ -39,10 +39,9 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [showingLimit, setShowingLimit] = useState(10)
 
-  // 🕒 ৭ দিন পিছানো ডেট-টাইম রেঞ্জ স্টেট (বছর, মাস, দিন, ঘণ্টা, মিনিট, সেকেন্ড ট্র্যাকিং)
   const [startDate, setStartDate] = useState(() => {
     const d = new Date()
-    d.setDate(d.getDate() - 7)
+    d.setMonth(d.getMonth() - 1)
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
   })
 
@@ -140,7 +139,7 @@ export default function AdminOrdersPage() {
     }
 
     const selectedOrdersData = orders.filter(o => selectedOrderIds.includes(o.id))
-    let csvContent = "data:text/csv;charset=utf-8,Customer Name,Phone,Full Address,Final COD Amount,Status\n"
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFFCustomer Name,Phone,Full Address,Final COD Amount,Status\n"
 
     selectedOrdersData.forEach((order) => {
       const name = `"${order.customer.name.replace(/"/g, '""')}"`
@@ -279,13 +278,40 @@ export default function AdminOrdersPage() {
           </select>
         </div>
 
-        {/* 📥 CSV এক্সপোর্ট বাটন */}
-        <button
-          onClick={handleExportCSV}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-500 transition shadow-sm"
-        >
-          📥 নির্বাচিত ডেটা CSV এক্সপোর্ট
-        </button>
+       {/* 📥 CSV ও Invoice বাটন */}
+       <div className="flex gap-3">
+          <button
+            onClick={handleExportCSV}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-500 transition shadow-sm"
+          >
+            📥 নির্বাচিত ডেটা CSV এক্সপোর্ট
+          </button>
+          <div className="relative group">
+            <button
+              onClick={() => { if (selectedOrderIds.length === 0) alert("অনুগ্রহ করে কমপক্ষে ১টি অর্ডার সিলেক্ট করুন।") }}
+              className="bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition shadow-sm flex items-center gap-2"
+            >
+              🧾 Invoice প্রিন্ট ▾
+            </button>
+            {selectedOrderIds.length > 0 && (
+              <div className="absolute left-40 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                {[
+                  { label: "🖨️ A4 প্রিন্ট", type: "a4" },
+                  { label: "🧾 POS প্রিন্ট", type: "pos" },
+                  { label: "🏷️ স্টিকার প্রিন্ট", type: "sticker" },
+                ].map(opt => (
+                  <button
+                    key={opt.type}
+                    onClick={() => window.open(`/admin/invoice?ids=${selectedOrderIds.join(",")}&type=${opt.type}`, "_blank")}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-800 font-medium transition"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 🚀 বাল্ক অ্যাকশন এবং ৩পিএল কুরিয়ার কোম্পানি সিলেকশন বার */}
@@ -365,7 +391,13 @@ export default function AdminOrdersPage() {
               </tr>
             ) : (
               filteredOrders.map((order) => (
-                <tr key={order.id} className={`transition ${selectedOrderIds.includes(order.id) ? "bg-green-50/40" : "hover:bg-gray-50/50"}`}>
+                <tr key={order.id} className={`transition ${
+                  selectedOrderIds.includes(order.id) ? "bg-green-50/40" :
+                  order.orderStatus === "DELIVERED" ? "bg-green-50" :
+                  order.orderStatus === "SHIPPED" ? "bg-yellow-50" :
+                  order.orderStatus === "CANCELLED" ? "bg-red-50" :
+                  "hover:bg-gray-50/50"
+                }`}>
                   <td className="px-4 py-4 text-center">
                     <input
                       type="checkbox"
@@ -394,22 +426,32 @@ export default function AdminOrdersPage() {
 
                   {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
                   <td className="px-6 py-4">
-                    <div className="relative inline-block w-36">
-                      <select
-                        value={order.orderStatus}
-                        onChange={(e) => handleStatusUpdate([order.id], e.target.value)}
-                        className={`w-full cursor-pointer rounded-full px-2.5 py-1 text-xs font-bold border appearance-none focus:outline-none transition ${
-                          order.orderStatus === "PENDING" ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-                          order.orderStatus === "SHIPPED" ? "bg-blue-50 text-blue-700 border-blue-200" :
-                          order.orderStatus === "DELIVERED" ? "bg-green-50 text-green-700 border-green-200" :
-                          "bg-red-50 text-red-700 border-red-200"
-                        }`}
-                      >
-                        <option value="PENDING">পেন্ডিং</option>
-                        <option value="SHIPPED">পাঠানো হয়েছে</option>
-                        <option value="DELIVERED">ডেলিভার্ড</option>
-                        <option value="CANCELLED">বাতিল</option>
-                      </select>
+                    <div className="relative inline-block">
+                    <select
+  value={order.orderStatus}
+  onChange={(e) => handleStatusUpdate([order.id], e.target.value)}
+  style={{
+    backgroundColor:
+      order.orderStatus === "PENDING" ? "#facc15" :
+      order.orderStatus === "SHIPPED" ? "#f59e0b" :
+      order.orderStatus === "DELIVERED" ? "#16a34a" :
+      "#ef4444",
+    color:
+      order.orderStatus === "PENDING" ? "#713f12" : "white",
+    borderRadius: "9999px",
+    padding: "4px 12px",
+    fontSize: "12px",
+    fontWeight: "800",
+    border: "none",
+    cursor: "pointer",
+    outline: "none",
+  }}
+>
+  <option value="PENDING">পেন্ডিং</option>
+  <option value="SHIPPED">পাঠানো হয়েছে</option>
+  <option value="DELIVERED">ডেলিভার্ড</option>
+  <option value="CANCELLED">বাতিল</option>
+</select>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                         <svg className="fill-current h-3 w-3" xmlns="http://w3.org" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                       </div>
