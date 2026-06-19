@@ -22,6 +22,8 @@ interface Order {
   deliveryCharge: number
   orderStatus: string
   paymentMethod: string
+  paymentAmountPaid: number    // নতুন যোগ হলো
+  paymentStatus: string        // নতুন যোগ হলো
   customer: { name: string; phone: string }
   orderItems: OrderItem[]
 }
@@ -87,10 +89,16 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
         <div className="flex justify-between text-sm text-gray-600 mt-1">
           <span>ডেলিভারি চার্জ</span><span>৳ {order.deliveryCharge}</span>
         </div>
-        <div className="flex justify-between font-extrabold text-green-800 text-lg mt-2 pt-2 border-t">
-          <span>মোট COD</span><span>৳ {order.finalCodAmount}</span>
+        
+        {/* এখানে নতুন পেমেন্ট ডিটেইলস যোগ হচ্ছে */}
+        <div className="flex justify-between text-sm text-gray-600 mt-1 border-t pt-1">
+          <span>পেইড অ্যামাউন্ট</span><span>৳ {order.paymentAmountPaid}</span>
+        </div>
+        <div className="flex justify-between font-extrabold text-red-600 text-lg mt-2 pt-2 border-t">
+          <span>বাকি টাকা (Due)</span><span>৳ {order.finalCodAmount - order.paymentAmountPaid}</span>
         </div>
       </div>
+
       <div className="flex items-center justify-between border-t pt-4">
         <Barcode value={customId} width={1.2} height={40} fontSize={10} />
         <div className="text-center">
@@ -112,8 +120,9 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
         <p className="text-xs text-yellow-600">খামার থেকে আপনার দরজায়</p>
       </div>
       <div className="border-t border-dashed border-gray-400 my-2" />
-      <p className="text-xs font-bold text-center text-gray-700">{customId}</p>
-      <p className="text-xs text-gray-500 text-center">{new Date(order.createdAt).toLocaleDateString("bn-BD")}</p>
+      <p className="text-xs font-bold text-gray-700">COD: ৳ {order.finalCodAmount}</p>
+      <p className="text-xs text-gray-600">পেইড: ৳ {order.paymentAmountPaid}</p>
+      <p className="text-xs font-bold text-red-600">বাকি: ৳ {order.finalCodAmount - order.paymentAmountPaid}</p>
       <div className="border-t border-dashed border-gray-400 my-2" />
       <p className="text-xs"><span className="font-bold">নাম:</span> {order.customer.name}</p>
       <p className="text-xs mt-1"><span className="font-bold">ফোন:</span> {order.customer.phone}</p>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import { generateCustomId } from "@/lib/orderUtils"
 
 interface OrderItem {
   id: number
@@ -19,8 +20,12 @@ interface Order {
   deliveryAddress: string
   finalCodAmount: number
   orderStatus: string
+  dailySeq: number
+  paymentMethod: string
+  paymentStatus: string
+  paymentAmountPaid: number
   customerNote: string | null
-  courierSummary: CourierSummary | null // স্কিমা অনুযায়ী টাইপ সেটআপ
+  courierSummary: CourierSummary | null // স্কিমা অনুযায়ী টাইপ সেটআপ
   customer: { name: string; phone: string }
   orderItems: OrderItem[]
 }
@@ -71,15 +76,41 @@ export default function AdminOrdersPage() {
     setEndDate(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16))
   }
 
-  function generateCustomId(createdAt: string, id: number) {
-    const dateObj = new Date(createdAt)
-    return `FK-${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}-${String(id).padStart(5, "0")}`
+  // 💳 পেমেন্ট কলামের ব্যাজ তৈরি করার লজিক — COD ও Online Payment আলাদাভাবে দেখাবে
+  function renderPaymentBadge(order: Order) {
+    if (order.paymentMethod !== "GATEWAY") {
+      return (
+        <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">
+          COD
+        </span>
+      )
+    }
+    if (order.paymentStatus === "PAID") {
+      return (
+        <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
+          ✅ পেইড
+        </span>
+      )
+    }
+    if (order.paymentStatus === "PARTIAL_PAID") {
+      const due = order.finalCodAmount - order.paymentAmountPaid
+      return (
+        <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
+          🟠 আংশিক পেইড (বাকি ৳{due})
+        </span>
+      )
+    }
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
+        🟡 পেমেন্ট কনফার্মেশন পেন্ডিং
+      </span>
+    )
   }
 
   // রিয়েল-টাইম ক্লায়েন্ট সাইড সার্চ ফিল্টারিং লজিক (৪ ডিজিট এবং টাইম-স্ট্যাম্প সহ)
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
-      const customId = generateCustomId(order.createdAt, order.id)
+      const customId = generateCustomId(order.createdAt, order.dailySeq)
       
       if (searchId.trim().length >= 4 && !customId.toLowerCase().endsWith(searchId.trim().toLowerCase())) {
         return false
@@ -139,17 +170,18 @@ export default function AdminOrdersPage() {
     }
 
     const selectedOrdersData = orders.filter(o => selectedOrderIds.includes(o.id))
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFFCustomer Name,Phone,Full Address,Final COD Amount,Status\n"
-
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFFCustomer Name,Phone,Full Address,Products,Final COD Amount,Payment Method,Payment Status,Status\n"
     selectedOrdersData.forEach((order) => {
       const name = `"${order.customer.name.replace(/"/g, '""')}"`
       const phone = `"${order.customer.phone}"`
       const address = `"${order.deliveryAddress.replace(/"/g, '""')}"`
+      const products = `"${order.orderItems.map(i => `${i.product.name} x${i.quantity}`).join("; ").replace(/"/g, '""')}"`
       const cod = order.finalCodAmount
-      // স্ট্যাটাসের পাশে ৩পিএল কুরিয়ারের নাম থাকলে তাও প্রিন্ট হবে
+      const paymentMethod = order.paymentMethod === "GATEWAY" ? "Online Payment" : "COD"
+      const paymentStatus = order.paymentMethod === "GATEWAY" ? order.paymentStatus : "-"
+      // স্ট্যাটাসের পাশে ৩পিএল কুরিয়ারের নাম থাকলে তাও প্রিন্ট হবে
       const status = `"${order.orderStatus}${order.courierSummary ? ` (${order.courierSummary.courierStatus})` : ""}"`
-
-      csvContent += `${name},${phone},${address},${cod},${status}\n`
+      csvContent += `${name},${phone},${address},${products},${cod},${paymentMethod},${paymentStatus},${status}\n`
     })
 
     const encodedUri = encodeURI(csvContent)
@@ -294,7 +326,7 @@ export default function AdminOrdersPage() {
               🧾 Invoice প্রিন্ট ▾
             </button>
             {selectedOrderIds.length > 0 && (
-              <div className="absolute left-40 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+              <div className="absolute right-100 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
                 {[
                   { label: "🖨️ A4 প্রিন্ট", type: "a4" },
                   { label: "🧾 POS প্রিন্ট", type: "pos" },
@@ -377,7 +409,7 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">অর্ডার ID</th>
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
-              <th className="px-6 py-4 font-medium">পণ্য</th>
+              <th className="px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
@@ -410,17 +442,15 @@ export default function AdminOrdersPage() {
                   {/* 🔗 ক্লিকেবল অর্ডার আইডি */}
                   <td className="px-6 py-4 font-bold text-blue-600 tracking-wider hover:underline">
                     <Link href={`/admin/orders/${order.id}`}>
-                      {generateCustomId(order.createdAt, order.id)}
+                      {generateCustomId(order.createdAt, order.dailySeq)}
                     </Link>
                   </td>
 
                   {/* লকড কলামসমূহ (ক্লিক করা যাবে না) */}
                   <td className="px-6 py-4 font-medium text-gray-800 select-none">{order.customer.name}</td>
                   <td className="px-6 py-4 text-gray-600 select-none">{order.customer.phone}</td>
-                  <td className="px-6 py-4 text-gray-600 select-none">
-                    {order.orderItems.map(item => (
-                      <div key={item.id}>{item.product.name} × {item.quantity}</div>
-                    ))}
+                  <td className="px-6 py-4 select-none">
+                    {renderPaymentBadge(order)}
                   </td>
                   <td className="px-6 py-4 font-bold text-green-700 select-none">৳ {order.finalCodAmount}</td>
 

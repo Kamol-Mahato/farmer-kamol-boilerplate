@@ -19,12 +19,10 @@ function DistrictSearch({ districts, onSelect }: {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
   const [selected, setSelected] = useState("")
-
   const filtered = districts.filter(d =>
     d.name.includes(query) ||
     d.en_name.toLowerCase().includes(query.toLowerCase())
   )
-
   return (
     <div className="relative">
       <input
@@ -68,6 +66,7 @@ function OrderForm() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null)
+  const [copied, setCopied] = useState(false)
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -76,7 +75,17 @@ function OrderForm() {
     address: "",
     quantity: 1,
     customerNote: "",
+    paymentMethod: "", // ✅ "" | COD | GATEWAY — কাস্টমার নিজে select করবে
+    gatewayName: "",      // ✅ bKash | Nagad | Rocket
+    trxId: "",            // ✅ Transaction ID
   })
+
+  // ✅ পেমেন্ট নম্বর কপি করার ফাংশন
+  function copyNumber() {
+    navigator.clipboard.writeText("01737939688")
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // ডেলিভারি চার্জের ডাইনামিক হিসাব
   const isDhaka = selectedDistrictId === 21;
@@ -190,6 +199,10 @@ function OrderForm() {
   const totalPrice = product ? product.pricePerUnit * Number(form.quantity) : 0
 
   async function handleSubmit(e: React.FormEvent) {
+    if (form.phone.length !== 11 || !form.phone.startsWith("01")) {
+      setError("আপনার মোবাইল নম্বরটি সঠিক নয় (১১ ডিজিট হতে হবে এবং 01 দিয়ে শুরু হতে হবে)")
+      return
+    }
     e.preventDefault()
     if (!form.quantity || Number(form.quantity) < 1) {
       setError("পরিমাণ কমপক্ষে ১ হতে হবে")
@@ -202,6 +215,22 @@ function OrderForm() {
     if (product && product.stockQty < form.quantity) {
       setError(`দুঃখিত, পর্যাপ্ত স্টক নেই। উপলব্ধ স্টক: ${product.stockQty} টি`)
       return
+    }
+
+    if (!form.paymentMethod) {
+      setError("পেমেন্ট পদ্ধতি বেছে নিন (Cash on Delivery বা Online Payment)")
+      return
+    }
+    // ✅ Online payment হলে gatewayName + trxId চেক
+    if (form.paymentMethod === "GATEWAY") {
+      if (!form.gatewayName) {
+        setError("কোন মাধ্যমে (bKash/Nagad/Rocket) Send Money করেছেন বেছে নিন")
+        return
+      }
+      if (!form.trxId.trim()) {
+        setError("Transaction ID (TrxID) দিন")
+        return
+      }
     }
     setLoading(true)
     setError("")
@@ -217,7 +246,10 @@ function OrderForm() {
           productId: parseInt(productId || "0"),
           quantity: form.quantity,
           customerNote: form.customerNote,
-          deliveryCharge: deliveryCharge, // এখানে ডাইনামিক চার্জ যাচ্ছে
+          deliveryCharge: deliveryCharge,
+          paymentMethod: form.paymentMethod,
+          gatewayName: form.paymentMethod === "GATEWAY" ? form.gatewayName : null,
+          trxId: form.paymentMethod === "GATEWAY" ? form.trxId.trim() : null,
         }),
       })
       const data = await res.json()
@@ -240,7 +272,11 @@ function OrderForm() {
         <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-2xl font-bold text-green-800 mb-2">অর্ডার সফল হয়েছে!</h2>
-          <p className="text-gray-500 mb-4 text-sm">আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।</p>
+          <p className="text-gray-500 mb-4 text-sm">
+            {form.paymentMethod === "GATEWAY"
+              ? "আমরা আপনার পেমেন্ট যাচাই করে শীঘ্রই অর্ডার কনফার্ম করব।"
+              : "আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।"}
+          </p>
           <div className="bg-green-50 rounded-xl p-4 border border-green-100 text-left mb-4">
             <p className="font-bold text-green-800 text-sm mb-1">অর্ডারের বিবরণ</p>
             <p className="text-gray-600 text-sm">{product?.name}</p>
@@ -270,7 +306,6 @@ function OrderForm() {
           <p className="text-yellow-600 font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
         </div>
       </div>
-
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -279,10 +314,24 @@ function OrderForm() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">মোবাইল *</label>
-            <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="01XXXXXXXXX" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+            <input 
+              type="tel" 
+              name="phone" 
+              value={form.phone} 
+              onChange={handleChange} 
+              placeholder="01XXXXXXXXX" 
+              required 
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${
+                form.phone.length > 0 && (form.phone.length !== 11 || !form.phone.startsWith("01"))
+                  ? "border-red-500 bg-red-50" 
+                  : "border-gray-200 focus:border-green-500"
+              }`} 
+            />
+            {form.phone.length > 0 && (form.phone.length !== 11 || !form.phone.startsWith("01")) && (
+              <p className="text-red-500 text-[10px] mt-1 font-bold">সঠিক ১১ ডিজিটের নম্বর দিন (01 দিয়ে শুরু)</p>
+            )}
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">জেলা *</label>
@@ -296,7 +345,6 @@ function OrderForm() {
             </select>
           </div>
         </div>
-
         <div className="grid grid-cols-3 gap-2">
           <div className="col-span-2">
             <label className="block text-xs font-medium text-gray-700 mb-1">ঠিকানা *</label>
@@ -312,6 +360,85 @@ function OrderForm() {
           </div>
         </div>
 
+        {/* ✅ Payment Method Selection */}
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-2">পেমেন্ট পদ্ধতি *</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, paymentMethod: "COD" }))}
+              className={`py-2 rounded-lg text-sm font-bold border-2 transition ${
+                form.paymentMethod === "COD"
+                  ? "border-green-600 bg-green-50 text-green-800"
+                  : "border-gray-200 text-gray-500"
+              }`}
+            >
+              💵 ক্যাশ অন ডেলিভারি
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, paymentMethod: "GATEWAY" }))}
+              className={`py-2 rounded-lg text-sm font-bold border-2 transition ${
+                form.paymentMethod === "GATEWAY"
+                  ? "border-green-600 bg-green-50 text-green-800"
+                  : "border-gray-200 text-gray-500"
+              }`}
+            >
+              📱 অনলাইন পেমেন্ট
+            </button>
+          </div>
+        </div>
+
+        {/* ✅ Online payment হলে bKash/Nagad/Rocket + TrxID box */}
+        {form.paymentMethod === "GATEWAY" && (
+          <div className="bg-pink-50 border border-pink-200 rounded-xl p-3 space-y-3">
+            <p className="text-xs font-bold text-gray-700">কোন মাধ্যমে Send Money করেছেন? *</p>
+            <div className="grid grid-cols-3 gap-2">
+              {["bKash", "Nagad", "Rocket"].map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, gatewayName: g }))}
+                  className={`py-2 rounded-lg text-xs font-bold border-2 transition ${
+                    form.gatewayName === g
+                      ? "border-pink-600 bg-pink-100 text-pink-800"
+                      : "border-gray-200 text-gray-500 bg-white"
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500">এই নম্বরে Send Money করুন</p>
+                <p className="font-bold text-gray-800 text-base">01737939688</p>
+              </div>
+              <button
+                type="button"
+                onClick={copyNumber}
+                className="bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-green-600 transition"
+              >
+                {copied ? "✅ কপি হয়েছে" : "কপি করুন"}
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Transaction ID (TrxID) *</label>
+              <input
+                type="text"
+                name="trxId"
+                value={form.trxId}
+                onChange={handleChange}
+                placeholder="যেমন: 8N7A6XYZ12"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-500"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">Send Money করার পর SMS এ পাওয়া Transaction ID টি এখানে বসান।</p>
+            </div>
+          </div>
+        )}
+
         <div className="bg-gray-50 rounded-lg p-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">পণ্য + ডেলিভারি</span>
@@ -322,6 +449,7 @@ function OrderForm() {
             <span className="font-bold text-green-700">৳ {totalPrice + deliveryCharge}</span>
           </div>
         </div>
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <button type="submit" disabled={loading} className="bg-green-700 text-white w-full py-3 rounded-xl font-bold text-base hover:bg-green-600 transition disabled:opacity-50">
           {loading ? "অর্ডার হচ্ছে..." : "✅ অর্ডার কনফার্ম করুন"}
         </button>

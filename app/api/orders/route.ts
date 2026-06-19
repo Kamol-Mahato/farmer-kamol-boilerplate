@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { sendTelegramAlert } from "@/lib/telegram"
+import { getBangladeshDayBoundaries } from "@/lib/orderUtils"
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
     const {
       name,
       phone,
@@ -12,7 +13,10 @@ export async function POST(request: Request) {
       productId,
       quantity,
       customerNote,
-      deliveryCharge: clientDeliveryCharge 
+      deliveryCharge: clientDeliveryCharge,
+      paymentMethod,
+      gatewayName,
+      trxId,
     } = body
 
     if (!name || !phone || !address || !productId || !quantity || quantity < 1) {
@@ -22,17 +26,44 @@ export async function POST(request: Request) {
       )
     }
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    })
-
-    if (!product) {
+    // ✅ পেমেন্ট পদ্ধতি বাধ্যতামূলক
+    if (!paymentMethod || (paymentMethod !== "COD" && paymentMethod !== "GATEWAY")) {
       return NextResponse.json(
-        { error: "পণ্যটি খুঁজে পাওয়া যায়নি" },
-        { status: 404 }
+        { error: "পেমেন্ট পদ্ধতি বেছে নিন" },
+        { status: 400 }
       )
     }
 
+    // ✅ Online পেমেন্ট হলে gatewayName + trxId বাধ্যতামূলক
+    if (paymentMethod === "GATEWAY") {
+      if (!gatewayName || !trxId || !String(trxId).trim()) {
+        return NextResponse.json(
+          { error: "অনলাইন পেমেন্টের জন্য মাধ্যম ও Transaction ID দিন" },
+          { status: 400 }
+        )
+      }
+
+      // ✅ Duplicate TrxID চেক (আগেই কেউ এই TrxID ব্যবহার করেছে কিনা)
+      const existingTrx = await prisma.order.findUnique({
+        where: { gatewayTxnId: String(trxId).trim() },
+      })
+      if (existingTrx) {
+        return NextResponse.json(
+          { error: "এই Transaction ID দিয়ে আগেই একটি অর্ডার করা হয়েছে। সঠিক TrxID দিন।" },
+          { status: 409 }
+        )
+      }
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    })
+    if (!product) {
+      return NextResponse.json(
+        { error: "পণ্যটি খুঁজে পাওয়া যায়নি" },
+        { status: 404 }
+      )
+    }
     if (product.stockQty < quantity) {
       return NextResponse.json(
         { error: `দুঃখিত, পর্যাপ্ত স্টক নেই। উপলব্ধ স্টক: ${product.stockQty} টি` },
@@ -41,15 +72,13 @@ export async function POST(request: Request) {
     }
 
     const totalProductPrice = product.pricePerUnit * quantity
-    const deliveryCharge = clientDeliveryCharge || 120 
+    const deliveryCharge = clientDeliveryCharge || 120
     const finalCodAmount = totalProductPrice + deliveryCharge
 
     const result = await prisma.$transaction(async (tx) => {
-      
       let customer = await tx.user.findUnique({
         where: { phone },
       })
-
       if (!customer) {
         customer = await tx.user.create({
           data: {
@@ -60,19 +89,28 @@ export async function POST(request: Request) {
         })
       }
 
-      // বাধ্যতামূলক 'createdById' ফিল্ডটি এখানে যুক্ত করা হয়েছে [এরর সমাধান]
+      // ✅ আজকে (বাংলাদেশ সময় অনুযায়ী) এখন পর্যন্ত কতগুলো অর্ডার হয়েছে, তার ভিত্তিতে দৈনিক ক্রম নম্বর
+      const { start, end } = getBangladeshDayBoundaries()
+      const todayCount = await tx.order.count({
+        where: { createdAt: { gte: start, lt: end } },
+      })
+      const dailySeq = todayCount + 1
+
       const order = await tx.order.create({
         data: {
           customerId: customer.id,
-          createdById: customer.id, 
+          createdById: customer.id,
           deliveryAddress: address,
           customerNote,
-          totalProductPrice, 
-          deliveryCharge,    
-          finalCodAmount,    
+          totalProductPrice,
+          deliveryCharge,
+          finalCodAmount,
           orderStatus: "PENDING",
-          paymentMethod: "COD",
+          paymentMethod,
           paymentStatus: "PENDING",
+          gatewayName: paymentMethod === "GATEWAY" ? gatewayName : null,
+          gatewayTxnId: paymentMethod === "GATEWAY" ? String(trxId).trim() : null,
+          dailySeq,
           orderItems: {
             create: {
               productId,
@@ -95,14 +133,35 @@ export async function POST(request: Request) {
       return order
     })
 
+    // ✅ Online Payment (GATEWAY) হলে Telegram এ এডমিনকে নোটিফিকেশন পাঠানো
+    if (paymentMethod === "GATEWAY") {
+      await sendTelegramAlert(
+        `🟡 <b>নতুন পেমেন্ট রিসিভড!</b>\n\n` +
+        `👤 কাস্টমার: ${name}\n` +
+        `📞 ফোন: ${phone}\n` +
+        `💳 মাধ্যম: ${gatewayName}\n` +
+        `🔢 TrxID: ${trxId}\n` +
+        `💰 মোট বিল: ৳ ${finalCodAmount}\n\n` +
+        `অর্ডার #${result.id} — পেমেন্ট কনফার্ম করতে অ্যাডমিন প্যানেলে যান।`
+      )
+    }
+
     return NextResponse.json({
       success: true,
       orderId: result.id,
     })
+
   } catch (error: any) {
+    // ✅ Race condition এ একই সময়ে দুজন একই TrxID দিলে DB unique constraint ধরবে
+    if (error?.code === "P2002" && error?.meta?.target?.includes("gatewayTxnId")) {
+      return NextResponse.json(
+        { error: "এই Transaction ID দিয়ে আগেই একটি অর্ডার করা হয়েছে। সঠিক TrxID দিন।" },
+        { status: 409 }
+      )
+    }
     console.error("CRITICAL ORDER API ERROR DETAILS ->", error)
     return NextResponse.json(
-      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
+      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }

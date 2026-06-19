@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import OrderStatusUpdate from "./OrderStatusUpdate"
+import PaymentConfirm from "./PaymentConfirm"
+import { generateCustomId } from "@/lib/orderUtils"
 
 export default async function OrderDetailPage({
   params,
@@ -39,7 +41,7 @@ export default async function OrderDetailPage({
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-green-800">অর্ডার #{order.id}</h1>
+      <h1 className="text-3xl font-bold text-green-800">অর্ডার #{generateCustomId(order.createdAt, order.dailySeq)}</h1>
         <a href="/admin/orders" className="text-blue-600 hover:underline">← ফিরে যান</a>
       </div>
 
@@ -60,7 +62,19 @@ export default async function OrderDetailPage({
         <div className="bg-white rounded-xl shadow p-6">
           <h2 className="font-bold text-gray-800 mb-4">অর্ডার তথ্য</h2>
           <p className="text-gray-600"><span className="font-medium">তারিখ:</span> {new Date(order.createdAt).toLocaleDateString("bn-BD")}</p>
-          <p className="text-gray-600 mt-2"><span className="font-medium">পেমেন্ট:</span> {order.paymentMethod}</p>
+          <p className="text-gray-600 mt-2"><span className="font-medium">পেমেন্ট:</span> {order.paymentMethod === "GATEWAY" ? "অনলাইন পেমেন্ট" : "ক্যাশ অন ডেলিভারি"}</p>
+          <p className="text-gray-600 mt-2"><span className="font-medium">পেমেন্ট স্ট্যাটাস:</span> {order.paymentStatus === "PAID" ? "✅ পেইড" : "⏳ পেন্ডিং"}</p>
+          <PaymentConfirm
+            orderId={order.id}
+            paymentMethod={order.paymentMethod}
+            paymentStatus={order.paymentStatus}
+            gatewayName={order.gatewayName}
+            gatewayTxnId={order.gatewayTxnId}
+            finalCodAmount={order.finalCodAmount}
+            paymentAmountPaid={order.paymentAmountPaid}
+            customerPhone={order.customer.phone}
+            customOrderId={generateCustomId(order.createdAt, order.dailySeq)}
+          />
           
           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
             <div className="flex justify-between">
@@ -75,6 +89,20 @@ export default async function OrderDetailPage({
               <span>মোট COD</span>
               <span className="text-green-700">৳ {order.finalCodAmount}</span>
             </div>
+
+            {/* ✅ Online payment হলে paid + due দেখাবে */}
+            {order.paymentMethod === "GATEWAY" && order.paymentAmountPaid > 0 && (
+              <>
+                <div className="flex justify-between mt-2 text-blue-700 font-medium">
+                  <span>অনলাইনে পেমেন্ট</span>
+                  <span>- ৳ {order.paymentAmountPaid}</span>
+                </div>
+                <div className="flex justify-between mt-1 pt-2 border-t font-bold text-red-600">
+                  <span>পেমেন্ট বাকী</span>
+                  <span>৳ {order.finalCodAmount - order.paymentAmountPaid}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

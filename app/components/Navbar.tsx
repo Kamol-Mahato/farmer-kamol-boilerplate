@@ -21,6 +21,8 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("")
   const [cartCount, setCartCount] = useState<number>(0)
   const [openMobileMenu, setOpenMobileMenu] = useState<number | null>(null)
+  // ✅ নতুন state — user dropdown (👤) এর জন্য, click ভিত্তিক
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const checkUser = () => {
     const storedUser = localStorage.getItem("user")
@@ -47,7 +49,6 @@ export default function Navbar() {
   useEffect(() => {
     checkUser()
     checkCart()
-
     // ✅ storage event — অন্য tab-এর জন্য
     window.addEventListener("storage", checkUser)
     window.addEventListener("storage", checkCart)
@@ -68,6 +69,7 @@ export default function Navbar() {
   function handleLogout() {
     localStorage.removeItem("user")
     setUser(null)
+    setUserMenuOpen(false)
     router.push("/login")
   }
 
@@ -81,9 +83,11 @@ export default function Navbar() {
   return (
     <>
       <AnnouncementBar />
+
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/50 z-[70] md:hidden" onClick={() => setMobileOpen(false)} />
       )}
+
       <div className={`fixed top-0 left-0 h-full w-72 bg-green-900 z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between p-4 border-b border-green-700">
           <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
@@ -194,12 +198,16 @@ export default function Navbar() {
             </div>
 
             {user ? (
-              <div className="relative group">
-                <button className="bg-white text-green-900 hover:bg-yellow-400 transition text-xl px-2 py-1 rounded-full">
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="bg-white text-green-900 hover:bg-yellow-400 transition text-xl px-2 py-1 rounded-full"
+                >
                   👤
                 </button>
-                <div className="absolute right-0 top-full hidden group-hover:block bg-green-800 rounded-lg shadow-lg min-w-[160px] py-2 z-50">
+                <div className={`absolute right-0 top-full ${userMenuOpen ? "block" : "hidden"} bg-green-800 rounded-lg shadow-lg min-w-[160px] py-2 z-50`}>
                   <Link href={user.role === "ADMIN" ? "/admin/products" : "/customer/dashboard"}
+                    onClick={() => setUserMenuOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-green-700 hover:text-yellow-400 transition"
                   >
                     আমার অ্যাকাউন্ট
