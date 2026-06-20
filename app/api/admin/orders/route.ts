@@ -65,9 +65,49 @@ export async function POST(request: Request) {
       })
     }
 
-    return NextResponse.json({ success: true, message: "অর্ডার সফলভাবে আপডেট হয়েছে" })
+    return NextResponse.json({ success: true, message: "অর্ডার সফলভাবে আপডেট হয়েছে" })
   } catch (error: any) {
     console.error("COURIER UPDATE ERROR ->", error)
-    return NextResponse.json({ error: "অভ্যন্তরীণ সমস্যা হয়েছে" }, { status: 500 })
+    return NextResponse.json({ error: "অভ্যন্তরীণ সমস্যা হয়েছে" }, { status: 500 })
+  }
+}
+
+// 🗑️ ভুল TrxID / fake order ডিলিট করার API — Stock ফিরিয়ে দেবে
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json()
+    const { orderId } = body
+    if (!orderId) {
+      return NextResponse.json({ error: "অর্ডার আইডি দরকার" }, { status: 400 })
+    }
+    const orderIdInt = parseInt(orderId)
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderIdInt },
+      include: { orderItems: true },
+    })
+    if (!order) {
+      return NextResponse.json({ error: "অর্ডার পাওয়া যায়নি" }, { status: 404 })
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // ✅ Stock ফিরিয়ে দেওয়া
+      for (const item of order.orderItems) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stockQty: { increment: item.quantity } },
+        })
+      }
+      // ✅ আগে related records ডিলিট (foreign key error এড়ানোর জন্য)
+      await tx.invoice.deleteMany({ where: { orderId: orderIdInt } })
+      await tx.courierSummary.deleteMany({ where: { orderId: orderIdInt } })
+      await tx.orderItem.deleteMany({ where: { orderId: orderIdInt } })
+      await tx.order.delete({ where: { id: orderIdInt } })
+    })
+
+    return NextResponse.json({ success: true, message: "অর্ডার ডিলিট হয়েছে এবং স্টক ফিরিয়ে দেওয়া হয়েছে" })
+  } catch (error: any) {
+    console.error("DELETE ORDER ERROR ->", error)
+    return NextResponse.json({ error: error?.message || "ডিলিট করা যায়নি" }, { status: 500 })
   }
 }

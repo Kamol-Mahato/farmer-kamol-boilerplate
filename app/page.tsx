@@ -3,6 +3,16 @@ import HeroSlider from "./components/HeroSlider"
 import { prisma } from "@/lib/prisma"
 import ProductCard from "./components/ProductCard"
 import BlogSection from "./components/BlogSection"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+  description:
+    "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা — কোনো মধ্যস্থতাকারী ছাড়া, খামার থেকে আপনার দরজায়।",
+  alternates: {
+    canonical: "/",
+  },
+}
 
 export default async function HomePage() {
   const products = await prisma.product.findMany({

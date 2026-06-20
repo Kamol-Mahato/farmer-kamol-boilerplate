@@ -107,6 +107,14 @@ export default function AdminOrdersPage() {
     )
   }
 
+  // 💰 Due amount (courier কে যা collect করতে হবে) calculate করার helper
+  function getDueAmount(order: Order) {
+    if (order.paymentMethod === "GATEWAY") {
+      return order.finalCodAmount - order.paymentAmountPaid
+    }
+    return order.finalCodAmount
+  }
+
   // রিয়েল-টাইম ক্লায়েন্ট সাইড সার্চ ফিল্টারিং লজিক (৪ ডিজিট এবং টাইম-স্ট্যাম্প সহ)
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -162,7 +170,28 @@ export default function AdminOrdersPage() {
     }
   }
 
-  // শুধুমাত্র সিলেক্টেড ১০/১৫টি ডেটা নিয়ে কুরিয়ার ফরম্যাট CSV ডাউনলোড লজিক
+  // 🗑️ ভুল TrxID / fake order ডিলিট করার ফাংশন (Stock ফিরিয়ে দেবে)
+  async function handleDeleteOrder(orderId: number) {
+    if (!confirm("আপনি কি নিশ্চিত এই অর্ডারটি ডিলিট করতে চান? এটি ফিরিয়ে আনা যাবে না।")) return
+    try {
+      const res = await fetch("/api/admin/orders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || "ডিলিট করা যায়নি")
+        return
+      }
+      setOrders(prev => prev.filter(o => o.id !== orderId))
+      setSelectedOrderIds(prev => prev.filter(id => id !== orderId))
+    } catch {
+      alert("সার্ভার সমস্যা, আবার চেষ্টা করুন")
+    }
+  }
+
+  // শুধুমাত্র সিলেক্টেড ১০/১৫টি ডেটা নিয়ে কুরিয়ার ফরম্যাট CSV ডাউনলোড লজিক
   function handleExportCSV() {
     if (selectedOrderIds.length === 0) {
       alert("অনুগ্রহ করে ডাউনলোডের জন্য কমপক্ষে ১টি অর্ডার সিলেক্ট করুন।")
@@ -170,18 +199,21 @@ export default function AdminOrdersPage() {
     }
 
     const selectedOrdersData = orders.filter(o => selectedOrderIds.includes(o.id))
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFFCustomer Name,Phone,Full Address,Products,Final COD Amount,Payment Method,Payment Status,Status\n"
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Customer Name,Phone,Full Address,Products,Total Amount,Online Payment Received,Due Amount (Collect),Payment Method,Payment Status,Status\n"
     selectedOrdersData.forEach((order) => {
+      const orderIdText = `"${generateCustomId(order.createdAt, order.dailySeq)}"`
       const name = `"${order.customer.name.replace(/"/g, '""')}"`
       const phone = `"${order.customer.phone}"`
       const address = `"${order.deliveryAddress.replace(/"/g, '""')}"`
       const products = `"${order.orderItems.map(i => `${i.product.name} x${i.quantity}`).join("; ").replace(/"/g, '""')}"`
       const cod = order.finalCodAmount
+      const onlinePaid = order.paymentMethod === "GATEWAY" ? order.paymentAmountPaid : 0
+      const dueAmount = getDueAmount(order)
       const paymentMethod = order.paymentMethod === "GATEWAY" ? "Online Payment" : "COD"
       const paymentStatus = order.paymentMethod === "GATEWAY" ? order.paymentStatus : "-"
       // স্ট্যাটাসের পাশে ৩পিএল কুরিয়ারের নাম থাকলে তাও প্রিন্ট হবে
       const status = `"${order.orderStatus}${order.courierSummary ? ` (${order.courierSummary.courierStatus})` : ""}"`
-      csvContent += `${name},${phone},${address},${products},${cod},${paymentMethod},${paymentStatus},${status}\n`
+      csvContent += `${orderIdText},${name},${phone},${address},${products},${cod},${onlinePaid},${dueAmount},${paymentMethod},${paymentStatus},${status}\n`
     })
 
     const encodedUri = encodeURI(csvContent)
@@ -411,6 +443,8 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
               <th className="px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
+              <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
+              <th className="px-6 py-4 font-medium">বাকি (Due)</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
@@ -419,7 +453,7 @@ export default function AdminOrdersPage() {
           <tbody className="divide-y divide-gray-100 border-t border-gray-100">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={11} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
@@ -453,6 +487,11 @@ export default function AdminOrdersPage() {
                     {renderPaymentBadge(order)}
                   </td>
                   <td className="px-6 py-4 font-bold text-green-700 select-none">৳ {order.finalCodAmount}</td>
+                  <td className="px-6 py-4 text-blue-700 font-medium select-none">
+                    {order.paymentMethod === "GATEWAY" ? `৳ ${order.paymentAmountPaid}` : "-"}
+                  </td>
+                  <td className="px-6 py-4 font-bold text-red-600 select-none">৳ {getDueAmount(order)}</td>
+                  {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
 
                   {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
                   <td className="px-6 py-4">
@@ -497,9 +536,17 @@ export default function AdminOrdersPage() {
 
                   {/* 🔗 ক্লিকেবল অ্যাকশন কলাম */}
                   <td className="px-6 py-4">
-                    <Link href={`/admin/orders/${order.id}`} className="font-semibold text-blue-600 hover:underline">
-                      বিস্তারিত
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link href={`/admin/orders/${order.id}`} className="font-semibold text-blue-600 hover:underline">
+                        বিস্তারিত
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteOrder(order.id)}
+                        className="font-semibold text-red-500 hover:underline"
+                      >
+                        🗑️ ডিলিট
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

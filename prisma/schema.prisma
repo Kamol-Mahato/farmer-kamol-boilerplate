@@ -59,6 +59,10 @@ model Category {
   subCategories Category[] @relation("CategoryToSub")
   products      Product[]
 }
+enum PriceType {
+  FIXED
+  NEGOTIABLE
+}
 
 model Product {
   id                  Int                      @id @default(autoincrement())
@@ -72,6 +76,7 @@ model Product {
   stockQty            Float
   isOutOfStockVisible Boolean                  @default(true)
   isFeatured          Boolean                  @default(false)
+  priceType           PriceType                @default(FIXED)
   isActive            Boolean                  @default(true)
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt

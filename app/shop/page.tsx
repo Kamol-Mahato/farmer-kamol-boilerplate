@@ -1,5 +1,15 @@
 import { prisma } from "@/lib/prisma"
 import ProductCard from "@/app/components/ProductCard"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "আমাদের সকল পণ্য - মধু, ঘি, সরিষার তেল | Farmer Kamol",
+  description:
+    "Farmer Kamol-এর সব পণ্য একসাথে দেখুন — খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা, সরাসরি সিরাজগঞ্জের খামার থেকে।",
+  alternates: {
+    canonical: "/shop",
+  },
+}
 
 export default async function ShopPage() {
   const products = await prisma.product.findMany({

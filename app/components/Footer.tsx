@@ -74,7 +74,7 @@ export default function Footer() {
               <Link href="/shop" className="hover:text-yellow-400">মধু</Link>
               <Link href="/shop" className="hover:text-yellow-400">ঘি</Link>
               <Link href="/shop" className="hover:text-yellow-400">সরিষার তেল</Link>
-              <Link href="/shop" className="hover:text-yellow-400">ডিম</Link>
+              <Link href="/shop" className="hover:text-yellow-400">চীন হাঁসের বাচ্চা</Link>
             </div>
           </div>
 
@@ -98,7 +98,7 @@ export default function Footer() {
               </a>
               <a href="tel:+8801737939688" className="hover:text-yellow-400">📞 01737939688</a>
               <a href="https://wa.me/8801737939688" target="_blank" className="hover:text-yellow-400">💬 01737939688</a>
-              <a href="https://wa.me/8801521406139" target="_blank" className="hover:text-yellow-400">💼 01521406139</a>
+              <a href="https://wa.me/8801521406139" target="_blank" className="hover:text-yellow-400">💼 ব্যবসায়িক যোগাযোগ: 01521406139</a>
             </div>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function Footer() {
         <div className="border-t border-green-700 mt-6 pt-4 flex flex-col md:flex-row justify-between items-center text-xs text-green-400 gap-2">
           <p>© 2026 Farmer Kamol. সর্বস্বত্ব সংরক্ষিত।</p>
           <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-yellow-400">গোপনীয়তা নীতি</Link>
+          <Link href="/privacy-policy" className="hover:text-yellow-400">গোপনীয়তা নীতি</Link>
             <Link href="/terms" className="hover:text-yellow-400">শর্তাবলী</Link>
             <Link href="/return-policy" className="hover:text-yellow-400">রিটার্ন পলিসি</Link>
           </div>

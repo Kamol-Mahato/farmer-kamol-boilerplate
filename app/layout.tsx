@@ -10,8 +10,25 @@ const hindSiliguri = Hind_Siliguri({
   variable: "--font-hind-siliguri",
 })
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.farmerkamol.com"),
   title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
   description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্য মূল্য।",
+  keywords: [
+    "খাঁটি মধু",
+    "সরিষার তেল",
+    "দেশি ঘি",
+    "চীন হাঁসের বাচ্চা",
+    "সিরাজগঞ্জ খামার",
+    "Farmer Kamol",
+  ],
+  openGraph: {
+    title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+    description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্য মূল্যে।",
+    url: "https://www.farmerkamol.com",
+    siteName: "Farmer Kamol",
+    locale: "bn_BD",
+    type: "website",
+  },
 }
 export default function RootLayout({
   children,
