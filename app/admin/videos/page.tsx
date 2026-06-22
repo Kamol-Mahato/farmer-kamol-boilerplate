@@ -4,7 +4,9 @@ import { useState, useEffect } from "react"
 interface Video {
   id: number
   title: string
+  description: string | null
   youtubeUrl: string
+  platform: string
   displayOrder: number
   isActive: boolean
 }
@@ -13,7 +15,9 @@ export default function AdminVideosPage() {
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
   const [youtubeUrl, setYoutubeUrl] = useState("")
+  const [platform, setPlatform] = useState("YOUTUBE")
   const [displayOrder, setDisplayOrder] = useState(0)
   const [editingId, setEditingId] = useState<number | null>(null)
 
@@ -32,17 +36,19 @@ export default function AdminVideosPage() {
       await fetch("/api/admin/videos", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingId, title, youtubeUrl, displayOrder, isActive: true }),
+        body: JSON.stringify({ id: editingId, title, description, youtubeUrl, platform, displayOrder, isActive: true }),
       })
     } else {
       await fetch("/api/admin/videos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, youtubeUrl, displayOrder, isActive: true }),
+        body: JSON.stringify({ title, description, youtubeUrl, platform, displayOrder, isActive: true }),
       })
     }
     setTitle("")
+    setDescription("")
     setYoutubeUrl("")
+    setPlatform("YOUTUBE")
     setDisplayOrder(0)
     setEditingId(null)
     fetchVideos()
@@ -70,7 +76,9 @@ export default function AdminVideosPage() {
   function handleEdit(video: Video) {
     setEditingId(video.id)
     setTitle(video.title)
+    setDescription(video.description || "")
     setYoutubeUrl(video.youtubeUrl)
+    setPlatform(video.platform)
     setDisplayOrder(video.displayOrder)
   }
 
@@ -100,21 +108,42 @@ export default function AdminVideosPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">YouTube লিংক</label>
-            <input
-              type="text"
-              value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
+            <label className="block text-xs font-semibold text-gray-500 mb-1">প্ল্যাটফর্ম</label>
+            <select
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
-            />
+            >
+              <option value="YOUTUBE">YouTube</option>
+              <option value="FACEBOOK">Facebook</option>
+            </select>
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">ক্রম (displayOrder)</label>
             <input
               type="number"
               value={displayOrder}
-              onChange={(e) => setDisplayOrder(parseInt(e.target.value))}
+              onChange={(e) => setDisplayOrder(e.target.value === "" ? 0 : parseInt(e.target.value))}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold text-gray-500 mb-1">ভিডিও লিংক (YouTube/Facebook)</label>
+            <input
+              type="text"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... অথবা Facebook ভিডিও লিংক"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
+            />
+          </div>
+          <div className="md:col-span-1">
+            <label className="block text-xs font-semibold text-gray-500 mb-1">বিবরণ (ঐচ্ছিক)</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="ভিডিওর সংক্ষিপ্ত বিবরণ"
+              rows={1}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
             />
           </div>
@@ -124,7 +153,7 @@ export default function AdminVideosPage() {
             {editingId ? "আপডেট করুন" : "যোগ করুন"}
           </button>
           {editingId && (
-            <button onClick={() => { setEditingId(null); setTitle(""); setYoutubeUrl(""); setDisplayOrder(0) }}
+            <button onClick={() => { setEditingId(null); setTitle(""); setDescription(""); setYoutubeUrl(""); setPlatform("YOUTUBE"); setDisplayOrder(0) }}
               className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-bold text-sm hover:bg-gray-300 transition">
               বাতিল
             </button>
@@ -141,15 +170,21 @@ export default function AdminVideosPage() {
             const ytId = getYoutubeId(video.youtubeUrl)
             return (
               <div key={video.id} className={`bg-white rounded-xl shadow overflow-hidden border ${!video.isActive ? "opacity-50" : ""}`}>
-                {ytId && (
+                {video.platform === "YOUTUBE" && ytId ? (
                   <img
                     src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
                     alt={video.title}
                     className="w-full h-40 object-cover"
                   />
+                ) : (
+                  <div className="w-full h-40 bg-blue-50 flex items-center justify-center text-blue-400 text-sm font-bold">
+                    📘 Facebook ভিডিও
+                  </div>
                 )}
                 <div className="p-4">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">{video.platform}</span>
                   <h3 className="font-bold text-green-800 mb-1">{video.title}</h3>
+                  {video.description && <p className="text-xs text-gray-500 mb-1 line-clamp-2">{video.description}</p>}
                   <p className="text-xs text-gray-400 truncate mb-3">{video.youtubeUrl}</p>
                   <div className="flex gap-2">
                     <button onClick={() => handleEdit(video)} className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-200 transition">এডিট</button>

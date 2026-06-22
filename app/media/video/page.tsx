@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from "react"
 interface Video {
   id: number
   title: string
+  description: string | null
   youtubeUrl: string
+  platform: string
   displayOrder: number
   isActive: boolean
 }
@@ -30,8 +32,11 @@ export default function MediaVideoPage() {
     return match ? match[1] : null
   }
 
-  function getEmbedUrl(url: string) {
-    const id = getYoutubeId(url)
+  function getEmbedUrl(video: Video) {
+    if (video.platform === "FACEBOOK") {
+      return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(video.youtubeUrl)}&autoplay=true&mute=${muted ? 1 : 0}`
+    }
+    const id = getYoutubeId(video.youtubeUrl)
     if (!id) return ""
     return `https://www.youtube.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&loop=1&playlist=${id}&rel=0&modestbranding=1`
   }
@@ -49,10 +54,10 @@ export default function MediaVideoPage() {
 
       {/* Main Player */}
       <div className="relative bg-black rounded-2xl overflow-hidden shadow-xl mb-4" style={{ aspectRatio: "16/9" }}>
-        <iframe
+      <iframe
           ref={iframeRef}
           key={`${activeVideo.id}-${muted}`}
-          src={getEmbedUrl(activeVideo.youtubeUrl)}
+          src={getEmbedUrl(activeVideo)}
           title={activeVideo.title}
           allow="autoplay; encrypted-media"
           allowFullScreen
@@ -67,12 +72,19 @@ export default function MediaVideoPage() {
       </div>
 
       {/* Active Video Title */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-8 max-w-2xl mx-auto">
         <h2 className="text-xl font-bold text-green-800">{activeVideo.title}</h2>
-        
+        {activeVideo.description && (
+          <p className="text-gray-600 text-sm mt-2">{activeVideo.description}</p>
+        )}
+        <a
           href={activeVideo.youtubeUrl}
           target="_blank"
-        <a href={activeVideo.youtubeUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-2 text-sm text-blue-600 hover:underline">YouTube-এ দেখুন</a>
+          rel="noopener noreferrer"
+          className="inline-block mt-2 text-sm text-blue-600 hover:underline"
+        >
+          {activeVideo.platform === "FACEBOOK" ? "Facebook-এ দেখুন" : "YouTube-এ দেখুন"}
+        </a>
       </div>
 
       {/* Thumbnail Grid */}
@@ -85,12 +97,16 @@ export default function MediaVideoPage() {
               onClick={() => setActiveIndex(index)}
               className={`rounded-xl overflow-hidden shadow hover:shadow-lg transition group border-2 ${activeIndex === index ? "border-green-600" : "border-transparent"}`}
             >
-              {ytId && (
+              {video.platform === "YOUTUBE" && ytId ? (
                 <img
                   src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
                   alt={video.title}
                   className="w-full h-32 object-cover group-hover:scale-105 transition duration-300"
                 />
+              ) : (
+                <div className="w-full h-32 bg-blue-50 flex items-center justify-center text-blue-400 text-xs font-bold">
+                  📘 Facebook
+                </div>
               )}
               <div className="p-2 bg-white text-left">
                 <p className="text-xs font-bold text-green-800 line-clamp-2">{video.title}</p>

@@ -19,7 +19,9 @@ export async function POST(req: Request) {
     const video = await prisma.youtubeVideo.create({
       data: {
         title: body.title,
+        description: body.description || null,
         youtubeUrl: body.youtubeUrl,
+        platform: body.platform || "YOUTUBE",
         displayOrder: body.displayOrder ?? 0,
         isActive: body.isActive ?? true,
       },
@@ -30,7 +32,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "যোগ হয়নি" }, { status: 500 })
   }
 }
-
 export async function PUT(req: Request) {
   try {
     const body = await req.json()
@@ -38,7 +39,9 @@ export async function PUT(req: Request) {
       where: { id: body.id },
       data: {
         title: body.title,
+        description: body.description || null,
         youtubeUrl: body.youtubeUrl,
+        platform: body.platform || "YOUTUBE",
         displayOrder: body.displayOrder,
         isActive: body.isActive,
       },
