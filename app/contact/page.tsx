@@ -1,3 +1,12 @@
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "যোগাযোগ করুন | Farmer Kamol",
+  description:
+    "Farmer Kamol-এর সাথে ফোন, হোয়াটসঅ্যাপ, ফেসবুক বা ইউটিউবে যোগাযোগ করুন। আমাদের খামার: রায়গঞ্জ, সিরাজগঞ্জ।",
+  alternates: { canonical: "/contact" },
+}
+
 export default function ContactPage() {
     const mapsLink = "https://maps.app.goo.gl/m6P53sDikkd5GE6g6"
   
@@ -124,9 +133,16 @@ export default function ContactPage() {
                 <path d="M16.5 3c.3 1.8 1.5 3.2 3.5 3.5v2.6c-1.4 0-2.6-.4-3.5-1.2v6.4c0 2.8-2.3 5-5.1 5-2.8 0-5.1-2.2-5.1-5s2.3-5 5.1-5c.3 0 .6 0 .9.1v2.7c-.3-.1-.6-.2-.9-.2-1.3 0-2.4 1-2.4 2.4 0 1.3 1 2.4 2.4 2.4 1.3 0 2.4-1 2.4-2.4V3h2.7z" />
               </svg>
             </a>
-          </div>
-        </div>
-      </main>
-    )
-  }
+            </div>
+
+<p className="mt-8 text-gray-600 text-sm">
+  ফোন / হোয়াটসঅ্যাপ:{" "}
+  <a href="tel:+8801737939688" className="font-bold text-green-800 hover:text-yellow-600 transition">
+    01737939688
+  </a>
+</p>
+</div>
+</main>
+)
+}
   

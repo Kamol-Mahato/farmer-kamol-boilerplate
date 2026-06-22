@@ -1,11 +1,13 @@
 import Link from "next/link";
-
+import Image from "next/image";
 export default function NotFound() {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
-      <img
+    <div className="min-h-[60vh] flex flex-col items-center  px-2 text-center">
+      <Image
         src="/uploads/kamol.png"
         alt="Farmer Kamol"
+        width={80}
+        height={80}
         className="w-20 h-20 rounded-full mb-4 object-cover"
       />
       <h1 className="text-2xl font-bold text-green-800 mb-2">পেজটি খুঁজে পাওয়া যায়নি</h1>
@@ -32,6 +34,6 @@ export default function NotFound() {
           ভিডিও দেখুন
         </Link>
       </div>
-    </div>
+      </div>
   );
 }

@@ -60,7 +60,7 @@ export default function OrderStatusUpdate({ orderId, currentStatus }: OrderStatu
           className="border border-gray-300 rounded-lg px-4 py-2.5 bg-white text-gray-700 focus:outline-none focus:border-green-500 disabled:opacity-50 font-medium"
         >
           <option value="PENDING">পেন্ডিং (Pending)</option>
-          <option value="SHIPPED">পাঠানো হয়েছে (Shipped)</option>
+          <option value="DELIVERY_ONGOING">পাঠানো হয়েছে (Shipped)</option>
           <option value="DELIVERED">ডেলিভার্ড (Delivered)</option>
           <option value="CANCELLED">বাতিল (Cancelled)</option>
         </select>

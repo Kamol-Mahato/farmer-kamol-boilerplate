@@ -26,39 +26,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "সঠিক তথ্য দিন" }, { status: 400 })
     }
 
-    const finalCourierStatus = status === "SHIPPED" && courierName ? courierName : status
-
-    // লুপ চালিয়ে প্রতিটি অর্ডারের কুরিয়ার রিলেশন আলাদাভাবে হ্যান্ডেল করা (সেফেস্ট ওয়ে)
     for (const id of orderIds) {
       const orderIdInt = parseInt(id)
 
-      // প্রথমে চেক করা এই অর্ডারের কোনো কুরিয়ার রেকর্ড অলরেডি আছে কিনা
-      const existingSummary = await prisma.courierSummary.findUnique({
-        where: { orderId: orderIdInt }
-      })
-
-      if (existingSummary) {
-        // থাকলে শুধু স্ট্যাটাস আপডেট করা
-        await prisma.courierSummary.update({
-          where: { orderId: orderIdInt },
-          data: { courierStatus: finalCourierStatus }
+      // ✅ কুরিয়ার তথ্য শুধু তখনই সেভ হবে যখন status SHIPPED এবং courier নাম দেওয়া আছে
+      if (status === "DELIVERY_ONGOING" && courierName) {
+        const existingSummary = await prisma.courierSummary.findUnique({
+          where: { orderId: orderIdInt }
         })
-      } else {
-        // না থাকলে সম্পূর্ণ নতুন করে কুরিয়ার সামারি রো তৈরি করা (কানেকশন অন করা)
-        await prisma.courierSummary.create({
-          data: {
-            orderId: orderIdInt,
-            courierStatus: finalCourierStatus,
-            collectedAmount: 0,
-            codFee: 0,
-            deliveryCharge: 0,
-            netPayout: 0,
-            isDiscrepancy: false
-          }
-        })
+        if (existingSummary) {
+          await prisma.courierSummary.update({
+            where: { orderId: orderIdInt },
+            data: { courierStatus: courierName }
+          })
+        } else {
+          await prisma.courierSummary.create({
+            data: {
+              orderId: orderIdInt,
+              courierStatus: courierName,
+              collectedAmount: 0,
+              codFee: 0,
+              deliveryCharge: 0,
+              netPayout: 0,
+              isDiscrepancy: false
+            }
+          })
+        }
       }
 
-      // মূল অর্ডারের স্ট্যাটাস আপডেট করা
+      // মূল অর্ডারের স্ট্যাটাস আপডেট করা (এটা সবসময় হবে, কুরিয়ার থাকুক বা না থাকুক)
       await prisma.order.update({
         where: { id: orderIdInt },
         data: { orderStatus: status }

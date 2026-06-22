@@ -8,7 +8,7 @@ export default async function AdminDashboard() {
   const pendingOrders = await prisma.order.count({ where: { orderStatus: "PENDING" } })
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 py-4">
       <h1 className="text-3xl font-bold text-green-800 mb-8">অ্যাডমিন ড্যাশবোর্ড</h1>
 
       {/* Stats */}

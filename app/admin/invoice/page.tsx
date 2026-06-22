@@ -30,7 +30,7 @@ interface Order {
 
 function generateCustomId(createdAt: string, id: number) {
   const d = new Date(createdAt)
-  return `FK-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}-${String(id).padStart(5, "0")}`
+  return `FK${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}${String(id).padStart(1, "0")}`
 }
 function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   const customId = generateCustomId(order.createdAt, order.id)
@@ -131,13 +131,18 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
       {order.orderItems.map(item => (
         <p key={item.id} className="text-xs">{item.product.name} × {item.quantity} = ৳ {item.finalPrice}</p>
       ))}
-      <div className="border-t border-dashed border-gray-400 my-2" />
-      <p className="text-sm font-extrabold text-center text-green-800">COD: ৳ {order.finalCodAmount}</p>
+     <div className="border-t border-dashed border-gray-400 my-2" />
+      <p className="text-[14px] text-center text-gray-500">
+        (ডেলিভারি চার্জ সহ)
+      </p>
+      <p className="text-base font-extrabold text-center text-red-600">
+        কালেক্ট করুন: ৳ {order.finalCodAmount - order.paymentAmountPaid}
+      </p>
       <div className="border-t border-dashed border-gray-400 my-2" />
       <div className="mt-2">
-        <Barcode value={customId} width={1} height={30} fontSize={8} />
+      <Barcode value={customId} width={2} height={60} fontSize={18} />
       </div>
-      <p className="text-center text-xs text-gray-400 mt-2">ধন্যবাদ 🌿</p>
+      <p className="text-center text-xs text-lack-400 mt-2"> ধন্যবাদান্তে farmerkamol.com 🌿</p>
     </div>
   )
 }
@@ -153,7 +158,7 @@ function StickerInvoice({ order }: { order: Order }) {
       <div className="border-t border-dashed border-gray-400 my-2" />
       <p className="text-sm font-bold text-gray-800">{order.customer.name}</p>
       <p className="text-sm text-gray-700">{order.customer.phone}</p>
-      <div className="mt-2">
+      <div className="mt-2 flex justify-center">
         <Barcode value={customId} width={1.2} height={35} fontSize={9} />
       </div>
     </div>
@@ -187,13 +192,16 @@ function InvoicePage() {
     const invoiceElements = document.querySelectorAll('.invoice-container');
     
     // ২. একটি নতুন উইন্ডো খোলা
-    const printWindow = window.open('', '_blank', 'width=900,height=800');
+    const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
     // ৩. ইনভয়েসগুলোর এইচটিএমএল যোগ করা
     let invoiceHTML = "";
-    invoiceElements.forEach(el => {
-      invoiceHTML += `<div style="margin-bottom: 20px;">${el.innerHTML}</div>`;
+    const wrapperPadding = type === "a4" ? "0px" : "16px";
+    invoiceElements.forEach((el, idx) => {
+      const isLast = idx === invoiceElements.length - 1;
+      const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;";
+      invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: 20px; padding: ${wrapperPadding};">${el.innerHTML}</div>`;
     });
 
     // ৪. স্টাইল এবং কন্টেন্ট সহ নতুন উইন্ডো সেটআপ করা
@@ -202,11 +210,12 @@ function InvoicePage() {
         <head>
           <title>Invoice</title>
           <style>
-            body { font-family: sans-serif; padding: 20px; }
+            body { font-family: sans-serif; padding: ${type === "a4" ? "20px" : "0"}; margin: 0; }
             /* এখানে আপনার Tailwind এর স্টাইলগুলো ইনজেক্ট করা হচ্ছে */
             @media print {
-              @page { size: auto; margin: 10mm; }
+              @page { size: ${type === "a4" ? "A4" : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : "0mm"}; }
               body { -webkit-print-color-adjust: exact; }
+              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; } img { filter: grayscale(100%) contrast(1.2); }" : ""}
             }
           </style>
           <script src="https://cdn.tailwindcss.com"></script>

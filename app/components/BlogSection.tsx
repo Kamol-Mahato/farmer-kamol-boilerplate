@@ -1,20 +1,7 @@
-"use client"
-import { useState, useEffect } from "react"
 import Link from "next/link"
-
-export default function BlogSection() {
-  const [blogs, setBlogs] = useState<any[]>([])
-
-  useEffect(() => {
-    fetch("/api/blog")
-      .then(res => res.json())
-      .then(data => {
-        const published = data.filter((b: any) => b.isPublished)
-        setBlogs(published.slice(0, 3))
-      })
-      .catch(() => {})
-  }, [])
-
+import Image from "next/image"
+type Blog = { id: number; slug: string; image: string | null; category: string; title: string; createdAt: Date }
+export default function BlogSection({ blogs }: { blogs: Blog[] }) {
   if (blogs.length === 0) return null
 
   return (
@@ -29,8 +16,16 @@ export default function BlogSection() {
             <Link key={blog.id} href={`/blog/${blog.slug}`}
               className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden group border border-gray-100"
             >
-              {blog.image && (
-                <img src={blog.image} alt={blog.title} className="w-full h-48 object-cover group-hover:scale-105 transition duration-300" />
+              {blog.image && blog.image.startsWith("/") && (
+                <div className="relative w-full h-48 overflow-hidden">
+                  <Image
+                    src={blog.image}
+                    alt={blog.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition duration-300"
+                  />
+                </div>
               )}
               <div className="p-4 text-left">
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">{blog.category}</span>

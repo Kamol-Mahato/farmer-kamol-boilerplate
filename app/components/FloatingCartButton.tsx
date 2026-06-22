@@ -1,20 +1,20 @@
 "use client"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
 export default function FloatingCartButton() {
+  const pathname = usePathname()
   const btnRef = useRef<HTMLAnchorElement>(null)
   const lastScrollY = useRef(0)
   const current = useRef(0)
   const target = useRef(0)
   const rafId = useRef<number | null>(null)
-
   // ✅ cart count badge
   const [cartCount, setCartCount] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
   // ✅ customer ❌ চাপলে এটা true হবে, cart এ item add হলে আবার false হয়ে যাবে
   const [dismissed, setDismissed] = useState(false)
-
   // ✅ cart count চেক
   const checkCart = () => {
     try {
@@ -34,28 +34,23 @@ export default function FloatingCartButton() {
       setCartCount(0)
     }
   }
-
   // ❌ close button চাপলে কী হবে
   const handleClose = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDismissed(true)
   }
-
   useEffect(() => {
     checkCart()
     window.addEventListener("cartUpdated", checkCart)
     window.addEventListener("storage", checkCart)
-
     const pulseInterval = setInterval(() => {
       setIsVisible((prev) => !prev)
     }, 4000)
-
     if (cartCount > 0) {
       setIsVisible(true)
       clearInterval(pulseInterval)
     }
-
     lastScrollY.current = window.scrollY
     function handleScroll() {
       const scrollY = window.scrollY
@@ -73,7 +68,6 @@ export default function FloatingCartButton() {
     }
     window.addEventListener("scroll", handleScroll, { passive: true })
     rafId.current = requestAnimationFrame(animate)
-
     return () => {
       window.removeEventListener("cartUpdated", checkCart)
       window.removeEventListener("storage", checkCart)
@@ -82,11 +76,11 @@ export default function FloatingCartButton() {
       if (rafId.current) cancelAnimationFrame(rafId.current)
     }
   }, [])
-
+  // ✅ শুধু হোম পেজ ও কাস্টমার ড্যাশবোর্ডে দেখাবে, বাকি সব পেজে hide থাকবে
+  if (pathname !== "/" && pathname !== "/customer/dashboard") return null
   // ❌ চাপার পর, কার্ট খালি থাকলে button পুরোপুরি hide
   if (cartCount === 0 && dismissed) return null
   if (cartCount === 0 && !isVisible) return null
-
   return (
     <Link
       ref={btnRef}
@@ -103,7 +97,6 @@ export default function FloatingCartButton() {
           {cartCount > 99 ? "99+" : cartCount}
         </span>
       )}
-
       {/* ❌ close button — কার্ট খালি থাকলেই দেখা যাবে */}
       {cartCount === 0 && (
         <button

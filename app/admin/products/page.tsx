@@ -8,7 +8,7 @@ export default async function AdminProductsPage() {
   })
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-2 py-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-green-800">পণ্য ম্যানেজমেন্ট</h1>
         <Link

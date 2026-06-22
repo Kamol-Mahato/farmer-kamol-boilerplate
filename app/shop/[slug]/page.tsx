@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
 import ProductCard from "@/app/components/ProductCard"
 import ProductActions from "./ProductActions"
 
@@ -86,18 +88,46 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     }),
   }
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "হোম", item: "https://www.farmerkamol.com" },
+      { "@type": "ListItem", position: 2, name: "শপ", item: "https://www.farmerkamol.com/shop" },
+      { "@type": "ListItem", position: 3, name: product.name, item: `https://www.farmerkamol.com/shop/${product.slug}` },
+    ],
+  }
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <div className="max-w-6xl mx-auto px-4 py-8">
+        <nav className="text-sm text-gray-500 mb-4">
+          <Link href="/" className="hover:text-green-700">হোম</Link>
+          <span className="mx-1.5">/</span>
+          <Link href="/shop" className="hover:text-green-700">শপ</Link>
+          <span className="mx-1.5">/</span>
+          <span className="text-gray-700 font-medium">{product.name}</span>
+        </nav>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {/* ছবি Gallery */}
           <div>
-            <div className="relative aspect-square w-full rounded-2xl bg-gray-50 overflow-hidden mb-3">
-              <img src={mainImage} alt={product.name} className="w-full h-full object-cover" />
+          <div className="relative aspect-square w-full rounded-2xl bg-gray-50 overflow-hidden mb-3">
+              <Image
+                src={mainImage}
+                alt={product.name}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+              />
               {isOutOfStock && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <span className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
@@ -109,10 +139,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             {product.images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto">
                 {product.images.map((img, i) => (
-                  <img
+                  <Image
                     key={i}
                     src={img.imageUrl}
                     alt={`${product.name} ${i + 1}`}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                   />
                 ))}

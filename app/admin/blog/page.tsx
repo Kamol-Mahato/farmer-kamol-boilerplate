@@ -7,6 +7,7 @@ export default function AdminBlogPage() {
   const [blogs, setBlogs] = useState<any[]>([])
   const [dbCategories, setDbCategories] = useState<any[]>([]) // ১. ক্যাটাগরির জন্য নতুন স্টেট
   const [loading, setLoading] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [form, setForm] = useState({
     title: "",
     slug: "",
@@ -45,18 +46,38 @@ export default function AdminBlogPage() {
 
   async function handleSubmit() {
     setLoading(true)
-    console.log("Submitting:", form)
-    const res = await fetch("/api/blog", {
-      method: "POST",
+    const url = editingId ? `/api/blog/${editingId}` : "/api/blog"
+    const method = editingId ? "PUT" : "POST"
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     })
     if (res.ok) {
       setForm({ title: "", slug: "", content: "", image: "", category: "", isPublished: false })
+      setEditingId(null)
       const data = await fetch("/api/blog").then(r => r.json())
       setBlogs(data)
     }
     setLoading(false)
+  }
+
+  function handleEdit(blog: any) {
+    setEditingId(blog.id)
+    setForm({
+      title: blog.title,
+      slug: blog.slug,
+      content: blog.content,
+      image: blog.image || "",
+      category: blog.category,
+      isPublished: blog.isPublished,
+    })
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null)
+    setForm({ title: "", slug: "", content: "", image: "", category: "", isPublished: false })
   }
 
   async function handleDelete(id: number) {
@@ -71,7 +92,9 @@ export default function AdminBlogPage() {
 
       {/* Form */}
       <div className="bg-white rounded-xl shadow p-6 mb-8">
-        <h2 className="text-lg font-bold text-green-700 mb-4">নতুন Blog লিখুন</h2>
+      <h2 className="text-lg font-bold text-green-700 mb-4">
+          {editingId ? "Blog এডিট করুন" : "নতুন Blog লিখুন"}
+        </h2>
         <div className="flex flex-col gap-4">
           <input
             name="title"
@@ -130,13 +153,23 @@ export default function AdminBlogPage() {
             />
             Publish করবেন?
           </label>
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition font-bold"
-          >
-            {loading ? "সংরক্ষণ হচ্ছে..." : "Blog সংরক্ষণ করুন"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition font-bold"
+            >
+              {loading ? "সংরক্ষণ হচ্ছে..." : editingId ? "Blog আপডেট করুন" : "Blog সংরক্ষণ করুন"}
+            </button>
+            {editingId && (
+              <button
+                onClick={handleCancelEdit}
+                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition font-bold"
+              >
+                বাতিল করুন
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -153,12 +186,20 @@ export default function AdminBlogPage() {
                   <p className="font-bold text-green-800">{blog.title}</p>
                   <p className="text-xs text-gray-400">{blog.category} · {blog.isPublished ? "✅ Published" : "⏳ Draft"}</p>
                 </div>
-                <button
-                  onClick={() => handleDelete(blog.id)}
-                  className="text-red-400 hover:text-red-600 text-sm transition"
-                >
-                  Delete
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleEdit(blog)}
+                    className="text-green-600 hover:text-green-800 text-sm font-bold transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(blog.id)}
+                    className="text-red-400 hover:text-red-600 text-sm transition"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>

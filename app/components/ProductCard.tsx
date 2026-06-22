@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import Image from "next/image"
 import { useRef, useEffect, useState } from "react"
 
 type Product = {
@@ -119,11 +120,13 @@ export default function ProductCard({ product }: { product: Product }) {
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between p-4 group hover:shadow-md transition">
       <div>
         <Link href={`/shop/${product.slug}`}>
-          <div className="relative aspect-square w-full rounded-xl bg-gray-50 overflow-hidden mb-4">
-            <img
+        <div className="relative aspect-square w-full rounded-xl bg-gray-50 overflow-hidden mb-4">
+        <Image
               src={mainImage}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-135 transition duration-300"
+              fill
+              sizes="(max-width: 768px) 50vw, 25vw"
+              className="object-cover rounded-xl group-hover:scale-135 transition duration-300"
             />
             {isOutOfStock && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

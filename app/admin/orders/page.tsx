@@ -36,6 +36,8 @@ export default function AdminOrdersPage() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([])
   const [bulkStatus, setBulkStatus] = useState("")
   const [courierName, setCourierName] = useState("")
+  const [showInvoiceMenu, setShowInvoiceMenu] = useState(false)
+  const [pendingShipment, setPendingShipment] = useState<{ orderId: number; courier: string } | null>(null)
 
   // ৪ সংখ্যার ম্যাজিক সার্চ ফিল্টার স্টেট
   const [searchId, setSearchId] = useState("")
@@ -156,17 +158,20 @@ export default function AdminOrdersPage() {
         setOrders(prev => prev.map(o => ids.includes(o.id) ? { 
           ...o, 
           orderStatus: status, 
-          courierSummary: status === "SHIPPED" && courier ? { courierStatus: courier } : o.courierSummary 
+          courierSummary: status === "DELIVERY_ONGOING" && courier ? { courierStatus: courier } : o.courierSummary 
         } : o))
         if (ids.length > 1) {
           setSelectedOrderIds([])
           setBulkStatus("")
           setCourierName("")
-          alert("নির্বাচিত সব অর্ডারের কুরিয়ার ও স্ট্যাটাস আপডেট হয়েছে!")
+          alert("নির্বাচিত সব অর্ডারের কুরিয়ার ও স্ট্যাটাস আপডেট হয়েছে!")
         }
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(data.error || "আপডেট করা যায়নি, সার্ভারে সমস্যা হয়েছে")
       }
     } catch {
-      alert("আপডেট করা যায়নি")
+      alert("আপডেট করা যায়নি")
     }
   }
 
@@ -199,7 +204,7 @@ export default function AdminOrdersPage() {
     }
 
     const selectedOrdersData = orders.filter(o => selectedOrderIds.includes(o.id))
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Customer Name,Phone,Full Address,Products,Total Amount,Online Payment Received,Due Amount (Collect),Payment Method,Payment Status,Status\n"
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Customer Name,Phone,Full Address,Products,Total Amount,Online Payment Received,Due Amount (Collect),Payment Method,Payment Status,Status,Courier\n"
     selectedOrdersData.forEach((order) => {
       const orderIdText = `"${generateCustomId(order.createdAt, order.dailySeq)}"`
       const name = `"${order.customer.name.replace(/"/g, '""')}"`
@@ -211,9 +216,9 @@ export default function AdminOrdersPage() {
       const dueAmount = getDueAmount(order)
       const paymentMethod = order.paymentMethod === "GATEWAY" ? "Online Payment" : "COD"
       const paymentStatus = order.paymentMethod === "GATEWAY" ? order.paymentStatus : "-"
-      // স্ট্যাটাসের পাশে ৩পিএল কুরিয়ারের নাম থাকলে তাও প্রিন্ট হবে
-      const status = `"${order.orderStatus}${order.courierSummary ? ` (${order.courierSummary.courierStatus})` : ""}"`
-      csvContent += `${orderIdText},${name},${phone},${address},${products},${cod},${onlinePaid},${dueAmount},${paymentMethod},${paymentStatus},${status}\n`
+      const status = `"${order.orderStatus}"`
+      const courier = `"${order.courierSummary ? order.courierSummary.courierStatus : "-"}"`
+      csvContent += `${orderIdText},${name},${phone},${address},${products},${cod},${onlinePaid},${dueAmount},${paymentMethod},${paymentStatus},${status},${courier}\n`
     })
 
     const encodedUri = encodeURI(csvContent)
@@ -244,8 +249,52 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-green-800 mb-8">অর্ডার ম্যানেজমেন্ট</h1>
+    <div className="max-w-full mx-auto pt-4 px-6 py-12">
+      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+        <h1 className="text-3xl font-bold text-green-800">অর্ডার ম্যানেজমেন্ট</h1>
+        <div className="flex gap-3">
+          <button
+            onClick={handleExportCSV}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-500 transition shadow-sm"
+          >
+            📥 নির্বাচিত ডেটা CSV এক্সপোর্ট
+          </button>
+          <div className="relative">
+            <button
+              onClick={() => {
+                if (selectedOrderIds.length === 0) {
+                  alert("অনুগ্রহ করে কমপক্ষে ১টি অর্ডার সিলেক্ট করুন।")
+                } else {
+                  setShowInvoiceMenu(prev => !prev)
+                }
+              }}
+              className="bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition shadow-sm flex items-center gap-2"
+            >
+              🧾 Invoice প্রিন্ট ▾
+            </button>
+            {showInvoiceMenu && selectedOrderIds.length > 0 && (
+              <div className="absolute right--5 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                {[
+                  { label: "🖨️ A4 প্রিন্ট", type: "a4" },
+                  { label: "🧾 POS প্রিন্ট", type: "pos" },
+                  { label: "🏷️ স্টিকার প্রিন্ট", type: "sticker" },
+                ].map(opt => (
+                  <button
+                    key={opt.type}
+                    onClick={() => {
+                      window.open(`/admin/invoice?ids=${selectedOrderIds.join(",")}&type=${opt.type}`, "_blank")
+                      setShowInvoiceMenu(false)
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-800 font-medium transition"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* 🎛️ ফিল্টার এবং সার্চ বার সেকশন */}
       <div className="bg-white rounded-xl shadow p-6 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -255,7 +304,6 @@ export default function AdminOrdersPage() {
             type="text"
             value={searchId}
             onChange={(e) => setSearchId(e.target.value)}
-            placeholder="যেমন: 0001"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
           />
         </div>
@@ -266,7 +314,6 @@ export default function AdminOrdersPage() {
             type="text"
             value={searchPhone}
             onChange={(e) => setSearchPhone(e.target.value)}
-            placeholder="যেমন: 0171"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
           />
         </div>
@@ -277,7 +324,6 @@ export default function AdminOrdersPage() {
             type="text"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
-            placeholder="যেমন: Abdu"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
           />
         </div>
@@ -291,7 +337,7 @@ export default function AdminOrdersPage() {
           >
             <option value="">সব স্ট্যাটাস</option>
             <option value="PENDING">পেন্ডিং</option>
-            <option value="SHIPPED">পাঠানো হয়েছে</option>
+            <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
             <option value="DELIVERED">ডেলিভার্ড</option>
             <option value="CANCELLED">বাতিল</option>
           </select>
@@ -325,7 +371,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Showing Bar (Pagination Grid) */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center mb-6">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">দেখানো হচ্ছে:</span>
           <select
@@ -341,41 +387,6 @@ export default function AdminOrdersPage() {
             <option value={-1}>সবগুলো (All)</option>
           </select>
         </div>
-
-       {/* 📥 CSV ও Invoice বাটন */}
-       <div className="flex gap-3">
-          <button
-            onClick={handleExportCSV}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-500 transition shadow-sm"
-          >
-            📥 নির্বাচিত ডেটা CSV এক্সপোর্ট
-          </button>
-          <div className="relative group">
-            <button
-              onClick={() => { if (selectedOrderIds.length === 0) alert("অনুগ্রহ করে কমপক্ষে ১টি অর্ডার সিলেক্ট করুন।") }}
-              className="bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition shadow-sm flex items-center gap-2"
-            >
-              🧾 Invoice প্রিন্ট ▾
-            </button>
-            {selectedOrderIds.length > 0 && (
-              <div className="absolute right-100 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                {[
-                  { label: "🖨️ A4 প্রিন্ট", type: "a4" },
-                  { label: "🧾 POS প্রিন্ট", type: "pos" },
-                  { label: "🏷️ স্টিকার প্রিন্ট", type: "sticker" },
-                ].map(opt => (
-                  <button
-                    key={opt.type}
-                    onClick={() => window.open(`/admin/invoice?ids=${selectedOrderIds.join(",")}&type=${opt.type}`, "_blank")}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-800 font-medium transition"
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* 🚀 বাল্ক অ্যাকশন এবং ৩পিএল কুরিয়ার কোম্পানি সিলেকশন বার */}
@@ -389,19 +400,18 @@ export default function AdminOrdersPage() {
               value={bulkStatus}
               onChange={(e) => {
                 setBulkStatus(e.target.value)
-                if (e.target.value !== "SHIPPED") setCourierName("")
+                if (e.target.value !== "DELIVERY_ONGOING") setCourierName("")
               }}
               className="w-full sm:w-auto border border-gray-300 rounded-lg px-4 py-2 bg-white text-sm focus:outline-none"
             >
               <option value="">বাল্ক স্ট্যাটাস পরিবর্তন</option>
               <option value="PENDING">পেন্ডিং (Pending)</option>
-              <option value="SHIPPED">পাঠানো হয়েছে (Shipped)</option>
+              <option value="DELIVERY_ONGOING">পাঠানো হয়েছে (Shipped)</option>
               <option value="DELIVERED">ডেলিভার্ড (Delivered)</option>
               <option value="CANCELLED">বাতিল (Cancelled)</option>
             </select>
-
-            {/* 📁 স্ট্যাটাস SHIPPED হলে এই ৩পিএল কুরিয়ার অপশনটি সচল হবে */}
-            {bulkStatus === "SHIPPED" && (
+            {/* 📁 স্ট্যাটাস DELIVERY_ONGOING হলে এই ৩পিএল কুরিয়ার অপশনটি সচল হবে */}
+            {bulkStatus === "DELIVERY_ONGOING" && (
               <select
                 value={courierName}
                 onChange={(e) => setCourierName(e.target.value)}
@@ -427,7 +437,7 @@ export default function AdminOrdersPage() {
       )}
       {/* ডেটা টেবিল গ্রিড */}
       <div className="bg-white rounded-xl shadow overflow-x-auto">
-        <table className="w-full border-collapse text-left text-sm text-gray-500 min-w-[1000px]">
+      <table className="w-full border-collapse text-left text-sm text-gray-500 min-w-[1000px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
           <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b">
             <tr>
               <th className="px-4 py-4 w-10 text-center">
@@ -446,6 +456,7 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">বাকি (Due)</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
+              <th className="px-6 py-4 font-medium">কুরিয়ার</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
             </tr>
@@ -453,14 +464,14 @@ export default function AdminOrdersPage() {
           <tbody className="divide-y divide-gray-100 border-t border-gray-100">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={11} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={12} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
                 <tr key={order.id} className={`transition ${
                   selectedOrderIds.includes(order.id) ? "bg-green-50/40" :
                   order.orderStatus === "DELIVERED" ? "bg-green-50" :
-                  order.orderStatus === "SHIPPED" ? "bg-yellow-50" :
+                  order.orderStatus === "DELIVERY_ONGOING" ? "bg-yellow-50" :
                   order.orderStatus === "CANCELLED" ? "bg-red-50" :
                   "hover:bg-gray-50/50"
                 }`}>
@@ -490,7 +501,7 @@ export default function AdminOrdersPage() {
                   <td className="px-6 py-4 text-blue-700 font-medium select-none">
                     {order.paymentMethod === "GATEWAY" ? `৳ ${order.paymentAmountPaid}` : "-"}
                   </td>
-                  <td className="px-6 py-4 font-bold text-red-600 select-none">৳ {getDueAmount(order)}</td>
+                  <td className={`px-6 py-4 font-bold select-none ${getDueAmount(order) === 0 ? "text-green-600" : "text-red-600"}`}>৳ {getDueAmount(order)}</td>
                   {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
 
                   {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
@@ -498,11 +509,19 @@ export default function AdminOrdersPage() {
                     <div className="relative inline-block">
                     <select
   value={order.orderStatus}
-  onChange={(e) => handleStatusUpdate([order.id], e.target.value)}
+  onChange={(e) => {
+    const newStatus = e.target.value
+    if (newStatus === "DELIVERY_ONGOING") {
+      setPendingShipment({ orderId: order.id, courier: "" })
+    } else {
+      setPendingShipment(null)
+      handleStatusUpdate([order.id], newStatus)
+    }
+  }}
   style={{
     backgroundColor:
       order.orderStatus === "PENDING" ? "#facc15" :
-      order.orderStatus === "SHIPPED" ? "#f59e0b" :
+      order.orderStatus === "DELIVERY_ONGOING" ? "#f59e0b" :
       order.orderStatus === "DELIVERED" ? "#16a34a" :
       "#ef4444",
     color:
@@ -514,10 +533,13 @@ export default function AdminOrdersPage() {
     border: "none",
     cursor: "pointer",
     outline: "none",
+    appearance: "none",
+    WebkitAppearance: "none",
+    MozAppearance: "none",
   }}
 >
   <option value="PENDING">পেন্ডিং</option>
-  <option value="SHIPPED">পাঠানো হয়েছে</option>
+  <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
   <option value="DELIVERED">ডেলিভার্ড</option>
   <option value="CANCELLED">বাতিল</option>
 </select>
@@ -525,19 +547,52 @@ export default function AdminOrdersPage() {
                         <svg className="fill-current h-3 w-3" xmlns="http://w3.org" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                       </div>
                     </div>
-                    {order.courierSummary && order.orderStatus === "SHIPPED" && (
-                      <div className="text-[10px] font-bold text-orange-600 mt-1 block">🚚 {order.courierSummary.courierStatus}</div>
+                    {pendingShipment?.orderId === order.id && (
+                      <div className="mt-2 flex items-center gap-1">
+                        <select
+                          value={pendingShipment.courier}
+                          onChange={(e) => setPendingShipment({ orderId: order.id, courier: e.target.value })}
+                          className="text-xs border border-orange-300 rounded px-1 py-0.5 focus:outline-none"
+                        >
+                          <option value="">কুরিয়ার বাছুন</option>
+                          <option value="Steadfast">Steadfast</option>
+                          <option value="Pathao">Pathao</option>
+                          <option value="RedX">RedX</option>
+                          <option value="eCourier">eCourier</option>
+                        </select>
+                        <button
+                          onClick={() => {
+                            if (!pendingShipment.courier) {
+                              alert("কুরিয়ার কোম্পানি বাছাই করুন")
+                              return
+                            }
+                            handleStatusUpdate([order.id], "DELIVERY_ONGOING", pendingShipment.courier)
+                            setPendingShipment(null)
+                          }}
+                          className="text-xs bg-green-700 text-white px-2 py-0.5 rounded font-bold"
+                        >
+                          ✓
+                        </button>
+                      </div>
                     )}
                   </td>
-
+                  <td className="px-6 py-4 select-none">
+                    {order.courierSummary ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
+                        🚚 {order.courierSummary.courierStatus}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-xs text-gray-400 select-none">
                     {new Date(order.createdAt).toLocaleDateString("bn-BD")}
                   </td>
 
                   {/* 🔗 ক্লিকেবল অ্যাকশন কলাম */}
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <Link href={`/admin/orders/${order.id}`} className="font-semibold text-blue-600 hover:underline">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-3 whitespace-nowrap">
+                      <Link href={`/admin/orders/${order.id}`} className="font-semibold text-blue-600 hover:underline whitespace-nowrap">
                         বিস্তারিত
                       </Link>
                       <button

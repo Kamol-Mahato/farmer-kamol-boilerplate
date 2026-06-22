@@ -17,6 +17,7 @@ export default function AdminCustomersPage() {
   const [searchName, setSearchName] = useState("")
   const [searchPhone, setSearchPhone] = useState("")
   const [showingLimit, setShowingLimit] = useState(10)
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([])
 
   useEffect(() => {
     fetch("/api/admin/customers")
@@ -44,9 +45,59 @@ export default function AdminCustomersPage() {
         return true
       })
       .slice(0, showingLimit === -1 ? undefined : showingLimit)
-  }, [customers, searchName, searchPhone, showingLimit])
+    }, [customers, searchName, searchPhone, showingLimit])
 
-  if (loading)
+    // ✅ সব চেক বক্স একসাথে সিলেক্ট/আনসিলেক্ট
+    function handleSelectAll(e: React.ChangeEvent<HTMLInputElement>) {
+      if (e.target.checked) {
+        setSelectedCustomerIds(filteredCustomers.map((c) => c.id))
+      } else {
+        setSelectedCustomerIds([])
+      }
+    }
+  
+    function handleSelectCustomer(id: number, checked: boolean) {
+      if (checked) {
+        setSelectedCustomerIds((prev) => [...prev, id])
+      } else {
+        setSelectedCustomerIds((prev) => prev.filter((cid) => cid !== id))
+      }
+    }
+  
+    // 📥 CSV এক্সপোর্ট — সিলেক্ট করা থাকলে শুধু সেগুলো, নাহলে সব ফিল্টার করা কাস্টমার
+    function handleExportCSV() {
+      const dataToExport =
+        selectedCustomerIds.length > 0
+          ? customers.filter((c) => selectedCustomerIds.includes(c.id))
+          : filteredCustomers
+  
+      if (dataToExport.length === 0) {
+        alert("এক্সপোর্ট করার জন্য কোনো কাস্টমার পাওয়া যায়নি।")
+        return
+      }
+  
+      let csvContent =
+        "data:text/csv;charset=utf-8,\uFEFFName,Phone,Total Orders,Wallet Balance,Status,Join Date\n"
+      dataToExport.forEach((c) => {
+        const name = `"${c.name.replace(/"/g, '""')}"`
+        const phone = `"${c.phone}"`
+        const totalOrders = c.totalOrders
+        const wallet = c.walletBalance.toFixed(2)
+        const status = c.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"
+        const joinDate = new Date(c.createdAt).toLocaleDateString("bn-BD")
+        csvContent += `${name},${phone},${totalOrders},${wallet},${status},${joinDate}\n`
+      })
+  
+      const encodedUri = encodeURI(csvContent)
+      const link = document.createElement("a")
+      link.setAttribute("href", encodedUri)
+      link.setAttribute("download", `Customers_${Date.now()}.csv`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  
+    if (loading)
     return (
       <div className="text-center py-20 text-gray-500 font-medium">
         কাস্টমার ডেটা লোড হচ্ছে...
@@ -54,7 +105,7 @@ export default function AdminCustomersPage() {
     )
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 py-2">
       <h1 className="text-3xl font-bold text-green-800 mb-8">
         কাস্টমার ম্যানেজমেন্ট
       </h1>
@@ -69,7 +120,6 @@ export default function AdminCustomersPage() {
             type="text"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
-            placeholder="যেমন: Abdu"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
           />
         </div>
@@ -106,20 +156,40 @@ export default function AdminCustomersPage() {
       </div>
 
       {/* Summary */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-3">
         <p className="text-sm text-gray-500">
           মোট কাস্টমার:{" "}
           <span className="font-bold text-green-800">{customers.length}</span> জন
           {" | "} দেখাচ্ছে:{" "}
           <span className="font-bold text-blue-700">{filteredCustomers.length}</span> জন
+          {selectedCustomerIds.length > 0 && (
+            <>
+              {" | "} সিলেক্টেড:{" "}
+              <span className="font-bold text-orange-600">{selectedCustomerIds.length}</span> জন
+            </>
+          )}
         </p>
+        <button
+          onClick={handleExportCSV}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-500 transition shadow-sm"
+        >
+          📥 {selectedCustomerIds.length > 0 ? "নির্বাচিত" : "সব"} ডেটা CSV এক্সপোর্ট
+        </button>
       </div>
 
       {/* টেবিল */}
       <div className="bg-white rounded-xl shadow overflow-x-auto">
         <table className="w-full border-collapse text-left text-sm text-gray-500 min-w-[800px]">
           <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b">
-            <tr>
+          <tr>
+              <th className="px-4 py-4 w-10 text-center">
+                <input
+                  type="checkbox"
+                  onChange={handleSelectAll}
+                  checked={filteredCustomers.length > 0 && selectedCustomerIds.length === filteredCustomers.length}
+                  className="w-4 h-4 accent-green-700 cursor-pointer"
+                />
+              </th>
               <th className="px-6 py-4 font-medium">#</th>
               <th className="px-6 py-4 font-medium">নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল</th>
@@ -132,7 +202,7 @@ export default function AdminCustomersPage() {
           <tbody className="divide-y divide-gray-100 border-t border-gray-100">
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-12 text-gray-400">
+                <td colSpan={8} className="text-center py-12 text-gray-400">
                   কোনো কাস্টমার পাওয়া যায়নি।
                 </td>
               </tr>
@@ -144,6 +214,14 @@ export default function AdminCustomersPage() {
                     !customer.isActive ? "opacity-50" : ""
                   }`}
                 >
+                  <td className="px-4 py-4 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomerIds.includes(customer.id)}
+                      onChange={(e) => handleSelectCustomer(customer.id, e.target.checked)}
+                      className="w-4 h-4 accent-green-700 cursor-pointer"
+                    />
+                  </td>
                   <td className="px-6 py-4 text-gray-400 text-xs">{index + 1}</td>
                   <td className="px-6 py-4 font-medium text-gray-800">
                     {customer.name}

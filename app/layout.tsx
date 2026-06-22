@@ -3,6 +3,7 @@ import { Hind_Siliguri } from "next/font/google"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import FloatingCartButton from "./components/FloatingCartButton"
+import OrganizationSchema from "./components/OrganizationSchema"
 import "./globals.css"
 const hindSiliguri = Hind_Siliguri({
   weight: ["300", "400", "500", "600", "700"],
@@ -38,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="bn">
       <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
+      <OrganizationSchema />
 <Navbar />
 <FloatingCartButton />
 <div className="h-[120px]" />

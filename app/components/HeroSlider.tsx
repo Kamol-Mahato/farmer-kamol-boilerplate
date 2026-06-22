@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 
 type Product = {
   id: number
@@ -42,6 +43,9 @@ export default function HeroSlider({ featuredProducts = [] }: { featuredProducts
 
   return (
     <div className="bg-green-900">
+      <h1 className="sr-only">
+        Farmer Kamol - সিরাজগঞ্জের রায়গঞ্জ থেকে খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা, সরাসরি খামার থেকে আপনার দরজায়
+      </h1>
       {/* ── PC LAYOUT ── */}
       <div className="hidden md:grid md:grid-cols-2 h-[270px]">
 
@@ -81,10 +85,13 @@ export default function HeroSlider({ featuredProducts = [] }: { featuredProducts
                 >
                   {/* পুরো ছবি */}
                   {imageUrl ? (
-                    <img
+                    <Image
                       src={imageUrl}
                       alt={p.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      priority={i === 0}
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-green-700">

@@ -18,8 +18,29 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // ফাইলের একটি ইউনিক নাম তৈরি করা (যাতে একই নামের ছবি ওভাররাইট না হয়)
-    const filename = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
+    // ফাইল এক্সটেনশন বের করা (.jpg, .png ইত্যাদি)
+    const ext = path.extname(file.name).toLowerCase() || ".jpg"
+
+    // ✅ SEO-friendly নাম জেনারেট করা — যদি 'name' ফিল্ড পাঠানো হয় (প্রোডাক্ট নাম/slug)
+    const rawName = formData.get("name") as string | null
+    let slug = rawName
+      ? rawName
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\s-]/g, "") // বাংলা/স্পেশাল ক্যারেক্টার বাদ
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "")
+      : ""
+
+    if (!slug) {
+      // 'name' না থাকলে বা স্লাগ ফাঁকা হয়ে গেলে fallback
+      slug = "farmer-kamol-product"
+    }
+
+    // ইউনিক রাখতে শেষে ছোট টাইমস্ট্যাম্প যুক্ত করা (ওভাররাইট এড়াতে)
+    const uniqueSuffix = Date.now().toString().slice(-6)
+    const filename = `${slug}-${uniqueSuffix}${ext}`
     
     // public/uploads ফোল্ডারের পাথ সেট করা
     const uploadDir = path.join(process.cwd(), "public", "uploads")

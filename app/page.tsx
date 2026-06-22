@@ -33,6 +33,11 @@ export default async function HomePage() {
     orderBy: { createdAt: "desc" },
     take: 4,
   })
+  const blogs = await prisma.blog.findMany({
+    where: { isPublished: true },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  })
   return (
     <div className="font-[family-name:var(--font-hind-siliguri)]">
       {/* Hero Slider */}
@@ -42,7 +47,7 @@ export default async function HomePage() {
       <div className="bg-green-50 py-3 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
-            <span className="text-green-800 text-2xl font-medium mt-8 font-bold border-2 rounded-full border-green-700">আমাদের পণ্য সমূহ</span>
+          <h2 className="text-green-800 text-2xl font-medium mt-8 font-bold border-2 rounded-full border-green-700 inline-block">আমাদের পণ্য সমূহ</h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {products.map((product) => (
@@ -82,7 +87,7 @@ export default async function HomePage() {
       </div>
 
       {/* Blog Section */}
-      <BlogSection />
+      <BlogSection blogs={blogs} />
     </div>
   )
 }

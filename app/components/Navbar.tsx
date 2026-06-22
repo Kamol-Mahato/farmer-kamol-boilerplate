@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import AnnouncementBar from "./AnnouncementBar"
 import { useRouter } from "next/navigation"
 
@@ -90,8 +91,8 @@ export default function Navbar() {
 
       <div className={`fixed top-0 left-0 h-full w-72 bg-green-900 z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between p-4 border-b border-green-700">
-          <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
-            <img src="/uploads/kamol.png" alt="Farmer Kamol" className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
+        <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+        <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
             <div className="flex flex-col leading-tight">
               <span className="text-xl text-basefont-extrabold text-white drop-shadow-lg">Farmer Kamol</span>
               <span className="text-xs text-yellow-300">খামার থেকে আপনার দরজায়</span>
@@ -131,7 +132,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <button className="md:hidden text-white text-2xl" onClick={() => setMobileOpen(true)}>☰</button>
             <Link href="/" className="flex items-center gap-3">
-              <img src="/uploads/kamol.png" alt="Farmer Kamol" className="w-12 h-12 rounded-full object-cover border-2 border-white-400" />
+              <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={48} height={48} priority className="w-12 h-12 rounded-full object-cover border-2 border-white-400" />
               <div className="flex flex-col leading-tight">
                 <span className="text-xl text-basefont-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
                 <span className="text-xs text-yellow-300 whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
