@@ -47,8 +47,8 @@ export default function HeroSlider({ featuredProducts = [] }: { featuredProducts
         Farmer Kamol - সিরাজগঞ্জের রায়গঞ্জ থেকে খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা, সরাসরি খামার থেকে আপনার দরজায়
       </h1>
       {/* ── PC LAYOUT ── */}
-      <div className="hidden md:grid md:grid-cols-2 h-[270px]">
-
+      <div className="hidden md:grid md:grid-cols-2 h-[280px]">
+      
         {/* বাম — Slider */}
         <div className="relative overflow-hidden">
           {slides.map((slide, i) => (

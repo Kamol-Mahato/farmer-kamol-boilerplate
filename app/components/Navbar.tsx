@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import AnnouncementBar from "./AnnouncementBar"
 import { useRouter } from "next/navigation"
-
+import NewOrderNotifier from "../admin/components/NewOrderNotifier"
 type Menu = {
   id: number
   title: string
@@ -24,6 +24,8 @@ export default function Navbar() {
   const [openMobileMenu, setOpenMobileMenu] = useState<number | null>(null)
   // ✅ নতুন state — user dropdown (👤) এর জন্য, click ভিত্তিক
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  // ✅ নতুন state — লগইন আইকনে ক্লিক করলে Login/Register dropdown দেখানোর জন্য
+  const [authMenuOpen, setAuthMenuOpen] = useState(false)
 
   const checkUser = () => {
     const storedUser = localStorage.getItem("user")
@@ -183,6 +185,10 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* 🔔 New order bell - শুধু Admin/Super Admin */}
+            {user && (user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
+              <NewOrderNotifier />
+            )}
             <div className="flex items-center">
               <form onSubmit={handleSearch} className="flex items-center">
                 <input
@@ -221,13 +227,35 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <Link href="/login" className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                </svg>
-              </Link>
+              <div className="relative"
+                onMouseEnter={() => setAuthMenuOpen(true)}
+                onMouseLeave={() => setAuthMenuOpen(false)}
+              >
+                <button
+                  onClick={() => setAuthMenuOpen(!authMenuOpen)}
+                  className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                </button>
+                <div className={`absolute right-0 top-full ${authMenuOpen ? "block" : "hidden"} bg-green-800 rounded-lg shadow-lg min-w-[180px] py-2 z-50`}>
+                  <Link href="/login"
+                    onClick={() => setAuthMenuOpen(false)}
+                    className="block px-4 py-2 text-sm hover:bg-green-700 hover:text-yellow-400 transition"
+                  >
+                    🔑 লগইন করুন
+                  </Link>
+                  <Link href="/register"
+                    onClick={() => setAuthMenuOpen(false)}
+                    className="block px-4 py-2 text-sm hover:bg-green-700 hover:text-yellow-400 transition"
+                  >
+                    📝 নতুন অ্যাকাউন্ট খুলুন
+                  </Link>
+                </div>
+              </div>
             )}
-
+            
             {/* ✅ Cart icon with dynamic badge */}
             <Link href="/cart" className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center">
               <div className="relative flex items-center justify-center">

@@ -4,6 +4,9 @@ import { prisma } from "@/lib/prisma"
 import ProductCard from "./components/ProductCard"
 import BlogSection from "./components/BlogSection"
 import type { Metadata } from "next"
+import NoticeModal from "./components/NoticeModal" // এটি যোগ করুন
+import VideoSection from "./components/VideoSection"
+
 
 export const metadata: Metadata = {
   title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
@@ -38,8 +41,14 @@ export default async function HomePage() {
     orderBy: { createdAt: "desc" },
     take: 3,
   })
+  const videos = await prisma.youtubeVideo.findMany({
+    where: { isActive: true },
+    orderBy: { displayOrder: "asc" },
+    take: 3,
+  })
   return (
     <div className="font-[family-name:var(--font-hind-siliguri)]">
+      <NoticeModal />
       {/* Hero Slider */}
       <HeroSlider featuredProducts={featuredProducts} />
 
@@ -88,6 +97,8 @@ export default async function HomePage() {
 
       {/* Blog Section */}
       <BlogSection blogs={blogs} />
+      {/* Video Section */}
+      <VideoSection videos={videos} />
     </div>
   )
 }

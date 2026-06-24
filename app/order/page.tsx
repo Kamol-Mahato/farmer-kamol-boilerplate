@@ -340,7 +340,7 @@ function OrderForm() {
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">উপজেলা *</label>
             <select name="upazila" value={form.upazila} onChange={handleChange} disabled={!selectedDistrictId} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100">
-              <option value="">উপজেলা বেছে নিন</option>
+              <option value="">উপজেলা/এরিয়া বেছে নিন</option>
               {selectedDistrictId && upazilas[selectedDistrictId]?.map((u) => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
@@ -391,7 +391,7 @@ function OrderForm() {
 
         {/* ✅ Online payment হলে bKash/Nagad/Rocket + TrxID box */}
         {form.paymentMethod === "GATEWAY" && (
-          <div className="bg-pink-50 border border-pink-200 rounded-xl p-3 space-y-3">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-3">
             <p className="text-xs font-bold text-gray-700">কোন মাধ্যমে Send Money করেছেন? *</p>
             <div className="grid grid-cols-3 gap-2">
               {["bKash", "Nagad", "Rocket"].map((g) => (
@@ -401,8 +401,8 @@ function OrderForm() {
                   onClick={() => setForm(f => ({ ...f, gatewayName: g }))}
                   className={`py-2 rounded-lg text-xs font-bold border-2 transition ${
                     form.gatewayName === g
-                      ? "border-pink-600 bg-pink-100 text-pink-800"
-                      : "border-gray-200 text-gray-500 bg-white"
+                      ? "border-black-600 bg-green-100 text-bold text-pink-800"
+                      : "border-black-200 text-gray-500 bg-white"
                   }`}
                 >
                   {g}

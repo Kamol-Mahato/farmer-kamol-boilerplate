@@ -1,10 +1,9 @@
 "use client"
-import { useState, useEffect, useRef, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import QRCode from "qrcode"
 import Barcode from "react-barcode"
-import { jsPDF } from "jspdf"
-import html2canvas from "html2canvas"
+import { generateCustomId } from "@/lib/orderUtils"
 
 interface OrderItem {
   id: number
@@ -12,9 +11,9 @@ interface OrderItem {
   finalPrice: number
   product: { name: string; unit: string }
 }
-
 interface Order {
   id: number
+  dailySeq: number
   createdAt: string
   deliveryAddress: string
   finalCodAmount: number
@@ -22,18 +21,14 @@ interface Order {
   deliveryCharge: number
   orderStatus: string
   paymentMethod: string
-  paymentAmountPaid: number    // নতুন যোগ হলো
-  paymentStatus: string        // নতুন যোগ হলো
+  paymentAmountPaid: number
+  paymentStatus: string
   customer: { name: string; phone: string }
   orderItems: OrderItem[]
 }
 
-function generateCustomId(createdAt: string, id: number) {
-  const d = new Date(createdAt)
-  return `FK${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}${String(id).padStart(1, "0")}`
-}
 function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
-  const customId = generateCustomId(order.createdAt, order.id)
+  const customId = generateCustomId(order.createdAt, order.dailySeq)
   return (
     <div className="invoice-container bg-white p-8 mb-8 border border-gray-200 rounded-xl">
       <div className="flex items-center justify-between border-b-2 border-green-700 pb-4 mb-6">
@@ -89,8 +84,6 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
         <div className="flex justify-between text-sm text-gray-600 mt-1">
           <span>ডেলিভারি চার্জ</span><span>৳ {order.deliveryCharge}</span>
         </div>
-        
-        {/* এখানে নতুন পেমেন্ট ডিটেইলস যোগ হচ্ছে */}
         <div className="flex justify-between text-sm text-gray-600 mt-1 border-t pt-1">
           <span>পেইড অ্যামাউন্ট</span><span>৳ {order.paymentAmountPaid}</span>
         </div>
@@ -98,7 +91,6 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
           <span>বাকি টাকা (Due)</span><span>৳ {order.finalCodAmount - order.paymentAmountPaid}</span>
         </div>
       </div>
-
       <div className="flex items-center justify-between border-t pt-4">
         <Barcode value={customId} width={1.2} height={40} fontSize={10} />
         <div className="text-center">
@@ -111,7 +103,7 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
 }
 
 function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
-  const customId = generateCustomId(order.createdAt, order.id)
+  const customId = generateCustomId(order.createdAt, order.dailySeq)
   return (
     <div className="invoice-container bg-white p-4 mb-6 border border-gray-200 rounded-xl" style={{ width: "302px" }}>
       <div className="text-center mb-3">
@@ -131,7 +123,7 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
       {order.orderItems.map(item => (
         <p key={item.id} className="text-xs">{item.product.name} × {item.quantity} = ৳ {item.finalPrice}</p>
       ))}
-     <div className="border-t border-dashed border-gray-400 my-2" />
+      <div className="border-t border-dashed border-gray-400 my-2" />
       <p className="text-[14px] text-center text-gray-500">
         (ডেলিভারি চার্জ সহ)
       </p>
@@ -140,7 +132,7 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
       </p>
       <div className="border-t border-dashed border-gray-400 my-2" />
       <div className="mt-2">
-      <Barcode value={customId} width={2} height={60} fontSize={18} />
+        <Barcode value={customId} width={2} height={60} fontSize={18} />
       </div>
       <p className="text-center text-xs text-lack-400 mt-2"> ধন্যবাদান্তে farmerkamol.com 🌿</p>
     </div>
@@ -148,7 +140,7 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
 }
 
 function StickerInvoice({ order }: { order: Order }) {
-  const customId = generateCustomId(order.createdAt, order.id)
+  const customId = generateCustomId(order.createdAt, order.dailySeq)
   return (
     <div className="invoice-container bg-white p-3 mb-4 border border-gray-200 rounded-xl" style={{ width: "302px" }}>
       <div className="flex items-center gap-2 mb-2">
@@ -164,12 +156,12 @@ function StickerInvoice({ order }: { order: Order }) {
     </div>
   )
 }
+
 function InvoicePage() {
   const searchParams = useSearchParams()
   const idsParam = searchParams.get("ids") || searchParams.get("id") || ""
   const type = searchParams.get("type") || "a4"
   const ids = idsParam.split(",").map(Number).filter(Boolean)
-
   const [orders, setOrders] = useState<Order[]>([])
   const [qrUrl, setQrUrl] = useState("")
   const [loading, setLoading] = useState(true)
@@ -188,30 +180,22 @@ function InvoicePage() {
   }, [idsParam])
 
   const handleDownloadPDF = async () => {
-    // ১. ইনভয়েসের কন্টেন্টগুলো খুঁজে বের করা
-    const invoiceElements = document.querySelectorAll('.invoice-container');
-    
-    // ২. একটি নতুন উইন্ডো খোলা
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    // ৩. ইনভয়েসগুলোর এইচটিএমএল যোগ করা
-    let invoiceHTML = "";
-    const wrapperPadding = type === "a4" ? "0px" : "16px";
+    const invoiceElements = document.querySelectorAll('.invoice-container')
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+    let invoiceHTML = ""
+    const wrapperPadding = type === "a4" ? "0px" : "16px"
     invoiceElements.forEach((el, idx) => {
-      const isLast = idx === invoiceElements.length - 1;
-      const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;";
-      invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: 20px; padding: ${wrapperPadding};">${el.innerHTML}</div>`;
-    });
-
-    // ৪. স্টাইল এবং কন্টেন্ট সহ নতুন উইন্ডো সেটআপ করা
+      const isLast = idx === invoiceElements.length - 1
+      const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;"
+      invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: 20px; padding: ${wrapperPadding};">${el.innerHTML}</div>`
+    })
     printWindow.document.write(`
       <html>
         <head>
           <title>Invoice</title>
           <style>
             body { font-family: sans-serif; padding: ${type === "a4" ? "20px" : "0"}; margin: 0; }
-            /* এখানে আপনার Tailwind এর স্টাইলগুলো ইনজেক্ট করা হচ্ছে */
             @media print {
               @page { size: ${type === "a4" ? "A4" : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : "0mm"}; }
               body { -webkit-print-color-adjust: exact; }
@@ -224,15 +208,13 @@ function InvoicePage() {
           ${invoiceHTML}
         </body>
       </html>
-    `);
-
-    // ৫. কন্টেন্ট লোড হওয়ার পর প্রিন্ট অপশন দেখানো
-    printWindow.document.close();
+    `)
+    printWindow.document.close()
     setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-    }, 800);
-  };
+      printWindow.focus()
+      printWindow.print()
+    }, 800)
+  }
 
   if (loading) return <div className="text-center py-20 text-gray-400">লোড হচ্ছে...</div>
   if (orders.length === 0) return <div className="text-center py-20 text-red-400">অর্ডার পাওয়া যায়নি</div>
@@ -266,6 +248,7 @@ function InvoicePage() {
     </div>
   )
 }
+
 export default function InvoicePageWrapper() {
   return (
     <Suspense fallback={<div className="text-center py-20">লোড হচ্ছে...</div>}>

@@ -4,7 +4,7 @@ import Image from "next/image"
 export default function Footer() {
   return (
     <footer className="bg-green-900 text-white mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         
         {/* Main Grid */}
         <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-6">
@@ -22,8 +22,8 @@ export default function Footer() {
               />
               <h4 className="text-lg font-bold">Farmer Kamol</h4>
             </Link>
-            <p className="text-xs text-yellow-400 mb-2 font-bold">খামার থেকে আপনার দরজায়</p>
-            <p className="text-xs text-white-300 mb-4 font-bold">সমন্বিত কৃষির মাধ্যমে প্রাকৃতিক ও স্বাস্থ্যকর খাদ্যপণ্য সরাসরি আপনার কাছে পৌঁছে দিচ্ছি।</p>
+            <p className="text-sm text-yellow-400 mb-2 font-bold">খামার থেকে আপনার দরজায়</p>
+            <p className="text-sm text-white-300 mb-4 ">সমন্বিত কৃষির মাধ্যমে প্রাকৃতিক ও স্বাস্থ্যকর খাদ্যপণ্য সরাসরি আপনার কাছে পৌঁছে দিচ্ছি।</p>
             
             {/* Social Icons */}
             <div className="flex flex-wrap gap-2">

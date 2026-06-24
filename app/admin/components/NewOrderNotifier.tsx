@@ -91,7 +91,7 @@ export default function NewOrderNotifier() {
   return (
     <>
       {/* 🔔 বেল আইকন */}
-      <div className="fixed top-11 right-100 z-[90]">
+      <div className="relative">
         <button
           onClick={toggleDropdown}
           className="relative bg-white border border-gray-200 shadow-md rounded-full w-11 h-11 flex items-center justify-center text-xl hover:bg-gray-50 transition"

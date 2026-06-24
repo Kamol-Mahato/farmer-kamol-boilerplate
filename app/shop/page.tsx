@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import ProductCard from "@/app/components/ProductCard"
 import type { Metadata } from "next"
+import Breadcrumb from "../components/Breadcrumb"
 
 export const metadata: Metadata = {
   title: "আমাদের সকল পণ্য - মধু, ঘি, সরিষার তেল | Farmer Kamol",
@@ -17,9 +18,13 @@ export default async function ShopPage() {
     include: { images: true, category: true },
     orderBy: { createdAt: "desc" },
   })
-
   return (
-    <div className="max-w-7xl mx-auto px-2 py-1">
+    <div>
+      <Breadcrumb items={[
+        { label: "হোম", href: "/" },
+        { label: "শপ" },
+      ]} />
+      <div className="max-w-7xl mx-auto px-2 py-1">
       <div className="text-center mb-4">
         <h1 className="text-2xl font-bold text-green-800">আমাদের সকল পণ্য</h1>
         <p className="text-sm text-gray-500 mt-2">খামার থেকে সরাসরি আপনার কাছে</p>
@@ -36,6 +41,7 @@ export default async function ShopPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

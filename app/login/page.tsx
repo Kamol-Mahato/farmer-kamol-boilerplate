@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 interface User {
   name?: string;
@@ -67,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start pt-12 pb-16 px-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-12 pb-16 px-1">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-green-800">Farmer Kamol</h1>
@@ -191,7 +192,13 @@ export default function LoginPage() {
                   "লগইন করুন"
                 )}
               </button>
-            </form>
+              </form>
+            <p className="text-center text-sm text-gray-500 mt-6">
+              নতুন গ্রাহক?{" "}
+              <Link href="/register" className="text-green-700 font-bold hover:underline">
+                অ্যাকাউন্ট তৈরি করুন
+              </Link>
+            </p>
           </>
         )}
       </div>
