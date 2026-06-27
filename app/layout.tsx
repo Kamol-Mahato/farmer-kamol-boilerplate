@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { Hind_Siliguri } from "next/font/google"
-import Navbar from "./components/Navbar"
-import Footer from "./components/Footer"
-import FloatingCartButton from "./components/FloatingCartButton"
+import ConditionalLayout from "./components/ConditionalLayout"
 import OrganizationSchema from "./components/OrganizationSchema"
 import "./globals.css"
 
@@ -46,16 +44,7 @@ export default function RootLayout({
     <html lang="bn">
       <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
         <OrganizationSchema />
-        <Navbar />
-        <FloatingCartButton />
-        <div className="h-[110px]" />
-        {/* 🌿 ANNOUNCEMENT STRIP - পরে দরকার হলে uncomment করো
-        <div className="bg-white border-b border-green-100 py-2 text-center text-sm text-green-800 font-medium tracking-wide">
-          🌿 ১০০% প্রাকৃতিক · অর্গানিক · ফার্ম ফ্রেশ
-        </div>
-        */}
-        <main className="flex-grow">{children}</main>
-        <Footer />
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   )

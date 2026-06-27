@@ -104,7 +104,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-green-700 mt-6 pt-4 flex flex-col md:flex-row justify-between items-center text-xs text-green-400 gap-2">
+        <div className="border-t border-green-500 mt-6 pt-4 flex flex-col md:flex-row justify-between items-center text-xs text-green-400 gap-2">
           <p>© 2026 Farmer Kamol. সর্বস্বত্ব সংরক্ষিত।</p>
           <div className="flex gap-4">
           <Link href="/privacy-policy" className="hover:text-yellow-400">গোপনীয়তা নীতি</Link>

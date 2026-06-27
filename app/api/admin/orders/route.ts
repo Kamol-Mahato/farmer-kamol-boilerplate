@@ -1,7 +1,20 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
+
+// অর্ডার স্ট্যাটাস ট্রানজিশন ম্যাপ — কোন স্ট্যাটাস থেকে কোন স্ট্যাটাসে যাওয়া যাবে
+const ORDER_STATUS_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ["DELIVERY_ONGOING", "CANCELLED"],
+  DELIVERY_ONGOING: ["DELIVERED", "CANCELLED"],
+  DELIVERED: [], // ফাইনাল স্টেট — কোথাও যাওয়া যাবে না
+  CANCELLED: ["PENDING"], // ভুলে cancel হয়ে গেলে রিভার্ট করার সুযোগ
+}
 
 export async function GET() {
+  const authUser = await verifyAdminOrAgent()
+  if (!authUser) {
+    return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
+  }
   try {
     const orders = await prisma.order.findMany({
       include: {
@@ -18,6 +31,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authUser = await verifyAdminOrAgent()
+  if (!authUser) {
+    return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
+  }
   try {
     const body = await request.json()
     const { orderIds, status, courierName } = body
@@ -25,11 +42,42 @@ export async function POST(request: Request) {
     if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0 || !status) {
       return NextResponse.json({ error: "সঠিক তথ্য দিন" }, { status: 400 })
     }
+    if (!Object.prototype.hasOwnProperty.call(ORDER_STATUS_TRANSITIONS, status)) {
+      return NextResponse.json({ error: "ভুল স্ট্যাটাস" }, { status: 400 })
+    }
+
+    const skipped: { orderId: number; reason: string }[] = []
 
     for (const id of orderIds) {
       const orderIdInt = parseInt(id)
 
-      // ✅ কুরিয়ার তথ্য শুধু তখনই সেভ হবে যখন status SHIPPED এবং courier নাম দেওয়া আছে
+      // ✅ বর্তমান স্ট্যাটাস চেক করা — transition valid কিনা
+      const currentOrder = await prisma.order.findUnique({
+        where: { id: orderIdInt },
+        select: { orderStatus: true },
+      })
+
+      if (!currentOrder) {
+        skipped.push({ orderId: orderIdInt, reason: "অর্ডার পাওয়া যায়নি" })
+        continue
+      }
+
+      const currentStatus = currentOrder.orderStatus
+
+      if (currentStatus === status) {
+        continue // আগে থেকেই এই স্ট্যাটাসে আছে
+      }
+
+      const allowedNextStatuses = ORDER_STATUS_TRANSITIONS[currentStatus] || []
+      if (!allowedNextStatuses.includes(status)) {
+        skipped.push({
+          orderId: orderIdInt,
+          reason: currentStatus + " থেকে " + status + "-এ যাওয়া সম্ভব নয়",
+        })
+        continue
+      }
+
+      // ✅ কুরিয়ার তথ্য শুধু তখনই সেভ হবে যখন status DELIVERY_ONGOING এবং courier নাম দেওয়া আছে
       if (status === "DELIVERY_ONGOING" && courierName) {
         const existingSummary = await prisma.courierSummary.findUnique({
           where: { orderId: orderIdInt }
@@ -54,10 +102,18 @@ export async function POST(request: Request) {
         }
       }
 
-      // মূল অর্ডারের স্ট্যাটাস আপডেট করা (এটা সবসময় হবে, কুরিয়ার থাকুক বা না থাকুক)
+      // মূল অর্ডারের স্ট্যাটাস আপডেট করা
       await prisma.order.update({
         where: { id: orderIdInt },
         data: { orderStatus: status }
+      })
+    }
+
+    if (skipped.length > 0) {
+      return NextResponse.json({
+        success: true,
+        message: "কিছু অর্ডার আপডেট হয়েছে, কিছু বাদ পড়েছে",
+        skipped,
       })
     }
 
@@ -70,6 +126,10 @@ export async function POST(request: Request) {
 
 // 🗑️ ভুল TrxID / fake order ডিলিট করার API — Stock ফিরিয়ে দেবে
 export async function DELETE(request: Request) {
+  const authUser = await verifyAdminOrAgent()
+  if (!authUser) {
+    return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
+  }
   try {
     const body = await request.json()
     const { orderId } = body

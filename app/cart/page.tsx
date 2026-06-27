@@ -54,7 +54,42 @@ function DistrictSearch({ districts, onSelect }: {
     </div>
   )
 }
-
+function UpazilaSearch({ upazilas, onSelect, disabled }: {
+  upazilas: string[]
+  onSelect: (u: string) => void
+  disabled?: boolean
+}) {
+  const [query, setQuery] = useState("")
+  const [show, setShow] = useState(false)
+  const [selected, setSelected] = useState("")
+  const filtered = upazilas.filter(u => u.includes(query))
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={selected || query}
+        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
+        onFocus={() => setShow(true)}
+        onBlur={() => setTimeout(() => setShow(false), 200)}
+        placeholder={disabled ? "আগে জেলা বেছে নিন" : "উপজেলা লিখুন বা খুঁজুন"}
+        disabled={disabled}
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100"
+      />
+      {show && filtered.length > 0 && (
+        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto mt-1">
+          {filtered.map(u => (
+            <div key={u}
+              className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
+              onMouseDown={() => { setSelected(u); setQuery(""); setShow(false); onSelect(u) }}
+            >
+              {u}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 export default function CartPage() {
   const router = useRouter()
   const [cart, setCart] = useState<CartItem[]>([])
@@ -70,7 +105,16 @@ export default function CartPage() {
     upazila: "",
     address: "",
     customerNote: "",
+    paymentMethod: "",
+    gatewayName: "",
+    trxId: "",
   })
+  const [copied, setCopied] = useState(false)
+  function copyNumber() {
+    navigator.clipboard.writeText("01737939688")
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // ✅ key fix: "farmer_kamol_cart"
   function loadCart() {
@@ -127,6 +171,20 @@ export default function CartPage() {
     if (!form.name.trim() || !form.phone.trim() || !form.district || !form.upazila || !form.address.trim()) {
       setError("সব তথ্য সঠিকভাবে পূরণ করুন"); return
     }
+    if (!form.paymentMethod) {
+      setError("পেমেন্ট পদ্ধতি বেছে নিন (Cash on Delivery বা Online Payment)")
+      return
+    }
+    if (form.paymentMethod === "GATEWAY") {
+      if (!form.gatewayName) {
+        setError("কোন মাধ্যমে (bKash/Nagad/Rocket) Send Money করেছেন বেছে নিন")
+        return
+      }
+      if (!form.trxId.trim()) {
+        setError("Transaction ID (TrxID) দিন")
+        return
+      }
+    }
     setLoading(true)
     setError("")
     const fullAddress = `${form.address}, ${form.upazila}, ${form.district}`
@@ -140,7 +198,10 @@ export default function CartPage() {
           address: fullAddress,
           items: cart.map(item => ({ productId: item.id, quantity: item.quantity })),
           customerNote: form.customerNote,
-          deliveryCharge,
+          districtId: selectedDistrictId,
+          paymentMethod: form.paymentMethod,
+          gatewayName: form.paymentMethod === "GATEWAY" ? form.gatewayName : null,
+          trxId: form.paymentMethod === "GATEWAY" ? form.trxId.trim() : null,
         }),
       })
       const data = await res.json()
@@ -225,10 +286,12 @@ export default function CartPage() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">উপজেলা *</label>
-            <select name="upazila" value={form.upazila} onChange={handleChange} disabled={!selectedDistrictId} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100">
-              <option value="">উপজেলা বেছে নিন</option>
-              {selectedDistrictId && upazilas[selectedDistrictId]?.map((u) => <option key={u} value={u}>{u}</option>)}
-            </select>
+            <UpazilaSearch
+              key={selectedDistrictId ?? "none"}
+              upazilas={selectedDistrictId ? (upazilas[selectedDistrictId] || []) : []}
+              disabled={!selectedDistrictId}
+              onSelect={(u) => setForm(prev => ({ ...prev, upazila: u }))}
+            />
           </div>
         </div>
         <div>
@@ -239,6 +302,69 @@ export default function CartPage() {
           <label className="block text-xs font-medium text-gray-700 mb-1">নোট (ঐচ্ছিক)</label>
           <input type="text" name="customerNote" value={form.customerNote} onChange={handleChange} placeholder="বিশেষ কোনো নির্দেশনা থাকলে লিখুন" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
         </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-2">পেমেন্ট পদ্ধতি *</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, paymentMethod: "COD" }))}
+              className={`py-2 rounded-lg text-sm font-bold border-2 transition ${
+                form.paymentMethod === "COD" ? "border-green-600 bg-green-50 text-green-800" : "border-gray-200 text-gray-500"
+              }`}
+            >
+              💵 ক্যাশ অন ডেলিভারি
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm(f => ({ ...f, paymentMethod: "GATEWAY" }))}
+              className={`py-2 rounded-lg text-sm font-bold border-2 transition ${
+                form.paymentMethod === "GATEWAY" ? "border-green-600 bg-green-50 text-green-800" : "border-gray-200 text-gray-500"
+              }`}
+            >
+              📱 অনলাইন পেমেন্ট
+            </button>
+          </div>
+        </div>
+        {form.paymentMethod === "GATEWAY" && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-3 space-y-3">
+            <p className="text-xs font-bold text-gray-700">কোন মাধ্যমে Send Money করেছেন? *</p>
+            <div className="grid grid-cols-3 gap-2">
+              {["bKash", "Nagad", "Rocket"].map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, gatewayName: g }))}
+                  className={`py-2 rounded-lg text-xs font-bold border-2 transition ${
+                    form.gatewayName === g ? "border-black-600 bg-green-100 text-bold text-pink-800" : "border-black-200 text-gray-500 bg-white"
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500">এই নম্বরে Send Money করুন</p>
+                <p className="font-bold text-gray-800 text-base">01737939688</p>
+              </div>
+              <button type="button" onClick={copyNumber} className="bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-green-600 transition">
+                {copied ? "✅ কপি হয়েছে" : "কপি করুন"}
+              </button>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Transaction ID (TrxID) *</label>
+              <input
+                type="text"
+                name="trxId"
+                value={form.trxId}
+                onChange={handleChange}
+                placeholder="যেমন: 8N7A6XYZ12"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-500"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">Send Money করার পর SMS এ পাওয়া Transaction ID টি এখানে বসান।</p>
+            </div>
+          </div>
+        )}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="bg-gray-50 rounded-lg p-3 text-sm">
           <div className="flex justify-between">

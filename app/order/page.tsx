@@ -54,7 +54,42 @@ function DistrictSearch({ districts, onSelect }: {
     </div>
   )
 }
-
+function UpazilaSearch({ upazilas, onSelect, disabled }: {
+  upazilas: string[]
+  onSelect: (u: string) => void
+  disabled?: boolean
+}) {
+  const [query, setQuery] = useState("")
+  const [show, setShow] = useState(false)
+  const [selected, setSelected] = useState("")
+  const filtered = upazilas.filter(u => u.includes(query))
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={selected || query}
+        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
+        onFocus={() => setShow(true)}
+        onBlur={() => setTimeout(() => setShow(false), 200)}
+        placeholder={disabled ? "আগে জেলা বেছে নিন" : "উপজেলা লিখুন বা খুঁজুন"}
+        disabled={disabled}
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100"
+      />
+      {show && filtered.length > 0 && (
+        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto mt-1">
+          {filtered.map(u => (
+            <div key={u}
+              className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
+              onMouseDown={() => { setSelected(u); setQuery(""); setShow(false); onSelect(u) }}
+            >
+              {u}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 function OrderForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -246,7 +281,7 @@ function OrderForm() {
           productId: parseInt(productId || "0"),
           quantity: form.quantity,
           customerNote: form.customerNote,
-          deliveryCharge: deliveryCharge,
+          districtId: selectedDistrictId,
           paymentMethod: form.paymentMethod,
           gatewayName: form.paymentMethod === "GATEWAY" ? form.gatewayName : null,
           trxId: form.paymentMethod === "GATEWAY" ? form.trxId.trim() : null,
@@ -339,10 +374,12 @@ function OrderForm() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">উপজেলা *</label>
-            <select name="upazila" value={form.upazila} onChange={handleChange} disabled={!selectedDistrictId} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100">
-              <option value="">উপজেলা/এরিয়া বেছে নিন</option>
-              {selectedDistrictId && upazilas[selectedDistrictId]?.map((u) => <option key={u} value={u}>{u}</option>)}
-            </select>
+            <UpazilaSearch
+              key={selectedDistrictId ?? "none"}
+              upazilas={selectedDistrictId ? (upazilas[selectedDistrictId] || []) : []}
+              disabled={!selectedDistrictId}
+              onSelect={(u) => setForm(prev => ({ ...prev, upazila: u }))}
+            />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">

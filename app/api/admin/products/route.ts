@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
 export async function GET() {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const products = await prisma.product.findMany({
       include: { category: true, images: true },
@@ -14,6 +20,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
 
@@ -25,7 +36,8 @@ export async function POST(request: Request) {
       discountPrice,
       unit,
       stockQty,
-      imageUrl, // ফ্রন্টএন্ড ফর্ম থেকে পাঠানো ছবির লিংকটি রিসিভ করা হলো
+      imageUrl, // ফ্রন্টএন্ড ফর্ম থেকে পাঠানো ছবির লিংকটি রিসিভ করা হলো (backward compatibility)
+      imageUrls, // একাধিক ছবির লিংক (নতুন)
       isFeatured,
       isActive,
       isOutOfStockVisible,
@@ -50,13 +62,23 @@ export async function POST(request: Request) {
         isFeatured,
         isActive,
         isOutOfStockVisible,
-        // যদি ছবি আপলোড করা থাকে, তবে ডাটাবেসের ইমেজ টেবিলে রিলেশনসহ ডেটা তৈরি হবে
-        images: imageUrl ? {
-          create: {
-            imageUrl: imageUrl,
-            isPrimary: true, // এটিই পণ্যের প্রধান বা প্রথম ছবি
-          }
-        } : undefined,
+        // ✅ একাধিক ছবি থাকলে সবগুলো সেভ হবে, প্রথমটা isPrimary হিসেবে মার্ক হবে
+        // SEO/AI এর জন্য প্রতিটা ছবির আলাদা alt-friendly নাম তৈরির ভিত্তি হিসেবে নাম+ক্রম রাখা হলো
+        images: (imageUrls && imageUrls.length > 0)
+          ? {
+              create: imageUrls.map((url: string, idx: number) => ({
+                imageUrl: url,
+                isPrimary: idx === 0,
+              })),
+            }
+          : imageUrl
+          ? {
+              create: {
+                imageUrl: imageUrl,
+                isPrimary: true,
+              },
+            }
+          : undefined,
       },
     })
 

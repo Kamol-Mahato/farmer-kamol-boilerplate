@@ -1,15 +1,39 @@
 import { NextResponse } from "next/server"
 import path from "path"
 import fs from "fs"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
 
 export async function POST(request: Request) {
+  const currentUser = await verifyAdminOrAgent()
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const formData = await request.formData()
     const file = formData.get("file") as File | null
-
     if (!file) {
       return NextResponse.json(
-        { error: "কোনো ফাইল পাওয়া যায়নি" },
+        { error: "কোনো ফাইল পাওয়া যায়নি" },
+        { status: 400 }
+      )
+    }
+
+    // ✅ ফাইল টাইপ ভ্যালিডেশন — শুধু ছবি আপলোড করা যাবে
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        { error: "শুধুমাত্র JPG, PNG বা WEBP ছবি আপলোড করা যাবে" },
+        { status: 400 }
+      )
+    }
+
+    // ✅ ফাইল সাইজ ভ্যালিডেশন — সর্বোচ্চ 5MB
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "ফাইলের সাইজ ৫ এমবি-র বেশি হতে পারবে না" },
         { status: 400 }
       )
     }

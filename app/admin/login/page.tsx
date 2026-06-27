@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -70,6 +71,14 @@ export default function AdminLoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500"
             />
+            <div className="text-right mt-2">
+              <Link
+                href="/admin/forgot-password"
+                className="text-sm text-green-700 hover:underline"
+              >
+                পাসওয়ার্ড ভুলে গেছেন?
+              </Link>
+            </div>
           </div>
           {error && (
             <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg text-center font-medium">

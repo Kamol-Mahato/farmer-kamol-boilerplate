@@ -4,6 +4,21 @@ import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { generateCustomId } from "@/lib/orderUtils"
 
+// অর্ডার স্ট্যাটাস ট্রানজিশন ম্যাপ — backend (route.ts)-এর ORDER_STATUS_TRANSITIONS-এর সাথে সিঙ্কে রাখা
+const ORDER_STATUS_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ["DELIVERY_ONGOING", "CANCELLED"],
+  DELIVERY_ONGOING: ["DELIVERED", "CANCELLED"],
+  DELIVERED: [],
+  CANCELLED: ["PENDING"],
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING: "পেন্ডিং",
+  DELIVERY_ONGOING: "পাঠানো হয়েছে",
+  DELIVERED: "ডেলিভার্ড",
+  CANCELLED: "বাতিল",
+}
+
 interface OrderItem {
   id: number
   quantity: number
@@ -82,29 +97,29 @@ export default function AdminOrdersPage() {
   function renderPaymentBadge(order: Order) {
     if (order.paymentMethod !== "GATEWAY") {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">
+        <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
           COD
         </span>
       )
     }
     if (order.paymentStatus === "PAID") {
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
-          ✅ পেইড
+        <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-900 bg-gray-900 text-white">
+          পেইড
         </span>
       )
     }
     if (order.paymentStatus === "PARTIAL_PAID") {
       const due = order.finalCodAmount - order.paymentAmountPaid
       return (
-        <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
-          🟠 আংশিক পেইড (বাকি ৳{due})
+        <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+          আংশিক পেইড (বাকি ৳{due})
         </span>
       )
     }
     return (
-      <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">
-        🟡 পেমেন্ট কনফার্মেশন পেন্ডিং
+      <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+        পেমেন্ট কনফার্মেশন পেন্ডিং
       </span>
     )
   }
@@ -154,20 +169,31 @@ export default function AdminOrdersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderIds: ids, status, courierName: courier }),
       })
+      const data = await res.json().catch(() => ({}))
       if (res.ok) {
-        setOrders(prev => prev.map(o => ids.includes(o.id) ? { 
+        const skipped: { orderId: number; reason: string }[] = data.skipped || []
+        const skippedIds = new Set(skipped.map((s) => s.orderId))
+        const updatedIds = ids.filter((id) => !skippedIds.has(id))
+
+        setOrders(prev => prev.map(o => updatedIds.includes(o.id) ? { 
           ...o, 
           orderStatus: status, 
           courierSummary: status === "DELIVERY_ONGOING" && courier ? { courierStatus: courier } : o.courierSummary 
         } : o))
+
         if (ids.length > 1) {
           setSelectedOrderIds([])
           setBulkStatus("")
           setCourierName("")
+        }
+
+        if (skipped.length > 0) {
+          const reasons = skipped.map((s) => `অর্ডার #${s.orderId}: ${s.reason}`).join("\n")
+          alert(`কিছু অর্ডার আপডেট হয়নি:\n${reasons}`)
+        } else if (ids.length > 1) {
           alert("নির্বাচিত সব অর্ডারের কুরিয়ার ও স্ট্যাটাস আপডেট হয়েছে!")
         }
       } else {
-        const data = await res.json().catch(() => ({}))
         alert(data.error || "আপডেট করা যায়নি, সার্ভারে সমস্যা হয়েছে")
       }
     } catch {
@@ -436,9 +462,9 @@ export default function AdminOrdersPage() {
         </div>
       )}
       {/* ডেটা টেবিল গ্রিড */}
-      <div className="bg-white rounded-xl shadow overflow-x-auto">
+      <div className="bg-white rounded-xl shadow border border-gray-200 overflow-x-auto">
       <table className="w-full border-collapse text-left text-sm text-gray-500 min-w-[1000px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b">
+          <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b-2 border-gray-200">
             <tr>
               <th className="px-4 py-4 w-10 text-center">
                 <input
@@ -461,19 +487,15 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 border-t border-gray-100">
+          <tbody className="border-t border-gray-200">
             {filteredOrders.length === 0 ? (
               <tr>
                 <td colSpan={12} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
-                <tr key={order.id} className={`transition ${
-                  selectedOrderIds.includes(order.id) ? "bg-green-50/40" :
-                  order.orderStatus === "DELIVERED" ? "bg-green-50" :
-                  order.orderStatus === "DELIVERY_ONGOING" ? "bg-yellow-50" :
-                  order.orderStatus === "CANCELLED" ? "bg-red-50" :
-                  "hover:bg-gray-50/50"
+                <tr key={order.id} className={`transition border-b border-gray-100 ${
+                  selectedOrderIds.includes(order.id) ? "bg-gray-50" : "bg-white hover:bg-gray-50/60"
                 }`}>
                   <td className="px-4 py-4 text-center">
                     <input
@@ -497,10 +519,13 @@ export default function AdminOrdersPage() {
                   <td className="px-6 py-4 select-none">
                     {renderPaymentBadge(order)}
                   </td>
-                  <td className="px-6 py-4 font-bold text-green-700 select-none">৳ {order.finalCodAmount}</td>
-                  <td className="px-6 py-4 text-blue-700 font-medium select-none">
-                    {order.paymentMethod === "GATEWAY" ? `৳ ${order.paymentAmountPaid}` : "-"}
-                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900 select-none">
+  ৳ {order.finalCodAmount}
+</td>
+
+<td className="px-6 py-4 font-medium text-gray-900 select-none">
+  {order.paymentMethod === "GATEWAY" ? `৳ ${order.paymentAmountPaid}` : "-"}
+</td>
                   <td className={`px-6 py-4 font-bold select-none ${getDueAmount(order) === 0 ? "text-green-600" : "text-red-600"}`}>৳ {getDueAmount(order)}</td>
                   {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
 
@@ -509,6 +534,7 @@ export default function AdminOrdersPage() {
                     <div className="relative inline-block">
                     <select
   value={order.orderStatus}
+  disabled={(ORDER_STATUS_TRANSITIONS[order.orderStatus] || []).length === 0}
   onChange={(e) => {
     const newStatus = e.target.value
     if (newStatus === "DELIVERY_ONGOING") {
@@ -520,28 +546,34 @@ export default function AdminOrdersPage() {
   }}
   style={{
     backgroundColor:
-      order.orderStatus === "PENDING" ? "#facc15" :
-      order.orderStatus === "DELIVERY_ONGOING" ? "#f59e0b" :
-      order.orderStatus === "DELIVERED" ? "#16a34a" :
-      "#ef4444",
+      order.orderStatus === "DELIVERED" ? "#16a34a" : // ডেলিভার্ড হলে গ্রিন
+      order.orderStatus === "CANCELLED" ? "#dc2626" : // বাতিল হলে রেড
+      "#ffffff",                                      // পেন্ডিং/অনগোয়িং হলে হোয়াইট
     color:
-      order.orderStatus === "PENDING" ? "#713f12" : "white",
+      order.orderStatus === "DELIVERED" || order.orderStatus === "CANCELLED" 
+        ? "#ffffff"                                   // গ্রিন ও রেডের উপর টেক্সট হবে হোয়াইট
+        : "#374151",                                  // অন্যথায় সাধারণ ডার্ক টেক্সট
+    boxShadow:
+      order.orderStatus === "DELIVERED" ? "0 0 12px rgba(22,163,74,0.5)" :
+      order.orderStatus === "CANCELLED" ? "0 0 12px rgba(220,38,38,0.5)" :
+      "0 0 0 1px #d1d5db",
     borderRadius: "9999px",
-    padding: "4px 12px",
+    padding: "6px 24px 6px 16px",                     // ডানে একটু বেশি স্পেস রাখা হয়েছে তীরের জন্য
     fontSize: "12px",
     fontWeight: "800",
     border: "none",
-    cursor: "pointer",
+    cursor: (ORDER_STATUS_TRANSITIONS[order.orderStatus] || []).length === 0 ? "not-allowed" : "pointer",
+    opacity: (ORDER_STATUS_TRANSITIONS[order.orderStatus] || []).length === 0 ? 0.85 : 1,
     outline: "none",
     appearance: "none",
     WebkitAppearance: "none",
     MozAppearance: "none",
   }}
 >
-  <option value="PENDING">পেন্ডিং</option>
-  <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
-  <option value="DELIVERED">ডেলিভার্ড</option>
-  <option value="CANCELLED">বাতিল</option>
+  <option value={order.orderStatus}>{STATUS_LABELS[order.orderStatus]}</option>
+  {(ORDER_STATUS_TRANSITIONS[order.orderStatus] || []).map((s) => (
+    <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+  ))}
 </select>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                         <svg className="fill-current h-3 w-3" xmlns="http://w3.org" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -578,8 +610,8 @@ export default function AdminOrdersPage() {
                   </td>
                   <td className="px-6 py-4 select-none">
                     {order.courierSummary ? (
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
-                        🚚 {order.courierSummary.courierStatus}
+                      <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+                        {order.courierSummary.courierStatus}
                       </span>
                     ) : (
                       <span className="text-gray-400 text-xs">-</span>

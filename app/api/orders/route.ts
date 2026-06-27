@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { sendTelegramAlert } from "@/lib/telegram"
-import { getBangladeshDayBoundaries } from "@/lib/orderUtils"
+import { getBangladeshDayBoundaries, calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       productId,
       quantity,
       customerNote,
-      deliveryCharge: clientDeliveryCharge,
+      districtId,
       paymentMethod,
       gatewayName,
       trxId,
@@ -64,15 +64,15 @@ export async function POST(request: Request) {
         { status: 404 }
       )
     }
-    if (product.stockQty < quantity) {
+    const stockDeduction = quantity * getUnitToKgMultiplier(product.unit)
+    if (product.stockQty < stockDeduction) {
       return NextResponse.json(
-        { error: `দুঃখিত, পর্যাপ্ত স্টক নেই। উপলব্ধ স্টক: ${product.stockQty} টি` },
+        { error: `দুঃখিত, পর্যাপ্ত স্টক নেই। উপলব্ধ স্টক: ${product.stockQty} কেজি` },
         { status: 400 }
       )
     }
-
     const totalProductPrice = product.pricePerUnit * quantity
-    const deliveryCharge = clientDeliveryCharge || 120
+    const deliveryCharge = calculateDeliveryCharge(districtId, quantity)
     const finalCodAmount = totalProductPrice + deliveryCharge
 
     const result = await prisma.$transaction(async (tx) => {
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
         where: { id: productId },
         data: {
           stockQty: {
-            decrement: quantity,
+            decrement: stockDeduction,
           },
         },
       })

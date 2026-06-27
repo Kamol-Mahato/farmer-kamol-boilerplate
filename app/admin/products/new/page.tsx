@@ -18,6 +18,7 @@ export default function NewProductPage() {
     unit: "কেজি",
     stockQty: "",
     imageUrl: "", 
+    imageUrls: [] as string[],
     isFeatured: false,
     isActive: true,
     isOutOfStockVisible: true,
@@ -32,35 +33,45 @@ export default function NewProductPage() {
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+    const files = e.target.files
+    if (!files || files.length === 0) return
     setUploading(true)
     setError("")
-
-    const formData = new FormData()
-    formData.append("file", file)
-
     try {
-      // নতুন তৈরি করা গ্লোবাল আপলোড এপিআই পাথ এখানে যুক্ত করা হয়েছে
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error || "ছবি আপলোড ব্যর্থ হয়েছে")
-        return
+      for (const file of Array.from(files)) {
+        const formData = new FormData()
+        formData.append("file", file)
+        // নতুন তৈরি করা গ্লোবাল আপলোড এপিআই পাথ এখানে যুক্ত করা হয়েছে
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setError(data.error || "ছবি আপলোড ব্যর্থ হয়েছে")
+          continue
+        }
+        setForm(prev => ({
+          ...prev,
+          imageUrl: prev.imageUrl || data.imageUrl,
+          imageUrls: [...prev.imageUrls, data.imageUrl],
+        }))
       }
-
-      setForm(prev => ({ ...prev, imageUrl: data.imageUrl }))
     } catch {
-      setError("ছবি আপলোড করার সময় সমস্যা হয়েছে")
+      setError("ছবি আপলোড করার সময় সমস্যা হয়েছে")
     } finally {
       setUploading(false)
     }
+  }
+  function removeImage(url: string) {
+    setForm(prev => {
+      const newUrls = prev.imageUrls.filter(u => u !== url)
+      return {
+        ...prev,
+        imageUrls: newUrls,
+        imageUrl: newUrls[0] || "",
+      }
+    })
   }
 
   function generateSlug(name: string) {
@@ -80,8 +91,8 @@ export default function NewProductPage() {
   }
 
   async function handleSubmit() {
-    if (!form.imageUrl) {
-      setError("দয়া করে পণ্যের একটি ছবি আপলোড করুন।")
+    if (form.imageUrls.length === 0) {
+      setError("দয়া করে পণ্যের একটি ছবি আপলোড করুন।")
       return
     }
 
@@ -97,6 +108,7 @@ export default function NewProductPage() {
           pricePerUnit: parseFloat(form.pricePerUnit),
           discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
           stockQty: parseFloat(form.stockQty),
+          imageUrls: form.imageUrls,
         }),
       })
 
@@ -150,29 +162,41 @@ export default function NewProductPage() {
 
         {/* পিসি থেকে ইমেজ আপলোড সেকশন */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">পণ্যের ছবি যোগ করুন *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">পণ্যের ছবি যোগ করুন (একাধিক) *</label>
           <div className="flex items-center gap-4">
             <label className="cursor-pointer bg-green-50 text-green-700 border border-green-200 px-5 py-3 rounded-lg font-medium hover:bg-green-100 transition">
               {uploading ? "ছবি আপলোড হচ্ছে..." : "📁 কম্পিউটার থেকে ফাইল বাছুন"}
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageUpload}
                 disabled={uploading}
                 className="hidden"
               />
             </label>
-            {form.imageUrl && (
-              <span className="text-sm text-green-600 font-medium">✅ ছবি আপলোড সফল!</span>
+            {form.imageUrls.length > 0 && (
+              <span className="text-sm text-green-600 font-medium">✅ {form.imageUrls.length} টি ছবি আপলোড সফল!</span>
             )}
           </div>
-
           {/* প্রিভিউ স্ক্রিন */}
-          {form.imageUrl && (
-            <div className="mt-4 relative w-36 h-36 rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
-              <img src={form.imageUrl} alt="Uploaded preview" className="w-full h-full object-cover" />
+          {form.imageUrls.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              {form.imageUrls.map((url) => (
+                <div key={url} className="relative w-28 h-28 rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
+                  <img src={url} alt="Uploaded preview" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => removeImage(url)}
+                    className="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
             </div>
           )}
+        </div>
+          )
         </div>
 
         {/* বিবরণ */}
@@ -225,6 +249,8 @@ export default function NewProductPage() {
               className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
             >
               <option value="কেজি">কেজি</option>
+              <option value="৫০০ গ্রাম">৫০০ গ্রাম</option>
+              <option value="২৫০ গ্রাম">২৫০ গ্রাম</option>
               <option value="গ্রাম">গ্রাম</option>
               <option value="লিটার">লিটার</option>
               <option value="মিলি">মিলি</option>
@@ -298,6 +324,5 @@ export default function NewProductPage() {
         </div>
 
       </div>
-    </div>
   )
 }

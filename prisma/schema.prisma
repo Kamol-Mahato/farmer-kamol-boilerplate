@@ -330,3 +330,33 @@ model YoutubeVideo {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+model Admin {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  password  String
+
+  otp       String?
+  otpExpiry DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model GalleryItem {
+  id          Int                @id @default(autoincrement())
+  title       String
+  slug        String             @unique
+  description String?
+  displayOrder Int               @default(0)
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  images      GalleryItemImage[]
+}
+model GalleryItemImage {
+  id            Int          @id @default(autoincrement())
+  galleryItemId Int
+  imageUrl      String
+  displayOrder  Int          @default(0)
+  createdAt     DateTime     @default(now())
+  galleryItem   GalleryItem  @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+}

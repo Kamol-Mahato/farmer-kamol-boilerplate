@@ -29,7 +29,7 @@ export default function AgentLoginPage() {
         setLoading(false)
         return
       }
-      router.push("/agent")
+      router.push("/agent/orders")
     } catch (err) {
       console.error(err)
       setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")

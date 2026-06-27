@@ -1,8 +1,14 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
 // ১. সব অর্ডার কুরিয়ার সামারিসহ তুলে আনার GET মেথড
 export async function GET() {
+  const currentUser = await verifyAdminOrAgent()
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const orders = await prisma.order.findMany({
       include: {
@@ -23,6 +29,11 @@ export async function GET() {
 
 // ২. ৩পিএল কুরিয়ারের নাম এবং বাল্ক স্ট্যাটাস একসাথে সেভ করার POST মেথড [ফিক্সড করা হয়েছে]
 export async function POST(request: Request) {
+  const currentUser = await verifyAdminOrAgent()
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
     const { orderIds, status, courierName } = body
@@ -35,7 +46,7 @@ export async function POST(request: Request) {
     await prisma.$transaction(
       orderIds.map((id) => {
         const orderIdInt = parseInt(id)
-        const finalCourierStatus = status === "SHIPPED" && courierName ? courierName : status
+        const finalCourierStatus = status === "DELIVERY_ONGOING" && courierName ? courierName : status
 
         return prisma.order.update({
           where: { id: orderIdInt },

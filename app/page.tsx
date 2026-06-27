@@ -22,7 +22,7 @@ export default async function HomePage() {
     where: { isActive: true },
     include: { images: true, category: true },
     orderBy: { createdAt: "desc" },
-    take: 4,
+    take: 6,
   })
   const featuredProducts = await prisma.product.findMany({
     where: { isActive: true, isFeatured: true },
@@ -58,7 +58,7 @@ export default async function HomePage() {
           <div className="text-center mb-8">
           <h2 className="text-green-800 text-2xl font-medium mt-8 font-bold border-2 rounded-full border-green-700 inline-block">আমাদের পণ্য সমূহ</h2>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

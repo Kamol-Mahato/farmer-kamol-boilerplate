@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
 export async function GET() {
+  const currentUser = await verifyAdminOrAgent()
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const customers = await prisma.user.findMany({
       where: { role: "CUSTOMER" },

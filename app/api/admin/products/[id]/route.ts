@@ -33,10 +33,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         isFeatured: body.isFeatured,
         isActive: body.isActive,
         isOutOfStockVisible: body.isOutOfStockVisible,
-        images: body.imageUrl ? {
-          deleteMany: {},
-          create: [{ imageUrl: body.imageUrl }],
-        } : undefined,
+        // ✅ একাধিক ছবি থাকলে পুরনো সব ছবি মুছে নতুন সবগুলো সেভ হবে, প্রথমটা isPrimary
+        images: (body.imageUrls && body.imageUrls.length > 0)
+          ? {
+              deleteMany: {},
+              create: body.imageUrls.map((url: string, idx: number) => ({
+                imageUrl: url,
+                isPrimary: idx === 0,
+              })),
+            }
+          : body.imageUrl
+          ? {
+              deleteMany: {},
+              create: [{ imageUrl: body.imageUrl, isPrimary: true }],
+            }
+          : undefined,
       },
     })
     return NextResponse.json(product)

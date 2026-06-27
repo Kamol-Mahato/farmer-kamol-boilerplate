@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { verifyAdminOnly } from "@/lib/adminAuth"
 
 export async function GET() {
+  const currentUser = await verifyAdminOnly()
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const agents = await prisma.user.findMany({
       where: { role: "AGENT" },
@@ -34,6 +40,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const currentUser = await verifyAdminOnly()
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const { name, phone, password } = await req.json()
 

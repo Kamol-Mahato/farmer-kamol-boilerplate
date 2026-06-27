@@ -73,8 +73,20 @@ export default function ProductCard({ product }: { product: Product }) {
   const btnRef = useRef<HTMLAnchorElement>(null)
   const [bounced, setBounced] = useState(false)
   const [added, setAdded] = useState(false)
+  const [imgIndex, setImgIndex] = useState(0)
   const isOutOfStock = product.stockQty <= 0
-  const mainImage = product.images?.[0]?.imageUrl || "/placeholder.jpg"
+  const images = product.images?.length > 0 ? product.images : [{ imageUrl: "/placeholder.jpg" }]
+  const mainImage = images[imgIndex]?.imageUrl || "/placeholder.jpg"
+  function prevImg(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setImgIndex((i) => (i === 0 ? images.length - 1 : i - 1))
+  }
+  function nextImg(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setImgIndex((i) => (i === images.length - 1 ? 0 : i + 1))
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -117,16 +129,16 @@ export default function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between p-4 group hover:shadow-md transition">
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition">
       <div>
         <Link href={`/shop/${product.slug}`}>
-        <div className="relative aspect-square w-full rounded-xl bg-gray-50 overflow-hidden mb-4">
+        <div className="relative aspect-square w-full bg-gray-50 overflow-hidden mb-3">
         <Image
               src={mainImage}
-              alt={product.name}
+              alt={`${product.name} - ছবি ${imgIndex + 1}`}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-cover rounded-xl group-hover:scale-135 transition duration-300"
+              className="object-cover group-hover:scale-135 transition duration-300"
             />
             {isOutOfStock && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -135,8 +147,32 @@ export default function ProductCard({ product }: { product: Product }) {
                 </span>
               </div>
             )}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevImg}
+                  className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white items-center justify-center opacity-0 group-hover:opacity-100 transition hidden md:flex z-10"
+                  aria-label="আগের ছবি"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={nextImg}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white items-center justify-center opacity-0 group-hover:opacity-100 transition hidden md:flex z-10"
+                  aria-label="পরের ছবি"
+                >
+                  ›
+                </button>
+                <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                  {images.map((_, i) => (
+                    <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === imgIndex ? "bg-white" : "bg-white/50"}`} />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </Link>
+        <div className="px-4">
         {product.category && (
           <span className="text-xs text-green-700 font-semibold bg-green-100 px-2.5 py-1 rounded-full">
             {product.category.name}
@@ -158,8 +194,9 @@ export default function ProductCard({ product }: { product: Product }) {
             </span>
           </div>
         </div>
+        </div>
       </div>
-      <div className="mt-3 pt-3 border-t border-gray-100">
+      <div className="mt-3 pt-3 border-t border-gray-100 px-4 pb-4">
         {product.priceType === "NEGOTIABLE" ? (
           // ✅ Negotiable price পণ্যের জন্য সরাসরি WhatsApp বাটন
           <a

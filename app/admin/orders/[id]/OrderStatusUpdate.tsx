@@ -26,7 +26,7 @@ export default function OrderStatusUpdate({ orderId, currentStatus }: OrderStatu
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          orderId,
+          orderIds: [orderId],
           status: newStatus,
         }),
       })

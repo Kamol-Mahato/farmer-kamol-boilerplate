@@ -2,19 +2,24 @@
 import { useState, useEffect } from "react";
 
 export default function NoticeModal() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-
+  // ✅ পেজ লোড হলে চেক করা হবে শেষবার কখন নোটিস দেখানো হয়েছিল
   useEffect(() => {
-    if (isPaused) return; // পজ থাকলে টাইমার চলবে না
-
+    const lastShown = localStorage.getItem("farmer_kamol_notice_last_shown");
+    const twelveHours = 12 * 60 * 60 * 1000;
+    if (!lastShown || Date.now() - parseInt(lastShown) > twelveHours) {
+      setIsVisible(true);
+      localStorage.setItem("farmer_kamol_notice_last_shown", Date.now().toString());
+    }
+  }, []);
+  useEffect(() => {
+    if (isPaused || !isVisible) return; // পজ থাকলে টাইমার চলবে না
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 2000);
-
     return () => clearTimeout(timer);
-  }, [isPaused]); // isPaused পরিবর্তন হলে ইফেক্টটি আবার চেক করবে
-
+  }, [isPaused, isVisible]); // isPaused পরিবর্তন হলে ইফেক্টটি আবার চেক করবে
   if (!isVisible) return null;
 
   return (

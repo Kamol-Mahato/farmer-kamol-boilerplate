@@ -1,3 +1,11 @@
+// ✅ Server-side delivery charge calculation — client থেকে আসা সংখ্যা trust করা হয় না
+export function calculateDeliveryCharge(districtId: number | null, quantity: number): number {
+  if (districtId === null || districtId === undefined) return 75
+  const isDhaka = districtId === 21
+  const base = isDhaka ? 75 : 120
+  const extra = isDhaka ? 20 : 30
+  return quantity > 1 ? base + (quantity - 1) * extra : base
+}
 // 🇧🇩 বাংলাদেশ টাইমজোন (+৬ ঘণ্টা) অনুযায়ী "আজকের" শুরু ও শেষ সময় বের করা
 // সার্ভার যেই টাইমজোনেই থাকুক (সাধারণত UTC), এটা সবসময় সঠিক বাংলাদেশ ক্যালেন্ডার দিন হিসাব করবে
 export function getBangladeshDayBoundaries(forDate?: Date) {
@@ -25,4 +33,19 @@ export function generateCustomId(createdAt: string | Date, dailySeq: number) {
   const month = String(bdDate.getUTCMonth() + 1).padStart(2, "0")
   const day = String(bdDate.getUTCDate()).padStart(2, "0")
   return `FK${year}${month}${day}${String(dailySeq).padStart(1, "0")}`
+}
+
+// ✅ পণ্যের একক (unit) অনুযায়ী কত KG-এর সমান, তা বের করার জন্য
+export function getUnitToKgMultiplier(unit: string): number {
+  const map: Record<string, number> = {
+    "কেজি": 1,
+    "৫০০ গ্রাম": 0.5,
+    "২৫০ গ্রাম": 0.25,
+    "গ্রাম": 0.001,
+    "লিটার": 1,
+    "মিলি": 0.001,
+    "পিস": 1,
+    "ডজন": 1,
+  }
+  return map[unit] ?? 1
 }
