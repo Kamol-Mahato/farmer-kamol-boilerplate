@@ -18,6 +18,8 @@ export default function AdminCustomersPage() {
   const [searchPhone, setSearchPhone] = useState("")
   const [showingLimit, setShowingLimit] = useState(10)
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([])
+  const [resettingId, setResettingId] = useState<number | null>(null)
+  const [resetResult, setResetResult] = useState<{ name: string; phone: string; password: string } | null>(null)
 
   useEffect(() => {
     fetch("/api/admin/customers")
@@ -61,6 +63,27 @@ export default function AdminCustomersPage() {
         setSelectedCustomerIds((prev) => [...prev, id])
       } else {
         setSelectedCustomerIds((prev) => prev.filter((cid) => cid !== id))
+      }
+    }
+
+    // 🔑 কাস্টমারের জন্য নতুন পাসওয়ার্ড জেনারেট করা
+    async function handleResetPassword(customerId: number, name: string, phone: string) {
+      if (!confirm(`${name} (${phone}) এর জন্য নতুন পাসওয়ার্ড জেনারেট করতে চান?`)) return
+      setResettingId(customerId)
+      try {
+        const res = await fetch(`/api/admin/customers/${customerId}/reset-password`, {
+          method: "POST",
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          alert(data.error || "পাসওয়ার্ড রিসেট করা যায়নি")
+          return
+        }
+        setResetResult({ name, phone, password: data.newPassword })
+      } catch {
+        alert("সার্ভার সমস্যা, আবার চেষ্টা করুন")
+      } finally {
+        setResettingId(null)
       }
     }
   
@@ -197,12 +220,13 @@ export default function AdminCustomersPage() {
               <th className="px-6 py-4 font-medium">ওয়ালেট</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">যোগদানের তারিখ</th>
+              <th className="px-6 py-4 font-medium">অ্যাকশন</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 border-t border-gray-100">
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-12 text-gray-400">
+                <td colSpan={9} className="text-center py-12 text-gray-400">
                   কোনো কাস্টমার পাওয়া যায়নি।
                 </td>
               </tr>
@@ -242,19 +266,58 @@ export default function AdminCustomersPage() {
                       </span>
                     ) : (
                       <span className="bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full text-xs">
-                        নিষ্ক্রিয়
-                      </span>
-                    )}
-                  </td>
+                      নিষ্ক্রিয়
+                    </span>
+                  )}
+                </td> 
                   <td className="px-6 py-4 text-xs text-gray-400">
                     {new Date(customer.createdAt).toLocaleDateString("bn-BD")}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleResetPassword(customer.id, customer.name, customer.phone)}
+                      disabled={resettingId === customer.id}
+                      className="bg-orange-100 text-orange-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-orange-200 transition disabled:opacity-50"
+                    >
+                      {resettingId === customer.id ? "হচ্ছে..." : "🔑 রিসেট"}
+                    </button>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+        </div>
+  
+        {resetResult && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+              <h2 className="text-lg font-bold text-green-800 mb-2">নতুন পাসওয়ার্ড তৈরি হয়েছে</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                {resetResult.name} ({resetResult.phone}) — এই পাসওয়ার্ডটা কপি করে কাস্টমারকে WhatsApp/কলে জানিয়ে দিন। এটা আর দেখা যাবে না।
+              </p>
+              <div className="flex items-center gap-2 mb-4">
+                <input
+                  readOnly
+                  value={resetResult.password}
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 font-mono text-center text-lg font-bold tracking-widest"
+                />
+                <button
+                  onClick={() => navigator.clipboard.writeText(resetResult.password)}
+                  className="bg-green-700 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-green-600"
+                >
+                  কপি
+                </button>
+              </div>
+              <button
+                onClick={() => setResetResult(null)}
+                className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-bold text-sm hover:bg-gray-200"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  )
-}
+    )
+  }
