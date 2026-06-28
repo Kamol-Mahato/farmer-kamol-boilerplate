@@ -103,7 +103,10 @@ export default function MediaVideoPage() {
       <div>
         <h2 className="font-bold text-green-800">{video.title}</h2>
         {video.description && (
-          <p className="text-gray-600 text-xs mt-1">{video.description}</p>
+          <p
+            className="text-gray-600 text-xs mt-1"
+            dangerouslySetInnerHTML={{ __html: video.description }}
+          />
         )}
         <a
           href={video.youtubeUrl}
@@ -127,7 +130,10 @@ export default function MediaVideoPage() {
           <div className="text-center my-8 max-w-2xl mx-auto">
             <h3 className="text-lg font-bold text-green-800">{secondaryVideo.title}</h3>
             {secondaryVideo.description && (
-              <p className="text-gray-600 text-sm mt-2">{secondaryVideo.description}</p>
+              <p
+                className="text-gray-600 text-sm mt-2"
+                dangerouslySetInnerHTML={{ __html: secondaryVideo.description }}
+              />
             )}
             <a
               href={secondaryVideo.youtubeUrl}

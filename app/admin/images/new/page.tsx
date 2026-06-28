@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import RichTextField from "../../components/RichTextField"
 export default function NewGalleryItemPage() {
   const router = useRouter()
   const [title, setTitle] = useState("")
@@ -106,13 +107,14 @@ export default function NewGalleryItemPage() {
         </div>
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">বিস্তারিত বিবরণ</label>
-          <textarea
+          <RichTextField
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="বিস্তারিত বিবরণ লিখুন"
+            onChange={(val) => setDescription(val)}
+            placeholder="Description লিখুন..."
             rows={4}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
           />
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
+          /
         </div>
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">ছবি যোগ করুন (একাধিক, ৩-৪টা) *</label>

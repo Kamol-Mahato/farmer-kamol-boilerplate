@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { sanitizeHtml } from "@/lib/sanitize"
+
 
 export async function GET() {
   try {
@@ -19,7 +21,7 @@ export async function POST(req: Request) {
     const video = await prisma.youtubeVideo.create({
       data: {
         title: body.title,
-        description: body.description || null,
+        description: body.description ? sanitizeHtml(body.description) : null,
         youtubeUrl: body.youtubeUrl,
         platform: body.platform || "YOUTUBE",
         displayOrder: body.displayOrder ?? 0,
@@ -39,7 +41,7 @@ export async function PUT(req: Request) {
       where: { id: body.id },
       data: {
         title: body.title,
-        description: body.description || null,
+        description: body.description ? sanitizeHtml(body.description) : null,
         youtubeUrl: body.youtubeUrl,
         platform: body.platform || "YOUTUBE",
         displayOrder: body.displayOrder,

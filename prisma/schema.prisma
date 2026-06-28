@@ -34,6 +34,9 @@ model User {
   password           String?
   role               Role                @default(CUSTOMER)
   isActive           Boolean             @default(true)
+  otp                String?
+  otpExpiry          DateTime?
+  otpAttempts        Int                 @default(0)
   walletBalance      Float               @default(0.0)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -329,17 +332,6 @@ model YoutubeVideo {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-}
-model Admin {
-  id        String   @id @default(cuid())
-  phone     String   @unique
-  password  String
-
-  otp       String?
-  otpExpiry DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 model GalleryItem {
   id          Int                @id @default(autoincrement())

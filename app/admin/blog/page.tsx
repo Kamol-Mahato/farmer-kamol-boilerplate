@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import RichTextField from "../components/RichTextField"
 
 export default function AdminBlogPage() {
   const router = useRouter()
@@ -136,13 +137,11 @@ export default function AdminBlogPage() {
             placeholder="Image URL (optional)"
             className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500"
           />
-          <textarea
-            name="content"
+          <RichTextField
             value={form.content}
-            onChange={handleChange}
+            onChange={(val) => setForm((prev) => ({ ...prev, content: val }))}
             placeholder="Blog এর content লিখুন..."
             rows={8}
-            className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500"
           />
           <label className="flex items-center gap-2 text-sm">
             <input

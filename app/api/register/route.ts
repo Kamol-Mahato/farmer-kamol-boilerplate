@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
+import { signSession } from "@/lib/session"
 
 export async function POST(request: Request) {
   try {
@@ -34,9 +35,10 @@ export async function POST(request: Request) {
         })
 
         const cookieStore = await cookies()
+        const sessionToken = await signSession({ id: updatedUser.id, name: updatedUser.name, phone: updatedUser.phone })
         cookieStore.set(
           "customer_session",
-          JSON.stringify({ id: updatedUser.id, name: updatedUser.name, phone: updatedUser.phone }),
+          sessionToken,
           {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -69,9 +71,10 @@ export async function POST(request: Request) {
     })
 
     const cookieStore = await cookies()
+    const sessionToken = await signSession({ id: newUser.id, name: newUser.name, phone: newUser.phone })
     cookieStore.set(
       "customer_session",
-      JSON.stringify({ id: newUser.id, name: newUser.name, phone: newUser.phone }),
+      sessionToken,
       {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",

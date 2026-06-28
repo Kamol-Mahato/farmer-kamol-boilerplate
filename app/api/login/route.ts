@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
+import { signSession } from "@/lib/session"
 
 export async function POST(request: Request) {
   try {
@@ -43,7 +44,8 @@ export async function POST(request: Request) {
 
     // 🔒 ব্রাউজারে সেশন কুকি সেট করা (নেভবার যেন লগইন ডিটেক্ট করতে পারে)
     const cookieStore = await cookies()
-    cookieStore.set("customer_session", JSON.stringify({ id: user.id, name: user.name, phone: user.phone }), {
+    const sessionToken = await signSession({ id: user.id, name: user.name, phone: user.phone })
+    cookieStore.set("customer_session", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // ৭ দিন সেশন থাকবে

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
+import { verifySession } from "@/lib/session"
 
 // ✅ admin_session বা agent_session — যেকোনো একটা valid থাকলেই true,
 // এবং database থেকে যাচাই করে user এখনো active আছে কিনা
@@ -12,13 +13,8 @@ export async function verifyAdminOrAgent() {
     return null
   }
 
-  let userId: number | null = null
-  try {
-    const data = JSON.parse((adminCookie ?? agentCookie)!.value)
-    userId = data.id
-  } catch {
-    return null
-  }
+  const data = await verifySession((adminCookie ?? agentCookie)!.value)
+  const userId = data?.id as number | undefined
 
   if (!userId) return null
 

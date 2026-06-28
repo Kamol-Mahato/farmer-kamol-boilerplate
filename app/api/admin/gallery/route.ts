@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { sanitizeHtml } from "@/lib/sanitize"
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
       data: {
         title,
         slug,
-        description,
+        description: description ? sanitizeHtml(description) : description,
         images: {
           create: imageUrls.map((url: string, index: number) => ({
             imageUrl: url,

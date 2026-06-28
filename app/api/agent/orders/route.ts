@@ -1,17 +1,14 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { verifySession } from "@/lib/session"
 
 async function getAgentId() {
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get("agent_session")
   if (!sessionCookie) return null
-  try {
-    const data = JSON.parse(sessionCookie.value)
-    return data.id as number
-  } catch {
-    return null
-  }
+  const data = await verifySession(sessionCookie.value)
+  return (data?.id as number) ?? null
 }
 
 export async function GET() {

@@ -66,9 +66,10 @@ export default function GalleryCard({ item }: { item: GalleryItem }) {
         <p className="font-bold text-gray-800 text-sm md:text-base">{item.title}</p>
         {item.description && (
           <>
-            <p className={`text-gray-500 text-xs md:text-sm mt-1 whitespace-pre-line ${expanded ? "" : "line-clamp-2"}`}>
-              {item.description}
-            </p>
+            <p
+              className={`text-gray-500 text-xs md:text-sm mt-1 whitespace-pre-line ${expanded ? "" : "line-clamp-2"}`}
+              dangerouslySetInnerHTML={{ __html: item.description as string }}
+            />
             <button
               onClick={(e) => {
                 e.preventDefault()

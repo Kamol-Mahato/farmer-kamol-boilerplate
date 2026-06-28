@@ -1,13 +1,14 @@
 import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
+import { verifySession } from "@/lib/session"
 
 export default async function AgentDashboardPage() {
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get("agent_session")
-  const sessionData = JSON.parse(sessionCookie!.value)
+  const sessionData = await verifySession(sessionCookie!.value)
 
   const agent = await prisma.user.findUnique({
-    where: { id: sessionData.id },
+    where: { id: sessionData?.id as number },
   })
 
   return (

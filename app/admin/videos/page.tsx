@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import RichTextField from "../components/RichTextField"
 
 interface Video {
   id: number
@@ -139,13 +140,14 @@ export default function AdminVideosPage() {
           </div>
           <div className="md:col-span-1">
             <label className="block text-xs font-semibold text-gray-500 mb-1">বিবরণ (ঐচ্ছিক)</label>
-            <textarea
+            <RichTextField
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="ভিডিওর সংক্ষিপ্ত বিবরণ"
+              onChange={(val) => setDescription(val)}
+              placeholder="Description লিখুন..."
               rows={1}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
             />
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
+            
           </div>
         </div>
         <div className="mt-4 flex gap-3">

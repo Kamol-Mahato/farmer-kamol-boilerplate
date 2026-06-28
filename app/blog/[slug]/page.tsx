@@ -91,9 +91,10 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">{blog.category}</span>
         <h1 className="text-3xl font-bold text-green-800 mt-3 mb-2">{blog.title}</h1>
         <p className="text-gray-400 text-sm mb-6">{blog.createdAt.toLocaleDateString("bn-BD")}</p>
-        <div className="prose prose-green max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">
-          {blog.content}
-        </div>
+        <div
+          className="prose prose-green max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap"
+          dangerouslySetInnerHTML={{ __html: blog.content }}
+        />
       </div>
     </>
   )
