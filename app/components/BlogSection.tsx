@@ -5,11 +5,10 @@ export default function BlogSection({ blogs }: { blogs: Blog[] }) {
   if (blogs.length === 0) return null
 
   return (
-    <div className="bg-white py-12 px-4">
+    <div className="bg-white py-6 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-green-800">আমাদের কৃষি বিষয়ক ব্লগ</h2>
-          <p className="text-gray-500 mt-2">কৃষি, পশুপালন ও খামার বিষয়ক লেখা</p>
+        <h2 className="text-2xl font-bold text-green-800">আমাদের কৃষি বিষয়ক ব্লগ</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {blogs.map(blog => (

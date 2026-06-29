@@ -21,9 +21,8 @@ export default function VideoSection({ videos }: { videos: Video[] }) {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-green-800 text-2xl font-bold border-2 rounded-full border-green-700 inline-block px-4 py-1">
-            আমাদের ভিডিও
+          আমাদের ভিডিও
           </h2>
-          <p className="text-gray-500 mt-2">Farmer Kamol YouTube চ্যানেল থেকে</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {videos.map((video) => {
