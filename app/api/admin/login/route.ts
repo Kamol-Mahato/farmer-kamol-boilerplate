@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
 import { signSession } from "@/lib/session"
+import { checkRateLimit, recordFailedAttempt, clearAttempts } from "@/lib/rateLimiter"
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +14,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "মোবাইল নম্বর এবং পাসওয়ার্ড দুটিই আবশ্যক" },
         { status: 400 }
+      )
+    }
+    const rateCheck = checkRateLimit(`admin-login:${phone}`)
+    if (!rateCheck.allowed) {
+      const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
+      return NextResponse.json(
+        { error: `অনেকবার ভুল চেষ্টা হয়েছে। ${minutes} মিনিট পর আবার চেষ্টা করুন।` },
+        { status: 429 }
       )
     }
 
@@ -43,11 +52,13 @@ export async function POST(request: Request) {
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
+      recordFailedAttempt(`admin-login:${phone}`)
       return NextResponse.json(
         { error: "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।" },
         { status: 401 }
       )
     }
+    clearAttempts(`admin-login:${phone}`)
 
     const cookieStore = await cookies()
     const sessionToken = await signSession({ id: user.id, name: user.name, phone: user.phone, role: user.role })

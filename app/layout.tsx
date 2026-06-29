@@ -27,11 +27,25 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
-    description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্য মূল্যে।",
+    description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্যে মূল্যে।",
     url: "https://www.farmerkamol.com",
     siteName: "Farmer Kamol",
     locale: "bn_BD",
     type: "website",
+    images: [
+      {
+        url: "/uploads/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+    description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্যে মূল্যে।",
+    images: ["/uploads/og-image.jpg"],
   },
 }
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
 import { signSession } from "@/lib/session"
+import { checkRateLimit, recordFailedAttempt, clearAttempts } from "@/lib/rateLimiter"
 
 export async function POST(request: Request) {
   try {
@@ -11,8 +12,17 @@ export async function POST(request: Request) {
 
     if (!phone || !password) {
       return NextResponse.json(
-        { error: "মোবাইল নম্বর এবং পাসওয়ার্ড দুটিই আবশ্যক" },
+        { error: "মোবাইল নম্বর এবং পাসওয়ার্ড দুটিই আবশ্যক" },
         { status: 400 }
+      )
+    }
+
+    const rateCheck = checkRateLimit(`customer-login:${phone}`)
+    if (!rateCheck.allowed) {
+      const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
+      return NextResponse.json(
+        { error: `অনেকবার ভুল চেষ্টা হয়েছে। ${minutes} মিনিট পর আবার চেষ্টা করুন।` },
+        { status: 429 }
       )
     }
 
@@ -36,11 +46,13 @@ export async function POST(request: Request) {
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
+      recordFailedAttempt(`customer-login:${phone}`)
       return NextResponse.json(
-        { error: "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।" },
+        { error: "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।" },
         { status: 401 }
       )
     }
+    clearAttempts(`customer-login:${phone}`)
 
     // 🔒 ব্রাউজারে সেশন কুকি সেট করা (নেভবার যেন লগইন ডিটেক্ট করতে পারে)
     const cookieStore = await cookies()

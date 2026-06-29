@@ -6,6 +6,7 @@ const PUBLIC_PATHS = [
   "/api/admin/login",
   "/admin/login",
   "/agent/login",
+  "/api/agent/login",
   "/admin/forgot-password",
   "/api/admin/forgot-password",
   "/api/admin/verify-otp",
@@ -17,6 +18,7 @@ const AGENT_ALLOWED_PREFIXES = [
   "/api/admin/orders",
   "/admin/orders",
   "/agent",
+  "/api/agent",
 ]
 
 export async function middleware(request: NextRequest) {
@@ -48,5 +50,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/admin/:path*", "/admin/:path*", "/agent/:path*"],
+  matcher: ["/api/admin/:path*", "/admin/:path*", "/agent/:path*", "/api/agent/:path*"],
 }
