@@ -21,7 +21,7 @@ export default function ConditionalLayout({
     <>
       <Navbar />
       <FloatingCartButton />
-      <div className="h-[110px]" />
+      <div className="h-[76px]" />
       <main className="flex-grow">{children}</main>
       <Footer />
     </>

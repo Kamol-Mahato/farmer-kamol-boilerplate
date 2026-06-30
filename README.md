@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Farmer Kamol
 
-## Getting Started
+Sirajganj, Bangladesh-এর organic farm products (মধু, ঘি, সরিষার তেল, হাঁসের বাচ্চা) বিক্রির জন্য agro-commerce প্ল্যাটফর্ম।
 
-First, run the development server:
+## Tech Stack
+
+- **Framework:** Next.js (App Router)
+- **Database:** Neon PostgreSQL + Prisma ORM
+- **Storage:** Supabase Storage
+- **Auth:** JWT (jose) + bcrypt
+- **Hosting:** Railway
+
+## Local Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 এ ব্রাউজারে দেখা যাবে।
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Deploy বা local development-এর জন্য `.env` ফাইলে এই variable গুলো লাগবে:
 
-## Learn More
+| Variable | বিবরণ |
+|---|---|
+| `DATABASE_URL` | Neon PostgreSQL connection string |
+| `SESSION_SECRET` | JWT session সাইন করার জন্য secret key |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (image upload) |
+| `SUPABASE_BUCKET` | Image storage bucket name |
+| `TELEGRAM_BOT_TOKEN` | Order notification bot token |
+| `TELEGRAM_CHAT_ID` | Order notification পাঠানোর chat ID |
 
-To learn more about Next.js, take a look at the following resources:
+## Build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+(`prisma generate` build script-এর মধ্যেই অন্তর্ভুক্ত আছে।)
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Railway-তে deploy করা হয়। GitHub repo connect করে উপরের env variable গুলো Railway dashboard-এ set করতে হবে।

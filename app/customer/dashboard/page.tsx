@@ -40,16 +40,16 @@ export default function CustomerDashboard() {
     const userObj = JSON.parse(storedUser)
     setCustomer(userObj)
 
-    // কাস্টমারের অর্ডার হিস্ট্রি ডাটাবেস থেকে তুলে আনা
+    // কাস্টমারের নিজের অর্ডার হিস্ট্রি — server-side ই filter হয়ে আসে (নিজের session দিয়ে)
     async function fetchCustomerOrders() {
       try {
-        const res = await fetch(`/api/admin/orders`) // বিদ্যমান অর্ডার এপিআই রুট ব্যবহার করা হলো
-        const allOrders: Order[] = await res.json()
-        
+        const res = await fetch(`/api/customer/orders`)
+        const myOrders: Order[] = await res.json()
+
         if (res.ok) {
-          // শুধু এই কাস্টমারের অর্ডারগুলো ফিল্টার করে আলাদা করা (কাস্টমার সিকিউরিটি)
-          const myOrders = allOrders.filter((o: any) => o.customerId === userObj.id)
           setOrders(myOrders)
+        } else {
+          router.replace("/login")
         }
       } catch (error) {
         console.error("Order load failed", error)

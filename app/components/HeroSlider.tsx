@@ -100,7 +100,7 @@ export default function HeroSlider({ featuredProducts = [] }: { featuredProducts
                   )}
 
                   {/* নিচে ডানে — details overlay */}
-<div className="absolute bottom-0 right-0 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-tl-2xl flex flex-col gap-1">
+<div className="absolute bottom-0 right-0 bg-white/60 backdrop-blur-sm px-2 py-1 rounded-tl-2xl flex flex-col gap-1">
   <h3 className="text-base font-bold text-green-900">{p.name}</h3>
   <p className="text-gray-500 text-xs">{p.unit}</p>
   <p className="text-yellow-600 text-lg font-extrabold">৳ {p.pricePerUnit}</p>

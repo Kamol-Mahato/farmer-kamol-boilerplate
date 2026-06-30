@@ -3,6 +3,16 @@ type Attempt = { count: number; lockedUntil: number | null }
 
 const attemptsMap = new Map<string, Attempt>()
 
+// 🧹 প্রতি ৩০ মিনিটে পুরোনো/মেয়াদ-উত্তীর্ণ entry মুছে ফেলা হয় — persistent container-এ memory যাতে ক্রমাগত না বাড়ে
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, record] of attemptsMap.entries()) {
+    if (!record.lockedUntil || record.lockedUntil <= now) {
+      attemptsMap.delete(key)
+    }
+  }
+}, 30 * 60 * 1000)
+
 const MAX_ATTEMPTS = 5
 const LOCK_DURATION_MS = 15 * 60 * 1000 // ১৫ মিনিট
 
