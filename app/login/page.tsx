@@ -15,6 +15,11 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [showForgot, setShowForgot] = useState(false)
+  const [forgotPhone, setForgotPhone] = useState("")
+  const [forgotMsg, setForgotMsg] = useState("")
+  const [forgotError, setForgotError] = useState("")
+  const [forgotLoading, setForgotLoading] = useState(false)
 
   useEffect(() => {
     setError("")
@@ -35,12 +40,34 @@ export default function LoginPage() {
     router.refresh()
   }
 
-  async function handleLogin() {
-    if (loading) return
-    if (!phone || !password) {
-      setError("মোবাইল নম্বর ও পাসওয়ার্ড দিন")
+  async function handleForgotPassword() {
+    if (forgotLoading) return
+    setForgotError("")
+    setForgotMsg("")
+    if (!forgotPhone) {
+      setForgotError("মোবাইল নম্বর দিন")
       return
     }
+    setForgotLoading(true)
+    try {
+      const res = await fetch("/api/forgot-password-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: forgotPhone }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setForgotError(data.error || "সমস্যা হয়েছে")
+        return
+      }
+      setForgotMsg(data.message)
+    } catch {
+      setForgotError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+  async function handleLogin() {
     setLoading(true)
     setError("")
     try {
@@ -193,6 +220,60 @@ export default function LoginPage() {
                 )}
               </button>
               </form>
+
+            {/* পাসওয়ার্ড ভুলে গেছেন */}
+            <p className="text-center text-sm mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForgot(!showForgot)
+                  setForgotMsg("")
+                  setForgotError("")
+                  setForgotPhone("")
+                }}
+                className="text-yellow-700 font-medium hover:underline"
+              >
+                পাসওয়ার্ড ভুলে গেছেন?
+              </button>
+            </p>
+
+            {showForgot && (
+              <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200 mt-3 text-left">
+                {forgotMsg ? (
+                  <p className="text-green-700 text-sm font-medium text-center">{forgotMsg}</p>
+                ) : (
+                  <>
+                    <p className="text-gray-600 text-xs mb-2">
+                      আপনার মোবাইল নম্বর দিন, আমরা সাহায্য করব
+                    </p>
+                    <input
+                      type="tel"
+                      placeholder="01XXXXXXXXX"
+                      value={forgotPhone}
+                      onChange={(e) => setForgotPhone(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-yellow-400"
+                    />
+                    {forgotError && (
+                      <p className="text-red-500 text-xs mb-2">{forgotError}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={forgotLoading}
+                      className="w-full bg-yellow-500 text-white py-2 rounded-lg font-bold text-sm hover:bg-yellow-400 transition disabled:opacity-50"
+                    >
+                      {forgotLoading ? "পাঠানো হচ্ছে..." : "রিকোয়েস্ট পাঠান"}
+                    </button>
+                  </>
+                )}
+                <p className="text-center text-xs text-gray-500 mt-3 pt-3 border-t border-yellow-200">
+                  <Link href="/reset-password" className="hover:underline font-medium">
+                    কোড পেয়েছেন? পাসওয়ার্ড সেট করুন
+                  </Link>
+                </p>
+              </div>
+            )}
+
             <p className="text-center text-sm text-gray-500 mt-6">
               নতুন গ্রাহক?{" "}
               <Link href="/register" className="text-green-700 font-bold hover:underline">

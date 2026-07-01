@@ -19,6 +19,7 @@ export async function GET() {
         isActive: true,
         walletBalance: true,
         createdAt: true,
+        passwordResetRequested: true,
         customerOrders: {
           select: { id: true },
         },
@@ -33,6 +34,7 @@ export async function GET() {
       walletBalance: c.walletBalance,
       createdAt: c.createdAt,
       totalOrders: c.customerOrders.length,
+      passwordResetRequested: c.passwordResetRequested,
     }))
 
     return NextResponse.json(result)

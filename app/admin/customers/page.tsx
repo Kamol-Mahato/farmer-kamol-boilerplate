@@ -9,6 +9,7 @@ interface Customer {
   walletBalance: number
   createdAt: string
   totalOrders: number
+  passwordResetRequested: boolean
 }
 
 export default function AdminCustomersPage() {
@@ -80,6 +81,11 @@ export default function AdminCustomersPage() {
           return
         }
         setResetResult({ name, phone, password: data.newPassword })
+        setCustomers((prev) =>
+          prev.map((c) =>
+            c.id === customerId ? { ...c, passwordResetRequested: false } : c
+          )
+        )
       } catch {
         alert("সার্ভার সমস্যা, আবার চেষ্টা করুন")
       } finally {
@@ -274,13 +280,20 @@ export default function AdminCustomersPage() {
                     {new Date(customer.createdAt).toLocaleDateString("bn-BD")}
                   </td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleResetPassword(customer.id, customer.name, customer.phone)}
-                      disabled={resettingId === customer.id}
-                      className="bg-orange-100 text-orange-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-orange-200 transition disabled:opacity-50"
-                    >
-                      {resettingId === customer.id ? "হচ্ছে..." : "🔑 রিসেট"}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleResetPassword(customer.id, customer.name, customer.phone)}
+                        disabled={resettingId === customer.id}
+                        className="bg-orange-100 text-orange-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-orange-200 transition disabled:opacity-50"
+                      >
+                        {resettingId === customer.id ? "হচ্ছে..." : "🔑 রিসেট"}
+                      </button>
+                      {customer.passwordResetRequested && (
+                        <span className="bg-yellow-100 text-yellow-800 font-bold px-2 py-1 rounded-full text-xs whitespace-nowrap animate-pulse">
+                          🔔 Password set Request
+                        </span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
