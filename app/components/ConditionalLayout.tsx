@@ -4,6 +4,8 @@ import Link from "next/link"
 import Navbar from "./Navbar"
 import Footer from "./Footer"
 import FloatingCartButton from "./FloatingCartButton"
+import { MobileMenuProvider } from "./MobileMenuContext"
+import MobileBottomNav from "./MobileBottomNav"
 
 export default function ConditionalLayout({
   children,
@@ -18,12 +20,14 @@ export default function ConditionalLayout({
   } 
 
   return (
-    <>
+    <MobileMenuProvider>
       <Navbar />
       <FloatingCartButton />
       <div className="h-[76px]" />
       <main className="flex-grow">{children}</main>
       <Footer />
-    </>
+      <MobileBottomNav />
+      <div className="h-16 md:hidden" />
+    </MobileMenuProvider>
   )
 }

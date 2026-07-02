@@ -5,20 +5,20 @@ import Image from "next/image"
 import AnnouncementBar from "./AnnouncementBar"
 import { useRouter } from "next/navigation"
 import NewOrderNotifier from "../admin/components/NewOrderNotifier"
+import { useMobileMenu } from "./MobileMenuContext"
 type Menu = {
   id: number
   title: string
   url: string
   subMenus: Menu[]
 }
-
 export default function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<{ name: string; role: string } | null>(null)
   const [menus, setMenus] = useState<Menu[]>([])
   const [openMenu, setOpenMenu] = useState<number | null>(null)
   const [openSubMenu, setOpenSubMenu] = useState<number | null>(null)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { mobileOpen, openSidebar, closeSidebar } = useMobileMenu()
   const [searchQuery, setSearchQuery] = useState("")
   const [cartCount, setCartCount] = useState<number>(0)
   const [openMobileMenu, setOpenMobileMenu] = useState<number | null>(null)
@@ -26,13 +26,11 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   // ✅ নতুন state — লগইন আইকনে ক্লিক করলে Login/Register dropdown দেখানোর জন্য
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
-
   const checkUser = () => {
     const storedUser = localStorage.getItem("user")
     if (storedUser) setUser(JSON.parse(storedUser))
     else setUser(null)
   }
-
   // ✅ key fix: "farmer_kamol_cart"
   const checkCart = () => {
     const savedCart = localStorage.getItem("farmer_kamol_cart")
@@ -48,7 +46,6 @@ export default function Navbar() {
       setCartCount(0)
     }
   }
-
   useEffect(() => {
     checkUser()
     checkCart()
@@ -57,50 +54,43 @@ export default function Navbar() {
     window.addEventListener("storage", checkCart)
     // ✅ custom event — same tab-এর জন্য (ProductCard থেকে dispatch হয়)
     window.addEventListener("cartUpdated", checkCart)
-
     fetch("/api/navigation")
       .then(res => res.json())
       .then(data => setMenus(data))
-
     return () => {
       window.removeEventListener("storage", checkUser)
       window.removeEventListener("storage", checkCart)
       window.removeEventListener("cartUpdated", checkCart)
     }
   }, [])
-
   function handleLogout() {
     localStorage.removeItem("user")
     setUser(null)
     setUserMenuOpen(false)
     router.push("/login")
   }
-
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (searchQuery.trim()) {
       router.push(`/shop?search=${searchQuery}`)
     }
   }
-
   return (
     <>
       <AnnouncementBar />
-
       {mobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-[70] md:hidden" onClick={() => setMobileOpen(false)} />
+        <div className="fixed inset-0 bg-black/50 z-[70] md:hidden" onClick={() => closeSidebar()} />
       )}
-
       <div className={`fixed top-0 left-0 h-full w-72 bg-green-900 z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between p-4 border-b border-green-700">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+        <Link href="/" className="flex items-center gap-2" onClick={() => closeSidebar()}>
         <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
             <div className="flex flex-col leading-tight">
               <span className="text-sm text-basefont-extrabold text-white drop-shadow-lg">Farmer Kamol</span>
               <span className="text-xs text-yellow-300">খামার থেকে আপনার দরজায়</span>
             </div>
           </Link>
-          <button onClick={() => { setMobileOpen(false); setOpenMobileMenu(null) }} className="text-white text-2xl">✕</button>
+          <button onClick={() => { closeSidebar(); setOpenMobileMenu(null) }} className="text-white text-2xl">✕</button>
         </div>
         <div className="p-4 flex flex-col gap-2">
           {menus.map(menu => (
@@ -109,7 +99,7 @@ export default function Navbar() {
                 className="w-full text-left px-4 py-2 text-white text-lg font-medium bg-green-800 rounded-full hover:bg-yellow-400 hover:text-green-900 transition flex justify-between items-center"
                 onClick={() => setOpenMobileMenu(openMobileMenu === menu.id ? null : menu.id)}
               >
-                <Link href={menu.url} onClick={() => setMobileOpen(false)}>{menu.title}</Link>
+                <Link href={menu.url} onClick={() => closeSidebar()}>{menu.title}</Link>
                 {menu.subMenus.length > 0 && <span>{openMobileMenu === menu.id ? "▴" : "▾"}</span>}
               </button>
               {menu.subMenus.length > 0 && openMobileMenu === menu.id && (
@@ -117,7 +107,7 @@ export default function Navbar() {
                   {menu.subMenus.map(sub => (
                     <Link key={sub.id} href={sub.url}
                       className="block px-3 py-1.5 text-white font-bold text-sm hover:text-yellow-400 transition"
-                      onClick={() => setMobileOpen(false)}
+                      onClick={() => closeSidebar()}
                     >
                       ▸ {sub.title}
                     </Link>
@@ -128,21 +118,19 @@ export default function Navbar() {
           ))}
         </div>
       </div>
-
-      <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-1.09 px-6 shadow-md z-50 transition-all duration-300">
+      <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-2 px-6 shadow-md z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <button className="md:hidden text-white text-2xl" onClick={() => setMobileOpen(true)}>☰</button>
-            <Link href="/" className="flex items-center gap-3">
-              <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={46} height={46} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
+            <button className="md:hidden text-white text-2xl" onClick={openSidebar}>☰</button>
+      <Link href="/" className="flex items-center gap-2 ml-10">
+              <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400" />
               <div className="flex flex-col leading-tight">
-                <span className="text-sm text-basefont-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
-                <span className="text-xs text-yellow-300 whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
-              </div>
-            </Link>
+              <span className="text-sm font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
+              <span className="text-xs text-yellow-300 text bold whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
           </div>
-
-          <div className="hidden md:flex items-center gap-2 text-base font-medium">
+      </Link>
+          </div>
+          <div className="hidden md:flex items-center gap-2 text-lg font-medium">
             {menus.map(menu => (
               <div key={menu.id} className="relative"
                 onMouseEnter={() => setOpenMenu(menu.id)}
@@ -183,14 +171,13 @@ export default function Navbar() {
               </div>
             ))}
           </div>
-
           <div className="flex items-center gap-2">
             {/* 🔔 New order bell - শুধু Admin/Super Admin */}
             {user && (user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
               <NewOrderNotifier />
             )}
-            <div className="flex items-center">
-              <form onSubmit={handleSearch} className="flex items-center">
+            <div className="hidden md:flex items-center">
+            <form onSubmit={handleSearch} className="flex items-center">
                 <input
                   type="text"
                   value={searchQuery}
@@ -203,7 +190,6 @@ export default function Navbar() {
                 </button>
               </form>
             </div>
-
             {user ? (
               <div className="relative">
                 <button

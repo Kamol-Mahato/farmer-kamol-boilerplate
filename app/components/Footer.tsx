@@ -3,7 +3,7 @@ import Image from "next/image"
 
 export default function Footer() {
   return (
-    <footer className="bg-green-900 text-white mt-auto">
+    <footer className="bg-green-800 text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 py-6">
         
         {/* Main Grid */}
@@ -74,7 +74,7 @@ export default function Footer() {
               <Link href="/shop" className="hover:text-yellow-400">মধু</Link>
               <Link href="/shop" className="hover:text-yellow-400">ঘি</Link>
               <Link href="/shop" className="hover:text-yellow-400">সরিষার তেল</Link>
-              <Link href="/shop" className="hover:text-yellow-400">চীন হাঁসের বাচ্চা</Link>
+              <Link href="/shop" className="hover:text-yellow-400">চীনা হাঁসের বাচ্চা</Link>
             </div>
           </div>
 

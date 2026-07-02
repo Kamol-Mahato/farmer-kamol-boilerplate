@@ -7,7 +7,7 @@ interface BreadcrumbItem {
 
 export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
-    <nav className="bg-green-50 px-4 py-3">
+    <nav className="bg-green-50 px-4 py-3 pt-12 md:pt-12">
       <div className="max-w-7xl mx-auto">
       <ol className="flex items-center flex-wrap gap-1 text-base text-xl">
           {items.map((item, index) => {
