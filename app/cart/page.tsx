@@ -238,10 +238,10 @@ export default function CartPage() {
 
   if (loaded && cart.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center  px-4 text-center">
-        <div className="text-6xl mb-4">🛒</div>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10  px-6 text-center">
+        <div className="text-6xl mb-1">🛒</div>
         <h2 className="text-xl font-bold text-gray-700 mb-2">আপনার কার্ট খালি</h2>
-        <button onClick={() => router.push("/shop")} className="bg-green-700 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-600 transition mt-4">
+        <button onClick={() => router.push("/shop")} className="bg-green-700 text-white px-4 py-2 rounded-xl font-bold hover:bg-green-600 transition mt-4">
           শপিং করুন
         </button>
       </div>
