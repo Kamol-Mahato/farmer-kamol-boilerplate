@@ -14,9 +14,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.farmerkamol.com"),
   title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
   description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্য মূল্য।",
-  icons: {
-    icon: '/uploads/kamol.png', 
-  },
+  manifest: "/manifest.json",
   keywords: [
     "খাঁটি মধু",
     "সরিষার তেল",
