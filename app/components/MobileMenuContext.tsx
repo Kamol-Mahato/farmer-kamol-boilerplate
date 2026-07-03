@@ -2,10 +2,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 
 type MobileMenuContextType = {
-    mobileOpen: boolean
-    openSidebar: () => void
-    closeSidebar: () => void
-  }
+  mobileOpen: boolean
+  openSidebar: () => void
+  closeSidebar: () => void
+  closeSidebarForNav: () => void
+}
 
 const MobileMenuContext = createContext<MobileMenuContextType | undefined>(undefined)
 
@@ -25,6 +26,12 @@ export function MobileMenuProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // ✅ লিংকে ক্লিক করে নেভিগেট করার সময় ব্যবহার হবে — history.back() কল করে না,
+  // যাতে Link এর নিজের নেভিগেশনের সাথে সংঘর্ষ না হয়
+  const closeSidebarForNav = () => {
+    setMobileOpen(false)
+  }
+
   useEffect(() => {
     function handlePopState() {
       setMobileOpen(false)
@@ -34,7 +41,7 @@ export function MobileMenuProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <MobileMenuContext.Provider value={{ mobileOpen, openSidebar, closeSidebar }}>
+    <MobileMenuContext.Provider value={{ mobileOpen, openSidebar, closeSidebar, closeSidebarForNav }}>
       {children}
     </MobileMenuContext.Provider>
   )

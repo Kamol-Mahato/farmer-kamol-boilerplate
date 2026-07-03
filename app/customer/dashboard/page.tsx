@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { generateCustomId } from "@/lib/orderUtils"
+
 
 interface OrderItem {
   id: number
@@ -19,6 +21,7 @@ interface Order {
   createdAt: string
   finalCodAmount: number
   orderStatus: string
+  dailySeq: number
   courierSummary: CourierSummary | null
   orderItems: OrderItem[]
 }
@@ -61,12 +64,7 @@ export default function CustomerDashboard() {
     fetchCustomerOrders()
   }, [router])
 
-  function generateCustomId(createdAt: string, id: number) {
-    const dateObj = new Date(createdAt)
-    return `FK-${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}-${String(id).padStart(5, "0")}`
-  }
-
-  if (loading) return <div className="text-center py-20 text-gray-500 font-medium">আপনার ড্যাশবোর্ড লোড হচ্ছে...</div>
+   if (loading) return <div className="text-center py-20 text-gray-500 font-medium">আপনার ড্যাশবোর্ড লোড হচ্ছে...</div>
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
@@ -103,8 +101,8 @@ export default function CustomerDashboard() {
               ) : (
                 orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50/50 transition">
-                    <td className="px-6 py-4 font-bold text-gray-900 tracking-wider">
-                      {generateCustomId(order.createdAt, order.id)}
+                     <td className="px-6 py-4 font-bold text-gray-900 tracking-wider">
+                      {generateCustomId(order.createdAt, order.dailySeq)}
                     </td>
                     <td className="px-6 py-4 text-gray-700">
                       {order.orderItems.map((item) => (

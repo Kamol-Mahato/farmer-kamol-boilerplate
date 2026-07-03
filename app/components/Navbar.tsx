@@ -18,20 +18,17 @@ export default function Navbar() {
   const [menus, setMenus] = useState<Menu[]>([])
   const [openMenu, setOpenMenu] = useState<number | null>(null)
   const [openSubMenu, setOpenSubMenu] = useState<number | null>(null)
-  const { mobileOpen, openSidebar, closeSidebar } = useMobileMenu()
+  const { mobileOpen, openSidebar, closeSidebar, closeSidebarForNav } = useMobileMenu()
   const [searchQuery, setSearchQuery] = useState("")
   const [cartCount, setCartCount] = useState<number>(0)
   const [openMobileMenu, setOpenMobileMenu] = useState<number | null>(null)
-  // ✅ নতুন state — user dropdown (👤) এর জন্য, click ভিত্তিক
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  // ✅ নতুন state — লগইন আইকনে ক্লিক করলে Login/Register dropdown দেখানোর জন্য
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
   const checkUser = () => {
     const storedUser = localStorage.getItem("user")
     if (storedUser) setUser(JSON.parse(storedUser))
     else setUser(null)
   }
-  // ✅ key fix: "farmer_kamol_cart"
   const checkCart = () => {
     const savedCart = localStorage.getItem("farmer_kamol_cart")
     if (savedCart) {
@@ -49,10 +46,8 @@ export default function Navbar() {
   useEffect(() => {
     checkUser()
     checkCart()
-    // ✅ storage event — অন্য tab-এর জন্য
     window.addEventListener("storage", checkUser)
     window.addEventListener("storage", checkCart)
-    // ✅ custom event — same tab-এর জন্য (ProductCard থেকে dispatch হয়)
     window.addEventListener("cartUpdated", checkCart)
     fetch("/api/navigation")
       .then(res => res.json())
@@ -81,10 +76,10 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/50 z-[70] md:hidden" onClick={() => closeSidebar()} />
       )}
-      <div className={`fixed top-0 left-0 h-full w-72 bg-green-900 z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className={`fixed top-0 left-0 h-auto max-h-[85vh] overflow-y-auto w-64 bg-green-800 rounded-br-2xl z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between p-4 border-b border-green-700">
-        <Link href="/" className="flex items-center gap-2" onClick={() => closeSidebar()}>
-        <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
+          <Link href="/" className="flex items-center gap-2" onClick={() => closeSidebarForNav()}>
+            <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
             <div className="flex flex-col leading-tight">
               <span className="text-sm text-basefont-extrabold text-white drop-shadow-lg">Farmer Kamol</span>
               <span className="text-xs text-yellow-300">খামার থেকে আপনার দরজায়</span>
@@ -95,19 +90,29 @@ export default function Navbar() {
         <div className="p-4 flex flex-col gap-2">
           {menus.map(menu => (
             <div key={menu.id}>
-              <button
-                className="w-full text-left px-4 py-2 text-white text-lg font-medium bg-green-800 rounded-full hover:bg-yellow-400 hover:text-green-900 transition flex justify-between items-center"
-                onClick={() => setOpenMobileMenu(openMobileMenu === menu.id ? null : menu.id)}
-              >
-                <Link href={menu.url} onClick={() => closeSidebar()}>{menu.title}</Link>
-                {menu.subMenus.length > 0 && <span>{openMobileMenu === menu.id ? "▴" : "▾"}</span>}
-              </button>
+              <div className="w-full flex justify-between items-center bg-green-800 rounded-full hover:bg-yellow-400 transition">
+                <Link
+                  href={menu.url}
+                  onClick={() => closeSidebarForNav()}
+                  className="flex-1 text-left px-4 py-2 text-white text-lg font-medium hover:text-green-900 transition"
+                >
+                  {menu.title}
+                </Link>
+                {menu.subMenus.length > 0 && (
+                  <button
+                    onClick={() => setOpenMobileMenu(openMobileMenu === menu.id ? null : menu.id)}
+                    className="px-4 py-2 text-white hover:text-green-900 transition"
+                  >
+                    {openMobileMenu === menu.id ? "▴" : "▾"}
+                  </button>
+                )}
+              </div>
               {menu.subMenus.length > 0 && openMobileMenu === menu.id && (
                 <div className="ml-4 mt-1 flex flex-col gap-1">
                   {menu.subMenus.map(sub => (
                     <Link key={sub.id} href={sub.url}
                       className="block px-3 py-1.5 text-white font-bold text-sm hover:text-yellow-400 transition"
-                      onClick={() => closeSidebar()}
+                      onClick={() => closeSidebarForNav()}
                     >
                       ▸ {sub.title}
                     </Link>
@@ -118,17 +123,17 @@ export default function Navbar() {
           ))}
         </div>
       </div>
-      <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-2 px-6 shadow-md z-50 transition-all duration-300">
+      <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-2 px-3 md:px-6 shadow-md z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <button className="md:hidden text-white text-2xl" onClick={openSidebar}>☰</button>
-      <Link href="/" className="flex items-center gap-2 ml-10">
+            <Link href="/" className="flex items-center gap-2">
               <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400" />
               <div className="flex flex-col leading-tight">
-              <span className="text-sm font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
-              <span className="text-xs text-yellow-300 text bold whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
-          </div>
-      </Link>
+                <span className="text-sm font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
+                <span className="text-xs text-yellow-300 font-bold whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
+              </div>
+            </Link>
           </div>
           <div className="hidden md:flex items-center gap-2 text-lg font-medium">
             {menus.map(menu => (
@@ -172,12 +177,11 @@ export default function Navbar() {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            {/* 🔔 New order bell - শুধু Admin/Super Admin */}
             {user && (user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
               <NewOrderNotifier />
             )}
             <div className="hidden md:flex items-center">
-            <form onSubmit={handleSearch} className="flex items-center">
+              <form onSubmit={handleSearch} className="flex items-center">
                 <input
                   type="text"
                   value={searchQuery}
@@ -243,8 +247,6 @@ export default function Navbar() {
                 </div>
               </div>
             )}
-            
-            {/* ✅ Cart icon with dynamic badge */}
             <Link href="/cart" className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center">
               <div className="relative flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">

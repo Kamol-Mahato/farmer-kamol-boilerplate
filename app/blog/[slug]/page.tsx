@@ -40,7 +40,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     image: blog.image ? [blog.image] : undefined,
     datePublished: blog.createdAt.toISOString(),
     dateModified: blog.updatedAt.toISOString(),
-    author: { "@type": "Person", name: "কামল" },
+    author: { "@type": "Person", name: "কমল" },
     publisher: {
       "@type": "Organization",
       name: "Farmer Kamol",
@@ -65,7 +65,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      <div className="max-w-3xl mx-auto px-4 py-6 pt-2">
+      <div className="max-w-3xl mx-auto px-4 py-6 pt-8 md:pt-6">
         <nav className="text-sm text-gray-500 mb-4">
           <Link href="/" className="hover:text-green-700">হোম</Link>
           <span className="mx-1.5">/</span>
@@ -73,10 +73,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
           <span className="mx-1.5">/</span>
           <span className="text-gray-700 font-medium">{blog.title}</span>
         </nav>
-        <Link href="/blog" className="text-green-600 hover:text-green-800 text-sm mb-6 inline-block">
-          ← ব্লগে ফিরে যান
-        </Link>
-        {blog.image && blog.image.startsWith("/") && (
+         {blog.image && blog.image.startsWith("/") && (
           <div className="relative w-full h-64 rounded-xl overflow-hidden mb-6">
             <Image
               src={blog.image}
