@@ -1,9 +1,18 @@
+import type { Metadata } from "next"
 import PanelNavbar from "../components/PanelNavbar"
 import NewOrderNotifier from "./components/NewOrderNotifier"
 import AdminLogoutButton from "./components/AdminLogoutButton"
 import AdminSidebar from "./components/AdminSidebar"
 import AdminSidebarToggleButton from "./components/AdminSidebarToggleButton"
 import { AdminSidebarProvider } from "./components/AdminSidebarContext"
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
+
 export default function AdminLayout({
   children,
 }: {
