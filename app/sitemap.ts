@@ -14,6 +14,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/privacy-policy`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
     { url: `${BASE_URL}/terms`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
     { url: `${BASE_URL}/return-policy`, lastModified: new Date(), changeFrequency: "yearly" as const, priority: 0.3 },
+    { url: `${BASE_URL}/media/video`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.5 },
+    { url: `${BASE_URL}/media/image`, lastModified: new Date(), changeFrequency: "monthly" as const, priority: 0.5 },
   ];
 
   const products = await prisma.product.findMany({

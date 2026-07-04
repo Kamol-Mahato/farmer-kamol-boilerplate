@@ -7,6 +7,8 @@ import Footer from "./Footer"
 import FloatingCartButton from "./FloatingCartButton"
 import { MobileMenuProvider } from "./MobileMenuContext"
 import MobileBottomNav from "./MobileBottomNav"
+import FloatingWhatsAppButton from "./FloatingWhatsAppButton"
+
 export default function ConditionalLayout({
   children,
 }: {
@@ -26,6 +28,7 @@ export default function ConditionalLayout({
     <MobileMenuProvider>
       <Navbar />
       <FloatingCartButton />
+      <FloatingWhatsAppButton />
       <div className="h-[76px]" />
       <main className="flex-grow">{children}</main>
       <Footer />

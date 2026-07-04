@@ -75,6 +75,10 @@ model Product {
   name                String
   slug                String                   @unique
   description         String?
+  nameEn              String?
+  slugEn              String?                  @unique
+  descriptionEn       String?
+  nameBanglish        String?
   categoryId          Int?
   pricePerUnit        Float
   discountPrice       Float?
@@ -270,15 +274,19 @@ model WalletTransaction {
 }
 
 model Blog {
-  id          Int      @id @default(autoincrement())
-  title       String
-  slug        String   @unique
-  content     String
-  image       String?
-  category    String
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  title         String
+  slug          String   @unique
+  content       String
+  titleEn       String?
+  slugEn        String?  @unique
+  contentEn     String?
+  titleBanglish String?
+  image         String?
+  category      String
+  isPublished   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum Role {
