@@ -29,24 +29,16 @@ export async function POST(request: Request) {
       where: { phone },
     })
 
-    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+    if (
+      !user ||
+      (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") ||
+      !user.isActive ||
+      !user.password
+    ) {
+      recordFailedAttempt(`admin-login:${phone}`)
       return NextResponse.json(
-        { error: "এই মোবাইল নম্বরে কোনো অ্যাডমিন অ্যাকাউন্ট পাওয়া যায়নি" },
-        { status: 404 }
-      )
-    }
-
-    if (!user.isActive) {
-      return NextResponse.json(
-        { error: "আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে" },
-        { status: 403 }
-      )
-    }
-
-    if (!user.password) {
-      return NextResponse.json(
-        { error: "পাসওয়ার্ড সেট করা নেই" },
-        { status: 400 }
+        { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
+        { status: 401 }
       )
     }
 
@@ -54,7 +46,7 @@ export async function POST(request: Request) {
     if (!isPasswordValid) {
       recordFailedAttempt(`admin-login:${phone}`)
       return NextResponse.json(
-        { error: "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।" },
+        { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
       )
     }

@@ -31,24 +31,16 @@ export async function POST(request: Request) {
       where: { phone },
     })
 
-    if (!user || user.role !== "AGENT") {
+    if (
+      !user ||
+      user.role !== "AGENT" ||
+      !user.isActive ||
+      !user.password
+    ) {
+      recordFailedAttempt(`agent-login:${phone}`)
       return NextResponse.json(
-        { error: "এই মোবাইল নম্বরে কোনো এজেন্ট অ্যাকাউন্ট পাওয়া যায়নি" },
-        { status: 404 }
-      )
-    }
-
-    if (!user.isActive) {
-      return NextResponse.json(
-        { error: "আপনার অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।" },
-        { status: 403 }
-      )
-    }
-
-    if (!user.password) {
-      return NextResponse.json(
-        { error: "পাসওয়ার্ড সেট করা নেই, অ্যাডমিনের সাথে যোগাযোগ করুন।" },
-        { status: 400 }
+        { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
+        { status: 401 }
       )
     }
 
@@ -56,7 +48,7 @@ export async function POST(request: Request) {
     if (!isPasswordValid) {
       recordFailedAttempt(`agent-login:${phone}`)
       return NextResponse.json(
-        { error: "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।" },
+        { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
       )
     }

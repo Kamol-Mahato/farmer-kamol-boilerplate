@@ -106,6 +106,13 @@ export default function RegisterPage() {
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
             />
+            {phone.length > 0 && (
+  <p className={`text-xs mt-1.5 ${/^01[3-9]\d{8}$/.test(phone) ? "text-green-600" : "text-orange-600"}`}>
+    {/^01[3-9]\d{8}$/.test(phone)
+      ? "✓ সঠিক ফরম্যাট"
+      : `আরও ${11 - phone.length > 0 ? 11 - phone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)`}
+  </p>
+)}
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড</label>
@@ -165,6 +172,11 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
+            {confirmPassword.length > 0 && (
+              <p className={`text-xs mt-1.5 flex items-center gap-1 ${password === confirmPassword ? "text-green-600" : "text-red-500"}`}>
+                {password === confirmPassword ? "✓ পাসওয়ার্ড মিলেছে" : "✗ পাসওয়ার্ড মিলছে না"}
+              </p>
+            )}
           </div>
           {/* 🔐 সহজ ম্যাথ ক্যাপচা — স্প্যাম/বট আটকানোর জন্য */}
           <div className="mb-6">
@@ -188,7 +200,7 @@ export default function RegisterPage() {
           <button
             type="button"
             onClick={handleRegister}
-            disabled={loading}
+              disabled={loading || !name || !/^01[3-9]\d{8}$/.test(phone) || password.length < 4 || password !== confirmPassword}
             className="w-full bg-green-700 text-white py-3.5 rounded-lg font-bold text-lg
                        transition-all duration-150
                        active:bg-green-800 active:scale-[0.98] touch-manipulation

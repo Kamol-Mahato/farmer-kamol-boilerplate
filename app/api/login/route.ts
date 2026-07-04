@@ -30,17 +30,11 @@ export async function POST(request: Request) {
       where: { phone },
     })
 
-    if (!user) {
+    if (!user || !user.password) {
+      recordFailedAttempt(`customer-login:${phone}`)
       return NextResponse.json(
-        { error: "এই মোবাইল নম্বরে কোনো অ্যাকাউন্ট পাওয়া যায়নি" },
-        { status: 404 }
-      )
-    }
-
-    if (!user.password) {
-      return NextResponse.json(
-        { error: "আপনার অ্যাকাউন্টে কোনো পাসওয়ার্ড সেট করা নেই।" },
-        { status: 400 }
+        { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
+        { status: 401 }
       )
     }
 
@@ -48,7 +42,7 @@ export async function POST(request: Request) {
     if (!isPasswordValid) {
       recordFailedAttempt(`customer-login:${phone}`)
       return NextResponse.json(
-        { error: "ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।" },
+        { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
       )
     }

@@ -55,9 +55,16 @@ export default function AdminLoginPage() {
               required
               placeholder="01XXXXXXXXX"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500"
             />
+            {phone.length > 0 && (
+  <p className={`text-xs mt-1.5 ${/^01[3-9]\d{8}$/.test(phone) ? "text-green-600" : "text-orange-600"}`}>
+    {/^01[3-9]\d{8}$/.test(phone)
+      ? "✓ সঠিক ফরম্যাট"
+      : `আরও ${11 - phone.length > 0 ? 11 - phone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)`}
+  </p>
+)}
           </div>
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -88,7 +95,7 @@ export default function AdminLoginPage() {
           <button
             type="button"
             onClick={handleLogin}
-            disabled={loading}
+            disabled={loading || !/^01[3-9]\d{8}$/.test(phone) || !password}
             className="w-full bg-green-700 text-white py-3.5 rounded-lg font-bold text-lg transition-all duration-150 active:bg-green-800 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
           >
             {loading ? "লগইন হচ্ছে..." : "লগইন করুন"}

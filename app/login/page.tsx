@@ -157,9 +157,16 @@ export default function LoginPage() {
                   required
                   placeholder="01XXXXXXXXX"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
                 />
+                {phone.length > 0 && (
+                  <p className={`text-xs mt-1.5 ${/^01[3-9]\d{8}$/.test(phone) ? "text-green-600" : "text-orange-600"}`}>
+                    {/^01[3-9]\d{8}$/.test(phone)
+                      ? "✓ সঠিক ফরম্যাট"
+                      : `আরও ${11 - phone.length > 0 ? 11 - phone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)`}
+                  </p>
+                )}
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -193,18 +200,16 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-
               {error && (
                 <p className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-lg text-center font-medium">
                   {error}
                 </p>
               )}
-
               {/* type="button" — form submit এর বাইরে */}
               <button
                 type="button"
                 onClick={handleLogin}
-                disabled={loading}
+                disabled={loading || !/^01[3-9]\d{8}$/.test(phone) || !password}
                 className="w-full bg-green-700 text-white py-3.5 rounded-lg font-bold text-lg
                            transition-all duration-150
                            active:bg-green-800 active:scale-[0.98] touch-manipulation
@@ -240,7 +245,6 @@ export default function LoginPage() {
                 )}
               </button>
               </form>
-
             {/* পাসওয়ার্ড ভুলে গেছেন */}
             <p className="text-center text-sm mt-4">
               <button
@@ -256,7 +260,6 @@ export default function LoginPage() {
                 পাসওয়ার্ড ভুলে গেছেন?
               </button>
             </p>
-
             {showForgot && (
               <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200 mt-3 text-left">
                 {forgotMsg ? (
@@ -270,16 +273,21 @@ export default function LoginPage() {
                       type="tel"
                       placeholder="01XXXXXXXXX"
                       value={forgotPhone}
-                      onChange={(e) => setForgotPhone(e.target.value)}
+                      onChange={(e) => setForgotPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-yellow-400"
                     />
+                    {forgotPhone.length > 0 && !/^01[3-9]\d{8}$/.test(forgotPhone) && (
+                      <p className="text-orange-600 text-xs mb-2">
+                        আরও {11 - forgotPhone.length > 0 ? 11 - forgotPhone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)
+                      </p>
+                    )}
                     {forgotError && (
                       <p className="text-red-500 text-xs mb-2">{forgotError}</p>
                     )}
                     <button
                       type="button"
                       onClick={handleForgotPassword}
-                      disabled={forgotLoading}
+                      disabled={forgotLoading || !/^01[3-9]\d{8}$/.test(forgotPhone)}
                       className="w-full bg-yellow-500 text-white py-2 rounded-lg font-bold text-sm hover:bg-yellow-400 transition disabled:opacity-50"
                     >
                       {forgotLoading ? "পাঠানো হচ্ছে..." : "রিকোয়েস্ট পাঠান"}
@@ -293,7 +301,6 @@ export default function LoginPage() {
                 </p>
               </div>
             )}
-
             <p className="text-center text-sm text-gray-500 mt-6">
               নতুন গ্রাহক?{" "}
               <Link href="/register" className="text-green-700 font-bold hover:underline">

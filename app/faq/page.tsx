@@ -1,5 +1,6 @@
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
+import { safeJsonLd } from "@/lib/jsonLd"
 
 export const metadata: Metadata = {
   title: "প্রশ্ন ও উত্তর (FAQ) | Farmer Kamol",
@@ -196,7 +197,7 @@ export default function FaqPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
       />
       <PolicyPage title="প্রশ্ন ও উত্তর">
   <div className="space-y-4">

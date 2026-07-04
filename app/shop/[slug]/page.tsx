@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import ProductCard from "@/app/components/ProductCard"
 import ProductActions from "./ProductActions"
+import { safeJsonLd } from "@/lib/jsonLd"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -102,11 +103,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(productSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
       />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <nav className="text-sm text-gray-500 mb-4">
