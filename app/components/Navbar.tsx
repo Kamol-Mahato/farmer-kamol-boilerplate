@@ -11,18 +11,9 @@ import { getLocaleFromPath, localizeHref, switchLocalePath } from "@/lib/i18n"
 type Menu = {
   id: number
   title: string
+  titleEn?: string | null
   url: string
   subMenus: Menu[]
-}
-
-const menuTitleDict: Record<string, string> = {
-  "শপ": "Shop",
-  "ব্লগ": "Blog",
-  "মিডিয়া": "Media",
-  "ভিডিও": "Video",
-  "ছবি": "Photos",
-  "আমাদের সম্পর্কে": "About Us",
-  "যোগাযোগ": "Contact",
 }
 
 const uiDict = {
@@ -62,10 +53,10 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
 
-  function translateTitle(title: string): string {
-    if (locale === "bn") return title
-    return menuTitleDict[title] || title
-  }
+  function translateTitle(menu: Menu): string {
+  if (locale === "bn") return menu.title
+  return menu.titleEn || menu.title
+}
 
   function localizeMenus(items: Menu[]): Menu[] {
     return items.map((m) => ({
@@ -149,7 +140,7 @@ export default function Navbar() {
                   onClick={() => closeSidebarForNav()}
                   className="flex-1 text-left px-4 py-2 text-white text-lg font-medium hover:text-green-900 transition"
                 >
-                  {translateTitle(menu.title)}
+                  {translateTitle(menu)}
                 </Link>
                 {menu.subMenus.length > 0 && (
                   <button
@@ -167,21 +158,13 @@ export default function Navbar() {
                       className="block px-3 py-1.5 text-white font-bold text-sm hover:text-yellow-400 transition"
                       onClick={() => closeSidebarForNav()}
                     >
-                      ▸ {translateTitle(sub.title)}
+                      ▸ {translateTitle(sub)}
                     </Link>
                   ))}
                 </div>
               )}
             </div>
           ))}
-          {/* ✅ মোবাইল সাইডবারেও BN/EN টগল */}
-          <Link
-            href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
-            onClick={() => closeSidebarForNav()}
-            className="mt-2 text-center px-4 py-2 rounded-full border border-yellow-400 text-yellow-300 font-bold text-sm hover:bg-yellow-400 hover:text-green-900 transition"
-          >
-            🌐 {t.langSwitch}
-          </Link>
         </div>
       </div>
       <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-2 px-3 md:px-6 shadow-md z-50 transition-all duration-300">
@@ -205,7 +188,7 @@ export default function Navbar() {
                 <Link href={menu.url}
                   className="px-4 py-2 hover:text-yellow-400 transition font-medium rounded-full hover:bg-green-700"
                 >
-                  {translateTitle(menu.title)} {menu.subMenus.length > 0 && "▾"}
+                  {translateTitle(menu)} {menu.subMenus.length > 0 && "▾"}
                 </Link>
                 {menu.subMenus.length > 0 && openMenu === menu.id && (
                   <div className="absolute top-full left-0 bg-green-800 rounded-lg shadow-lg min-w-[180px] py-2 z-50">
@@ -217,7 +200,7 @@ export default function Navbar() {
                         <Link href={sub.url}
                           className="block px-4 py-2 hover:bg-green-700 hover:text-yellow-400 transition"
                         >
-                          {translateTitle(sub.title)} {sub.subMenus.length > 0 && "▸"}
+                          {translateTitle(sub)} {sub.subMenus.length > 0 && "▸"}
                         </Link>
                         {sub.subMenus.length > 0 && openSubMenu === sub.id && (
                           <div className="absolute left-full top-0 bg-green-800 rounded-lg shadow-lg min-w-[160px] py-2 z-50">
@@ -225,7 +208,7 @@ export default function Navbar() {
                               <Link key={child.id} href={child.url}
                                 className="block px-4 py-2 hover:bg-green-700 hover:text-yellow-400 transition"
                               >
-                                {translateTitle(child.title)}
+                                {translateTitle(child)}
                               </Link>
                             ))}
                           </div>
@@ -236,15 +219,16 @@ export default function Navbar() {
                 )}
               </div>
             ))}
-            {/* ✅ ডেস্কটপ BN/EN টগল */}
-            <Link
-              href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
-              className="px-3 py-1.5 ml-1 rounded-full border border-yellow-400 text-yellow-300 hover:bg-yellow-400 hover:text-green-900 transition text-sm font-bold"
-            >
-              🌐 {t.langSwitch}
-            </Link>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
+              className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center text-lg"
+              aria-label="ভাষা পরিবর্তন"
+              title={t.langSwitch}
+            >
+              🌐
+            </Link>
             {user && (user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
               <NewOrderNotifier />
             )}
