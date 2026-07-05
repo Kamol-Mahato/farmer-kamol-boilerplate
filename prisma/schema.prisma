@@ -341,9 +341,11 @@ model YoutubeVideo {
   platform     String   @default("YOUTUBE")
   displayOrder Int      @default(0)
   isActive     Boolean  @default(true)
+  heroOrder    Int?     // null = হিরো স্লাইডে নেই, সংখ্যা = হিরো রোটেশনে ক্রম (০,১,২,৩)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
 model GalleryItem {
   id          Int                @id @default(autoincrement())
   title       String

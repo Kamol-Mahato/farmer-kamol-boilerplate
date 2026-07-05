@@ -338,7 +338,7 @@ function OrderForm() {
         </div>
         <div className="flex-1">
           <p className="font-bold text-gray-800 text-sm">{product?.name}</p>
-          <p className="text-yellow-600 font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
+          <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">

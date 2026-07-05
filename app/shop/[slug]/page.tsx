@@ -175,7 +175,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <p className="text-lg font-bold text-green-700">💬 দাম জানতে যোগাযোগ করুন</p>
               ) : (
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold text-yellow-600">৳ {product.pricePerUnit}</span>
+                  <span className="text-3xl font-extrabold text-black">৳ {product.pricePerUnit}</span>
                   <span className="text-sm text-gray-400">/ {product.unit}</span>
                 </div>
               )}

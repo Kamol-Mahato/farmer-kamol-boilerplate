@@ -189,7 +189,7 @@ export default function ProductCard({ product }: { product: Product }) {
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-[10px] md:text-xs text-gray-400 font-medium">মূল্য</span>
-            <span className="text-base md:text-xl font-extrabold text-yellow-600">
+            <span className="text-base md:text-xl font-extrabold text-black">
               ৳ {product.pricePerUnit}
             </span>
           </div>

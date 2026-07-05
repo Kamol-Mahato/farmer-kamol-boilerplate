@@ -48,7 +48,7 @@ export default async function AdminProductsPage() {
                   <td className="px-6 py-4">
                     <p className="font-bold text-green-700">৳ {product.pricePerUnit}</p>
                     {product.discountPrice && (
-                      <p className="text-sm text-yellow-600">সেল: ৳ {product.discountPrice}</p>
+                      <p className="text-sm text-black font-bold">সেল: ৳ {product.discountPrice}</p>
                     )}
                   </td>
                   <td className="px-6 py-4">

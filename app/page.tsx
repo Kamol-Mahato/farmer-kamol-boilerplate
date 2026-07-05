@@ -45,13 +45,18 @@ export default async function HomePage() {
     orderBy: { displayOrder: "asc" },
     take: 3,
   })
+  const heroVideos = await prisma.youtubeVideo.findMany({
+    where: { heroOrder: { not: null } },
+    orderBy: { heroOrder: "asc" },
+    select: { id: true, youtubeUrl: true },
+  })
 
   return (
     <div className="font-[family-name:var(--font-hind-siliguri)]">
       <NoticeModal />
 
       {/* Hero Slider */}
-      <HeroSlider featuredProducts={featuredProducts} />
+      <HeroSlider featuredProducts={featuredProducts} heroVideos={heroVideos} />
 
       {/* Featured Products */}
       <div className="bg-green-50 py-3 px-4">

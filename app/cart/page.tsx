@@ -257,7 +257,7 @@ export default function CartPage() {
             <img src={item.image} alt={item.name} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
             <div className="flex-1">
               <p className="font-bold text-gray-800 text-sm">{item.name}</p>
-              <p className="text-yellow-600 font-bold text-sm">৳ {item.price} <span className="text-gray-400 text-xs font-normal">/ {item.unit}</span></p>
+              <p className="text-black font-bold text-sm">৳ {item.price} <span className="text-gray-400 text-xs font-normal">/ {item.unit}</span></p>
             </div>
             <div className="flex items-center gap-1.5">
               <button type="button" onClick={() => updateQuantity(item.id, -1)} className="w-7 h-7 bg-green-100 text-green-800 rounded-full text-base font-bold hover:bg-green-200 flex items-center justify-center">−</button>
