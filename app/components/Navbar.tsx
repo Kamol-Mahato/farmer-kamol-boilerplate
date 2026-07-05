@@ -3,17 +3,54 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import AnnouncementBar from "./AnnouncementBar"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import NewOrderNotifier from "../admin/components/NewOrderNotifier"
 import { useMobileMenu } from "./MobileMenuContext"
+import { getLocaleFromPath, localizeHref, switchLocalePath } from "@/lib/i18n"
+
 type Menu = {
   id: number
   title: string
   url: string
   subMenus: Menu[]
 }
+
+const menuTitleDict: Record<string, string> = {
+  "শপ": "Shop",
+  "ব্লগ": "Blog",
+  "মিডিয়া": "Media",
+  "ভিডিও": "Video",
+  "ছবি": "Photos",
+  "আমাদের সম্পর্কে": "About Us",
+  "যোগাযোগ": "Contact",
+}
+
+const uiDict = {
+  bn: {
+    search: "Search করুন.",
+    myAccount: "আমার অ্যাকাউন্ট",
+    logout: "লগআউট",
+    login: "লগইন করুন",
+    register: "নতুন অ্যাকাউন্ট খুলুন",
+    langSwitch: "English",
+  },
+  en: {
+    search: "Search...",
+    myAccount: "My Account",
+    logout: "Logout",
+    login: "Login",
+    register: "Create Account",
+    langSwitch: "বাংলা",
+  },
+}
+
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
+  const locale = getLocaleFromPath(pathname)
+  const t = uiDict[locale]
+  const href = (path: string) => localizeHref(path, locale)
+
   const [user, setUser] = useState<{ name: string; role: string } | null>(null)
   const [menus, setMenus] = useState<Menu[]>([])
   const [openMenu, setOpenMenu] = useState<number | null>(null)
@@ -24,6 +61,20 @@ export default function Navbar() {
   const [openMobileMenu, setOpenMobileMenu] = useState<number | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
+
+  function translateTitle(title: string): string {
+    if (locale === "bn") return title
+    return menuTitleDict[title] || title
+  }
+
+  function localizeMenus(items: Menu[]): Menu[] {
+    return items.map((m) => ({
+      ...m,
+      url: localizeHref(m.url, locale),
+      subMenus: m.subMenus ? localizeMenus(m.subMenus) : [],
+    }))
+  }
+
   const checkUser = () => {
     const storedUser = localStorage.getItem("user")
     if (storedUser) setUser(JSON.parse(storedUser))
@@ -51,25 +102,27 @@ export default function Navbar() {
     window.addEventListener("cartUpdated", checkCart)
     fetch("/api/navigation")
       .then(res => res.json())
-      .then(data => setMenus(data))
+      .then(data => setMenus(localizeMenus(data)))
     return () => {
       window.removeEventListener("storage", checkUser)
       window.removeEventListener("storage", checkCart)
       window.removeEventListener("cartUpdated", checkCart)
     }
-  }, [])
+  }, [locale])
+
   function handleLogout() {
     localStorage.removeItem("user")
     setUser(null)
     setUserMenuOpen(false)
-    router.push("/login")
+    router.push(href("/login"))
   }
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/shop?search=${searchQuery}`)
+      router.push(`${href("/shop")}?search=${searchQuery}`)
     }
   }
+
   return (
     <>
       <AnnouncementBar />
@@ -78,7 +131,7 @@ export default function Navbar() {
       )}
       <div className={`fixed top-0 left-0 h-auto max-h-[85vh] overflow-y-auto w-64 bg-green-800 rounded-br-2xl z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex items-center justify-between p-4 border-b border-green-700">
-          <Link href="/" className="flex items-center gap-2" onClick={() => closeSidebarForNav()}>
+          <Link href={href("/")} className="flex items-center gap-2" onClick={() => closeSidebarForNav()}>
             <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
             <div className="flex flex-col leading-tight">
               <span className="text-sm text-basefont-extrabold text-white drop-shadow-lg">Farmer Kamol</span>
@@ -96,7 +149,7 @@ export default function Navbar() {
                   onClick={() => closeSidebarForNav()}
                   className="flex-1 text-left px-4 py-2 text-white text-lg font-medium hover:text-green-900 transition"
                 >
-                  {menu.title}
+                  {translateTitle(menu.title)}
                 </Link>
                 {menu.subMenus.length > 0 && (
                   <button
@@ -114,20 +167,28 @@ export default function Navbar() {
                       className="block px-3 py-1.5 text-white font-bold text-sm hover:text-yellow-400 transition"
                       onClick={() => closeSidebarForNav()}
                     >
-                      ▸ {sub.title}
+                      ▸ {translateTitle(sub.title)}
                     </Link>
                   ))}
                 </div>
               )}
             </div>
           ))}
+          {/* ✅ মোবাইল সাইডবারেও BN/EN টগল */}
+          <Link
+            href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
+            onClick={() => closeSidebarForNav()}
+            className="mt-2 text-center px-4 py-2 rounded-full border border-yellow-400 text-yellow-300 font-bold text-sm hover:bg-yellow-400 hover:text-green-900 transition"
+          >
+            🌐 {t.langSwitch}
+          </Link>
         </div>
       </div>
       <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-2 px-3 md:px-6 shadow-md z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <button className="md:hidden text-white text-2xl" onClick={openSidebar}>☰</button>
-            <Link href="/" className="flex items-center gap-2">
+            <Link href={href("/")} className="flex items-center gap-2">
               <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400" />
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
@@ -144,7 +205,7 @@ export default function Navbar() {
                 <Link href={menu.url}
                   className="px-4 py-2 hover:text-yellow-400 transition font-medium rounded-full hover:bg-green-700"
                 >
-                  {menu.title} {menu.subMenus.length > 0 && "▾"}
+                  {translateTitle(menu.title)} {menu.subMenus.length > 0 && "▾"}
                 </Link>
                 {menu.subMenus.length > 0 && openMenu === menu.id && (
                   <div className="absolute top-full left-0 bg-green-800 rounded-lg shadow-lg min-w-[180px] py-2 z-50">
@@ -156,7 +217,7 @@ export default function Navbar() {
                         <Link href={sub.url}
                           className="block px-4 py-2 hover:bg-green-700 hover:text-yellow-400 transition"
                         >
-                          {sub.title} {sub.subMenus.length > 0 && "▸"}
+                          {translateTitle(sub.title)} {sub.subMenus.length > 0 && "▸"}
                         </Link>
                         {sub.subMenus.length > 0 && openSubMenu === sub.id && (
                           <div className="absolute left-full top-0 bg-green-800 rounded-lg shadow-lg min-w-[160px] py-2 z-50">
@@ -164,7 +225,7 @@ export default function Navbar() {
                               <Link key={child.id} href={child.url}
                                 className="block px-4 py-2 hover:bg-green-700 hover:text-yellow-400 transition"
                               >
-                                {child.title}
+                                {translateTitle(child.title)}
                               </Link>
                             ))}
                           </div>
@@ -175,6 +236,13 @@ export default function Navbar() {
                 )}
               </div>
             ))}
+            {/* ✅ ডেস্কটপ BN/EN টগল */}
+            <Link
+              href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
+              className="px-3 py-1.5 ml-1 rounded-full border border-yellow-400 text-yellow-300 hover:bg-yellow-400 hover:text-green-900 transition text-sm font-bold"
+            >
+              🌐 {t.langSwitch}
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             {user && (user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
@@ -186,7 +254,7 @@ export default function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search করুন."
+                  placeholder={t.search}
                   className="bg-green-800 text-white placeholder-white px-2 py-1 rounded-l-full text-xs outline-none w-20 md:w-28"
                 />
                 <button type="submit" className="bg-yellow-400 text-green-900 px-2 py-1 rounded-r-full text-xs font-bold">
@@ -205,16 +273,16 @@ export default function Navbar() {
                   </svg>
                 </button>
                 <div className={`absolute right-0 top-full ${userMenuOpen ? "block" : "hidden"} bg-green-800 rounded-lg shadow-lg min-w-[160px] py-2 z-50`}>
-                  <Link href={user.role === "ADMIN" ? "/admin/products" : "/customer/dashboard"}
+                  <Link href={user.role === "ADMIN" ? href("/admin/products") : href("/customer/dashboard")}
                     onClick={() => setUserMenuOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-green-700 hover:text-yellow-400 transition"
                   >
-                    আমার অ্যাকাউন্ট
+                    {t.myAccount}
                   </Link>
                   <button onClick={handleLogout}
                     className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-green-700 transition"
                   >
-                    লগআউট
+                    {t.logout}
                   </button>
                 </div>
               </div>
@@ -232,22 +300,22 @@ export default function Navbar() {
                   </svg>
                 </button>
                 <div className={`absolute right-0 top-full ${authMenuOpen ? "block" : "hidden"} bg-green-800 rounded-lg shadow-lg min-w-[180px] py-2 z-50`}>
-                  <Link href="/login"
+                  <Link href={href("/login")}
                     onClick={() => setAuthMenuOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-green-700 hover:text-yellow-400 transition"
                   >
-                    🔑 লগইন করুন
+                    🔑 {t.login}
                   </Link>
-                  <Link href="/register"
+                  <Link href={href("/register")}
                     onClick={() => setAuthMenuOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-green-700 hover:text-yellow-400 transition"
                   >
-                    📝 নতুন অ্যাকাউন্ট খুলুন
+                    📝 {t.register}
                   </Link>
                 </div>
               </div>
             )}
-            <Link href="/cart" className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center">
+            <Link href={href("/cart")} className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center">
               <div className="relative flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />

@@ -241,6 +241,7 @@ model Invoice {
 model NavigationMenu {
   id           Int              @id @default(autoincrement())
   title        String
+  titleEn      String?
   url          String
   displayOrder Int              @default(0)
   isVisible    Boolean          @default(true)

@@ -1,18 +1,60 @@
+"use client"
 import Link from "next/link"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
+import { getLocaleFromPath, localizeHref } from "@/lib/i18n"
+
+const dict = {
+  bn: {
+    description: "সমন্বিত কৃষির মাধ্যমে প্রাকৃতিক ও স্বাস্থ্যকর খাদ্যপণ্য সরাসরি আপনার কাছে পৌঁছে দিচ্ছি।",
+    slogan: "খামার থেকে আপনার দরজায়",
+    productsHeading: "পণ্য বিভাগ",
+    products: ["মধু", "ঘি", "সরিষার তেল", "চীনা হাঁসের বাচ্চা"],
+    serviceHeading: "কাস্টমার সেবা",
+    trackOrder: "অর্ডার ট্র্যাক",
+    returnPolicy: "রিটার্ন পলিসি",
+    faq: "প্রশ্ন ও উত্তর",
+    contact: "যোগাযোগ",
+    farmHeading: "আমাদের খামার",
+    location: "রায়গঞ্জ, সিরাজগঞ্জ",
+    businessContact: "ব্যবসায়িক যোগাযোগ",
+    copyright: "© ২০২৬ Farmer Kamol. সর্বস্বত্ব সংরক্ষিত।",
+    privacyPolicy: "গোপনীয়তা নীতি",
+    terms: "শর্তাবলী",
+  },
+  en: {
+    description: "Delivering natural, healthy food straight from our integrated farm to your doorstep.",
+    slogan: "From Our Farm To Your Door",
+    productsHeading: "Products",
+    products: ["Honey", "Ghee", "Mustard Oil", "Duck Chicks"],
+    serviceHeading: "Customer Service",
+    trackOrder: "Track Order",
+    returnPolicy: "Return Policy",
+    faq: "FAQ",
+    contact: "Contact",
+    farmHeading: "Our Farm",
+    location: "Raiganj, Sirajganj",
+    businessContact: "Business Inquiries",
+    copyright: "© 2026 Farmer Kamol. All rights reserved.",
+    privacyPolicy: "Privacy Policy",
+    terms: "Terms & Conditions",
+  },
+}
 
 export default function Footer() {
+  const pathname = usePathname()
+  const locale = getLocaleFromPath(pathname)
+  const t = dict[locale]
+  const href = (path: string) => localizeHref(path, locale)
+
   return (
     <footer className="bg-green-800 text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        
-        {/* Main Grid */}
+
         <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-6">
-          
-          {/* Column 1 - Brand */}
+
           <div className="col-span-4 md:col-span-1">
-            {/* Logo + Name */}
-            <Link href="/" className="flex items-center gap-2 mb-1">
+            <Link href={href("/")} className="flex items-center gap-2 mb-1">
               <Image
                 src="/uploads/kamol.png"
                 alt="Farmer Kamol"
@@ -22,10 +64,9 @@ export default function Footer() {
               />
               <h4 className="text-lg font-bold">Farmer Kamol</h4>
             </Link>
-            <p className="text-sm text-yellow-400 mb-2 font-bold">খামার থেকে আপনার দরজায়</p>
-            <p className="text-sm text-white-300 mb-4 ">সমন্বিত কৃষির মাধ্যমে প্রাকৃতিক ও স্বাস্থ্যকর খাদ্যপণ্য সরাসরি আপনার কাছে পৌঁছে দিচ্ছি।</p>
-            
-            {/* Social Icons */}
+            <p className="text-sm text-yellow-400 mb-2 font-bold">{t.slogan}</p>
+            <p className="text-sm text-white-300 mb-4">{t.description}</p>
+
             <div className="flex flex-wrap gap-2">
               <a href="https://facebook.com/farmerkamol" target="_blank"
                 className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center transition">
@@ -67,49 +108,44 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 2 - Products */}
           <div>
-            <h4 className="font-bold mb-3 text-sm">পণ্য বিভাগ</h4>
+            <h4 className="font-bold mb-3 text-sm">{t.productsHeading}</h4>
             <div className="flex flex-col gap-1.5 text-sm text-green-300">
-              <Link href="/shop" className="hover:text-yellow-400">মধু</Link>
-              <Link href="/shop" className="hover:text-yellow-400">ঘি</Link>
-              <Link href="/shop" className="hover:text-yellow-400">সরিষার তেল</Link>
-              <Link href="/shop" className="hover:text-yellow-400">চীনা হাঁসের বাচ্চা</Link>
+              {t.products.map((p) => (
+                <Link key={p} href={href("/shop")} className="hover:text-yellow-400">{p}</Link>
+              ))}
             </div>
           </div>
 
-          {/* Column 3 - Customer Service */}
           <div>
-            <h4 className="font-bold mb-3 text-sm">কাস্টমার সেবা</h4>
+            <h4 className="font-bold mb-3 text-sm">{t.serviceHeading}</h4>
             <div className="flex flex-col gap-1.5 text-sm text-green-300">
-              <Link href="/customer/dashboard" className="hover:text-yellow-400">অর্ডার ট্র্যাক</Link>
-              <Link href="/return-policy" className="hover:text-yellow-400">রিটার্ন পলিসি</Link>
-              <Link href="/faq" className="hover:text-yellow-400">প্রশ্ন ও উত্তর</Link>
-              <Link href="/contact" className="hover:text-yellow-400">যোগাযোগ</Link>
+              <Link href={href("/customer/dashboard")} className="hover:text-yellow-400">{t.trackOrder}</Link>
+              <Link href={href("/return-policy")} className="hover:text-yellow-400">{t.returnPolicy}</Link>
+              <Link href={href("/faq")} className="hover:text-yellow-400">{t.faq}</Link>
+              <Link href={href("/contact")} className="hover:text-yellow-400">{t.contact}</Link>
             </div>
           </div>
 
-          {/* Column 4 - Farm Info */}
           <div className="col-span-2 md:col-span-1">
-            <h4 className="font-bold mb-3 text-sm">আমাদের খামার</h4>
+            <h4 className="font-bold mb-3 text-sm">{t.farmHeading}</h4>
             <div className="flex flex-col gap-1.5 text-sm text-green-300">
               <a href="https://maps.app.goo.gl/vsE66z72VEgxzNM68" target="_blank" className="hover:text-yellow-400">
-                রায়গঞ্জ, সিরাজগঞ্জ
+                {t.location}
               </a>
               <a href="tel:+8801737939688" className="hover:text-yellow-400">📞 01737939688</a>
               <a href="https://wa.me/8801737939688" target="_blank" className="hover:text-yellow-400">💬 01737939688</a>
-              <a href="https://wa.me/8801521406139" target="_blank" className="hover:text-yellow-400">💼 ব্যবসায়িক যোগাযোগ: 01521406139</a>
+              <a href="https://wa.me/8801521406139" target="_blank" className="hover:text-yellow-400">💼 {t.businessContact}: 01521406139</a>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-green-500 mt-6 pt-4 flex flex-col md:flex-row justify-between items-center text-xs text-green-400 gap-2">
-          <p>© 2026 Farmer Kamol. সর্বস্বত্ব সংরক্ষিত।</p>
+          <p>{t.copyright}</p>
           <div className="flex gap-4">
-          <Link href="/privacy-policy" className="hover:text-yellow-400">গোপনীয়তা নীতি</Link>
-            <Link href="/terms" className="hover:text-yellow-400">শর্তাবলী</Link>
-            <Link href="/return-policy" className="hover:text-yellow-400">রিটার্ন পলিসি</Link>
+            <Link href={href("/privacy-policy")} className="hover:text-yellow-400">{t.privacyPolicy}</Link>
+            <Link href={href("/terms")} className="hover:text-yellow-400">{t.terms}</Link>
+            <Link href={href("/return-policy")} className="hover:text-yellow-400">{t.returnPolicy}</Link>
           </div>
         </div>
       </div>
