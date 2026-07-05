@@ -21,7 +21,11 @@ export async function POST(req: Request) {
     data: {
       title: body.title,
       slug: body.slug,
+      titleEn: body.titleEn || null,
+      slugEn: body.slugEn || null,
+      titleBanglish: body.titleBanglish || null,
       content: sanitizeHtml(body.content),
+      contentEn: body.contentEn ? sanitizeHtml(body.contentEn) : null,
       image: body.image || null,
       category: body.category,
       isPublished: body.isPublished,

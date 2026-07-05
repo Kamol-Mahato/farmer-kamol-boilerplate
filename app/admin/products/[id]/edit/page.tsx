@@ -2,16 +2,24 @@
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 
+type Category = { id: number; name: string; nameEn: string | null }
+
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
+  const [categories, setCategories] = useState<Category[]>([])
   const [form, setForm] = useState({
     name: "",
     slug: "",
+    nameEn: "",
+    slugEn: "",
+    nameBanglish: "",
     description: "",
+    descriptionEn: "",
+    categoryId: "",
     pricePerUnit: "",
     discountPrice: "",
     unit: "কেজি",
@@ -24,13 +32,24 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   })
 
   useEffect(() => {
+    fetch("/api/admin/categories")
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setCategories(data) })
+  }, [])
+
+  useEffect(() => {
     fetch(`/api/admin/products/${id}`)
       .then(res => res.json())
       .then(data => {
         setForm({
           name: data.name || "",
           slug: data.slug || "",
+          nameEn: data.nameEn || "",
+          slugEn: data.slugEn || "",
+          nameBanglish: data.nameBanglish || "",
           description: data.description || "",
+          descriptionEn: data.descriptionEn || "",
+          categoryId: data.categoryId?.toString() || "",
           pricePerUnit: data.pricePerUnit?.toString() || "",
           discountPrice: data.discountPrice?.toString() || "",
           unit: data.unit || "কেজি",
@@ -91,6 +110,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          categoryId: form.categoryId ? parseInt(form.categoryId) : null,
           pricePerUnit: parseFloat(form.pricePerUnit),
           discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
           stockQty: parseFloat(form.stockQty),
@@ -111,8 +131,32 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       <h1 className="text-3xl font-bold text-green-800 mb-8">পণ্য এডিট করুন</h1>
       <div className="bg-white rounded-xl shadow p-8">
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">পণ্যের নাম *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">পণ্যের নাম (বাংলা) *</label>
           <input type="text" name="name" value={form.name} onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500" />
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">ক্যাটাগরি</label>
+          <select name="categoryId" value={form.categoryId} onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 bg-white">
+            <option value="">ক্যাটাগরি বাছুন (ঐচ্ছিক)</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}{cat.nameEn ? ` / ${cat.nameEn}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">নাম (Banglish, ঐচ্ছিক)</label>
+          <input type="text" name="nameBanglish" value={form.nameBanglish} onChange={handleChange}
+            placeholder="যেমন: Sundarbaner Khati Modhu"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500" />
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Product Name (English)</label>
+          <input type="text" name="nameEn" value={form.nameEn} onChange={handleChange}
+            placeholder="e.g. Pure Sundarban Honey"
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500" />
         </div>
         <div className="mb-6">
@@ -141,8 +185,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           )}
         </div>
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">বিবরণ</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">বিবরণ (বাংলা)</label>
           <textarea name="description" value={form.description} onChange={handleChange} rows={4}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500" />
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Description (English)</label>
+          <textarea name="descriptionEn" value={form.descriptionEn} onChange={handleChange} rows={4}
+            placeholder="Write the product description in English"
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500" />
         </div>
         <div className="grid grid-cols-2 gap-4 mb-6">

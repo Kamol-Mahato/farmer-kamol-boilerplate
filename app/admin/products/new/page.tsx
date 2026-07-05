@@ -1,18 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+
+type Category = { id: number; name: string; nameEn: string | null }
 
 export default function NewProductPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState("")
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    fetch("/api/admin/categories")
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setCategories(data) })
+  }, [])
 
   const [form, setForm] = useState({
     name: "",
     slug: "",
+    nameEn: "",
+    slugEn: "",
+    nameBanglish: "",
     description: "",
+    descriptionEn: "",
+    categoryId: "",
     pricePerUnit: "",
     discountPrice: "",
     unit: "কেজি",
@@ -90,6 +104,15 @@ export default function NewProductPage() {
     }))
   }
 
+  function handleNameEnChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const nameEn = e.target.value
+    setForm(prev => ({
+      ...prev,
+      nameEn,
+      slugEn: generateSlug(nameEn)
+    }))
+  }
+
   async function handleSubmit() {
     if (form.imageUrls.length === 0) {
       setError("দয়া করে পণ্যের একটি ছবি আপলোড করুন।")
@@ -105,6 +128,7 @@ export default function NewProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          categoryId: form.categoryId ? parseInt(form.categoryId) : null,
           pricePerUnit: parseFloat(form.pricePerUnit),
           discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
           stockQty: parseFloat(form.stockQty),
@@ -160,6 +184,64 @@ export default function NewProductPage() {
           <p className="text-xs text-gray-400 mt-1">URL: /shop/{form.slug}</p>
         </div>
 
+        {/* ক্যাটাগরি */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">ক্যাটাগরি</label>
+          <select
+            name="categoryId"
+            value={form.categoryId}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 bg-white"
+          >
+            <option value="">ক্যাটাগরি বাছুন (ঐচ্ছিক)</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}{cat.nameEn ? ` / ${cat.nameEn}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Banglish নাম (ঐচ্ছিক) */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">নাম (Banglish, ঐচ্ছিক)</label>
+          <input
+            type="text"
+            name="nameBanglish"
+            value={form.nameBanglish}
+            onChange={handleChange}
+            placeholder="যেমন: Sundarbaner Khati Modhu"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
+          />
+        </div>
+
+        {/* English নাম */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Product Name (English)</label>
+          <input
+            type="text"
+            name="nameEn"
+            value={form.nameEn}
+            onChange={handleNameEnChange}
+            placeholder="e.g. Pure Sundarban Honey"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
+          />
+        </div>
+
+        {/* English Slug */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Slug (English URL)</label>
+          <input
+            type="text"
+            name="slugEn"
+            value={form.slugEn}
+            onChange={handleChange}
+            placeholder="pure-sundarban-honey"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500 bg-gray-50"
+          />
+          <p className="text-xs text-gray-400 mt-1">URL: /en/shop/{form.slugEn || "..."}</p>
+        </div>
+
         {/* পিসি থেকে ইমেজ আপলোড সেকশন */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">পণ্যের ছবি যোগ করুন (একাধিক) *</label>
@@ -196,17 +278,28 @@ export default function NewProductPage() {
             </div>
           )}
         </div>
-          )
-        </div>
 
-        {/* বিবরণ */}
+        {/* বিবরণ (বাংলা) */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">বিবরণ</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">বিবরণ (বাংলা)</label>
           <textarea
             name="description"
             value={form.description}
             onChange={handleChange}
             placeholder="পণ্যের বিস্তারিত বিবরণ লিখুন"
+            rows={4}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
+          />
+        </div>
+
+        {/* বিবরণ (English) */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Description (English)</label>
+          <textarea
+            name="descriptionEn"
+            value={form.descriptionEn}
+            onChange={handleChange}
+            placeholder="Write the product description in English"
             rows={4}
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
           />
@@ -324,5 +417,6 @@ export default function NewProductPage() {
         </div>
 
       </div>
+    </div>
   )
 }

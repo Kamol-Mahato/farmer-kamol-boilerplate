@@ -31,9 +31,14 @@ export async function POST(request: Request) {
     const {
       name,
       slug,
+      nameEn,
+      slugEn,
+      nameBanglish,
       description,
-      pricePerUnit,
+      descriptionEn,
       discountPrice,
+      categoryId,
+      pricePerUnit,
       unit,
       stockQty,
       imageUrl, // ফ্রন্টএন্ড ফর্ম থেকে পাঠানো ছবির লিংকটি রিসিভ করা হলো (backward compatibility)
@@ -54,7 +59,12 @@ export async function POST(request: Request) {
       data: {
         name,
         slug,
+        nameEn: nameEn || null,
+        slugEn: slugEn || null,
+        nameBanglish: nameBanglish || null,
         description,
+        descriptionEn: descriptionEn || null,
+        categoryId: categoryId || null,
         pricePerUnit,
         discountPrice,
         unit,

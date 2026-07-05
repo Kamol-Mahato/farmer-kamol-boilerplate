@@ -53,9 +53,9 @@ model User {
 model Category {
   id            Int        @id @default(autoincrement())
   name          String
+  nameEn        String?
   slug          String     @unique
   description   String?
-  imageUrl      String?
   displayOrder  Int        @default(0)
   isVisible     Boolean    @default(true)
   parentId      Int?

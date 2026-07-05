@@ -12,7 +12,11 @@ export default function AdminBlogPage() {
   const [form, setForm] = useState({
     title: "",
     slug: "",
+    titleEn: "",
+    slugEn: "",
+    titleBanglish: "",
     content: "",
+    contentEn: "",
     image: "",
     category: "",
     isPublished: false,
@@ -45,6 +49,15 @@ export default function AdminBlogPage() {
     return `blog-${timestamp}`
   }
 
+  // ✅ English slug সঠিকভাবে titleEn থেকে বানানো (SEO-friendly)
+  function generateSlugEn(titleEn: string) {
+    return titleEn
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]/g, "")
+  }
+
   async function handleSubmit() {
     setLoading(true)
     const url = editingId ? `/api/blog/${editingId}` : "/api/blog"
@@ -55,7 +68,7 @@ export default function AdminBlogPage() {
       body: JSON.stringify(form),
     })
     if (res.ok) {
-      setForm({ title: "", slug: "", content: "", image: "", category: "", isPublished: false })
+      setForm({ title: "", slug: "", titleEn: "", slugEn: "", titleBanglish: "", content: "", contentEn: "", image: "", category: "", isPublished: false })
       setEditingId(null)
       const data = await fetch("/api/blog").then(r => r.json())
       setBlogs(data)
@@ -68,7 +81,11 @@ export default function AdminBlogPage() {
     setForm({
       title: blog.title,
       slug: blog.slug,
+      titleEn: blog.titleEn || "",
+      slugEn: blog.slugEn || "",
+      titleBanglish: blog.titleBanglish || "",
       content: blog.content,
+      contentEn: blog.contentEn || "",
       image: blog.image || "",
       category: blog.category,
       isPublished: blog.isPublished,
@@ -78,7 +95,7 @@ export default function AdminBlogPage() {
 
   function handleCancelEdit() {
     setEditingId(null)
-    setForm({ title: "", slug: "", content: "", image: "", category: "", isPublished: false })
+    setForm({ title: "", slug: "", titleEn: "", slugEn: "", titleBanglish: "", content: "", contentEn: "", image: "", category: "", isPublished: false })
   }
 
   async function handleDelete(id: number) {
@@ -115,6 +132,33 @@ export default function AdminBlogPage() {
             className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500 text-gray-400"
           />
 
+          <input
+            name="titleBanglish"
+            value={form.titleBanglish}
+            onChange={handleChange}
+            placeholder="শিরোনাম (Banglish, ঐচ্ছিক)"
+            className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500"
+          />
+
+          <input
+            name="titleEn"
+            value={form.titleEn}
+            onChange={e => {
+              handleChange(e)
+              setForm(prev => ({ ...prev, slugEn: generateSlugEn(e.target.value) }))
+            }}
+            placeholder="Blog Title (English)"
+            className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500"
+          />
+
+          <input
+            name="slugEn"
+            value={form.slugEn}
+            onChange={handleChange}
+            placeholder="Slug (English URL, auto)"
+            className="border border-gray-200 rounded-lg px-4 py-2 outline-none focus:border-green-500 text-gray-400"
+          />
+
           {/* ৩. সম্পূর্ণ অটোমেটেড সিলেক্ট বক্স */}
           <select
             name="category"
@@ -141,6 +185,13 @@ export default function AdminBlogPage() {
             value={form.content}
             onChange={(val) => setForm((prev) => ({ ...prev, content: val }))}
             placeholder="Blog এর content লিখুন..."
+            rows={8}
+          />
+
+          <RichTextField
+            value={form.contentEn}
+            onChange={(val) => setForm((prev) => ({ ...prev, contentEn: val }))}
+            placeholder="Write blog content in English..."
             rows={8}
           />
           <label className="flex items-center gap-2 text-sm">

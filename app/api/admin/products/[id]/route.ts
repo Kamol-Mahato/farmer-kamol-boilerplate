@@ -25,7 +25,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       data: {
         name: body.name,
         slug: body.slug,
+        nameEn: body.nameEn || null,
+        slugEn: body.slugEn || null,
+        nameBanglish: body.nameBanglish || null,
         description: body.description,
+        descriptionEn: body.descriptionEn || null,
+        categoryId: body.categoryId || null,
         pricePerUnit: body.pricePerUnit,
         discountPrice: body.discountPrice,
         unit: body.unit,
