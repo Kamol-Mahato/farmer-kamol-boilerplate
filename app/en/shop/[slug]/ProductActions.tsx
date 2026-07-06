@@ -6,6 +6,7 @@ import { useState } from "react"
 type Product = {
   id: number
   name: string
+  nameEn?: string | null
   pricePerUnit: number
   unit: string
   stockQty: number

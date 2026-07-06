@@ -33,4 +33,4 @@ export async function POST(req: Request) {
     console.error("BLOG CATEGORY CREATE ERROR:", error)
     return NextResponse.json({ error: "তৈরি করা যায়নি" }, { status: 500 })
   }
-}mkdir -p "app/api/admin/blog-categories/[id]" && touch "app/api/admin/blog-categories/[id]/route.ts"
+}

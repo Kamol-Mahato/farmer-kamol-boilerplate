@@ -1,15 +1,18 @@
-// TODO: translate to English
 import { prisma } from "@/lib/prisma"
-import ProductCard from "@/app/components/ProductCard"
+import ProductCard from "@/app/en/components/ProductCard"
 import type { Metadata } from "next"
 import Breadcrumb from "@/app/components/Breadcrumb"
 
 export const metadata: Metadata = {
-  title: "আমাদের সকল পণ্য - মধু, ঘি, সরিষার তেল | Farmer Kamol",
+  title: "All Products - Honey, Ghee, Mustard Oil | Farmer Kamol",
   description:
-    "Farmer Kamol-এর সব পণ্য একসাথে দেখুন — খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা, সরাসরি সিরাজগঞ্জের খামার থেকে।",
+    "Browse all Farmer Kamol products — pure honey, homemade ghee, mustard oil, and Muscovy ducks, delivered straight from our farm in Sirajganj.",
   alternates: {
-    canonical: "/shop",
+    canonical: "/en/shop",
+    languages: {
+      bn: "/shop",
+      en: "/en/shop",
+    },
   },
 }
 
@@ -22,18 +25,18 @@ export default async function ShopPage() {
   return (
     <div>
       <Breadcrumb items={[
-        { label: "হোম", href: "/" },
-        { label: "শপ" },
+        { label: "Home", href: "/en" },
+        { label: "Shop" },
       ]} />
       <div className="max-w-7xl mx-auto px-2 py-1">
       <div className="text-center mb-4">
-        <h1 className="text-2xl font-bold text-green-800">আমাদের সকল পণ্য</h1>
-        <p className="text-sm text-gray-500 mt-2">খামার থেকে সরাসরি আপনার কাছে</p>
+        <h1 className="text-2xl font-bold text-green-800">All Our Products</h1>
+        <p className="text-sm text-gray-500 mt-2">Straight from the farm to you</p>
       </div>
       {products.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-gray-400 text-lg">এখনো কোনো পণ্য যোগ করা হয়নি</p>
-          <p className="text-gray-400 text-sm mt-2">Admin panel থেকে পণ্য যোগ করুন</p>
+          <p className="text-gray-400 text-lg">No products added yet</p>
+          <p className="text-gray-400 text-sm mt-2">Add products from the admin panel</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2">
