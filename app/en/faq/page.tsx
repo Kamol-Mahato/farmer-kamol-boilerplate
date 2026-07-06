@@ -1,184 +1,180 @@
-// TODO: translate to English
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
 import { safeJsonLd } from "@/lib/jsonLd"
 
 export const metadata: Metadata = {
-  title: "প্রশ্ন ও উত্তর (FAQ) | Farmer Kamol",
+  title: "FAQ | Farmer Kamol",
   description:
-    "Farmer Kamol-এর পণ্য, অর্ডার, ডেলিভারি ও রিটার্ন সংক্রান্ত সাধারণ প্রশ্নের উত্তর। সিরাজগঞ্জের খাঁটি মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা সম্পর্কে জানুন।",
+    "Common questions about Farmer Kamol's products, orders, delivery, and returns. Learn about our pure honey, ghee, mustard oil, and duck chicks from Sirajganj.",
+  alternates: { canonical: "/en/faq" },
 };
 
 const faqGroups = [
   {
-    category: "Farmer Kamol সম্পর্কে",
+    category: "About Farmer Kamol",
     items: [
       {
-        q: "Farmer Kamol কী?",
-        a: "Farmer Kamol হলো সিরাজগঞ্জের রায়গঞ্জ, সারইল ভিত্তিক একটি কৃষি-পণ্যের ব্র্যান্ড, যা সরাসরি খামার থেকে খাঁটি মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা গ্রাহকের কাছে পৌঁছে দেয়, কোনো মধ্যস্থতাকারী ছাড়া।",
+        q: "What is Farmer Kamol?",
+        a: "Farmer Kamol is an agricultural brand based in Sarail, Raiganj, Sirajganj, delivering pure honey, ghee, mustard oil, and duck chicks directly from the farm to customers, with no middlemen.",
       },
       {
-        q: "Farmer Kamol-এর পণ্য কি নিজস্ব খামার থেকে আসে?",
-        a: "হ্যাঁ। Farmer Kamol-এর পণ্য নিজস্ব খামার ও বিশ্বস্ত উৎস থেকে সংগ্রহ করা হয়। উৎপাদন ও সংগ্রহ প্রক্রিয়ার ভিডিও আমাদের YouTube চ্যানেলে প্রকাশ করা হয়।",
+        q: "Do Farmer Kamol's products come from your own farm?",
+        a: "Yes. Farmer Kamol's products are sourced from our own farm and trusted suppliers. Videos of our production and sourcing process are published on our YouTube channel.",
       },
       {
-        q: "Farmer Kamol-এর ভিডিও কোথায় দেখতে পারি?",
-        a: "আমাদের YouTube চ্যানেল ও Facebook পেজে খামার, মধু সংগ্রহ, সরিষার তেল উৎপাদন এবং কৃষিভিত্তিক বিভিন্ন ভিডিও নিয়মিত প্রকাশ করা হয়।",
+        q: "Where can I watch Farmer Kamol's videos?",
+        a: "We regularly publish videos of the farm, honey collection, mustard oil production, and other farming content on our YouTube channel and Facebook page.",
       },
       {
-        q: "Farmer Kamol কী কী পণ্য বিক্রি করে?",
-        a: "বর্তমানে আমরা খাঁটি মধু, ঘি, সরিষার তেল এবং মৌসুমভিত্তিক চীন হাঁসের বাচ্চা সরবরাহ করি। ভবিষ্যতে আরও কৃষিভিত্তিক পণ্য যুক্ত করা হবে।",
+        q: "What products does Farmer Kamol sell?",
+        a: "We currently supply pure honey, ghee, mustard oil, and seasonal duck chicks. More farm products will be added in the future.",
       },
       {
-        q: "কেন Farmer Kamol থেকে পণ্য কিনবেন?",
-        a: "আমরা খামারভিত্তিক উৎপাদন, স্বচ্ছতা এবং গ্রাহকের আস্থাকে সর্বোচ্চ গুরুত্ব দিই। পণ্যের উৎস, সংগ্রহ ও প্রস্তুত প্রক্রিয়া সম্পর্কে নিয়মিত তথ্য ও ভিডিও প্রকাশ করা হয়।",
+        q: "Why buy from Farmer Kamol?",
+        a: "We place the highest priority on farm-based production, transparency, and customer trust. We regularly share information and videos about our products' source, collection, and preparation.",
       },
       {
-        q: "Farmer Kamol-এর লক্ষ্য কী?",
-        a: "আমাদের লক্ষ্য হলো নিরাপদ ও খাঁটি কৃষিপণ্য সরাসরি গ্রাহকের কাছে পৌঁছে দেওয়া এবং কৃষি ও খামারভিত্তিক জ্ঞান সবার মাঝে ছড়িয়ে দেওয়া।",
+        q: "What is Farmer Kamol's goal?",
+        a: "Our goal is to deliver safe, pure agricultural products directly to customers and to spread farming knowledge to everyone.",
       },
       {
-        q: "আপনাদের খামারের কার্যক্রম কি অনলাইনে দেখা যায়?",
-        a: "হ্যাঁ। আমাদের Facebook ও YouTube চ্যানেলে খামারের বিভিন্ন কার্যক্রম, উৎপাদন প্রক্রিয়া এবং কৃষিভিত্তিক শিক্ষামূলক ভিডিও নিয়মিত প্রকাশ করা হয়।",
-      },
-
-    ],
-  },
-  {
-    category: "পণ্য সম্পর্কে",
-    items: [
-      {
-        q: "আপনাদের মধু কোন ফুলের?",
-        a: "আমরা মূলত সরিষা ফুলের মধু সরবরাহ করি, যা মৌসুমভিত্তিক সংগ্রহ করা হয়।",
-      },
-      {
-        q: "খাঁটি মধু কীভাবে চিনবেন?",
-        a: "খাঁটি মধু চেনার সবচেয়ে ভালো উপায় হলো এর উৎস ও বিক্রেতার বিশ্বাসযোগ্যতা যাচাই করা। Farmer Kamol মধু সংগ্রহ ও প্রক্রিয়াকরণের বাস্তব ভিডিও প্রকাশ করে, যাতে গ্রাহক উৎপাদন প্রক্রিয়া সম্পর্কে ধারণা পান।",
-      },
-      {
-        q: "মধু জমে গেলে কি নকল?",
-        a: "না। প্রাকৃতিক মধু অনেক সময় তাপমাত্রা ও ফুলের উৎসভেদে জমাট বাঁধতে পারে। এটি সবসময় নকল হওয়ার লক্ষণ নয়।",
-      },
-      {
-        q: "মধু কতদিন সংরক্ষণ করা যায়?",
-        a: "পরিষ্কার ও শুকনো পাত্রে সংরক্ষণ করলে মধু দীর্ঘ সময় ভালো থাকে। সরাসরি রোদ ও অতিরিক্ত আর্দ্রতা থেকে দূরে রাখা উচিত।",
-      },
-      {
-        q: "সরিষার তেল কীভাবে সংরক্ষণ করব?",
-        a: "সরিষার তেল ঠান্ডা ও শুষ্ক স্থানে ঢাকনাযুক্ত পাত্রে সংরক্ষণ করা উচিত। এতে এর গুণগত মান দীর্ঘদিন বজায় থাকে।",
-      },
-      {
-        q: "সরিষার তেলের গন্ধ বেশি হলে কি খাঁটি?",
-        a: "সরিষার তেলের স্বাভাবিকভাবেই একটি ঝাঁঝালো গন্ধ থাকে। তবে শুধুমাত্র গন্ধের উপর ভিত্তি করে খাঁটিত্ব নির্ধারণ করা উচিত নয়।",
-      },
-
-      {
-        q: "আপনাদের পণ্য কোথা থেকে আসে?",
-        a: "আমাদের সব পণ্য আসে সিরাজগঞ্জের রায়গঞ্জের নিজস্ব খামার থেকে। উৎপাদন প্রক্রিয়ার ভিডিও আমাদের YouTube চ্যানেলে দেখতে পারবেন।",
-      },
-      {
-        q: "আপনাদের পণ্য কি ভেজালমুক্ত?",
-        a: "হ্যাঁ। আমাদের মধুতে কোনো চিনি বা সিরাপ মেশানো হয় না, ঘি-তে কোনো ভেজিটেবল অয়েল নেই, এবং সরিষার তেল প্রক্রিয়াজাত পদ্ধতিতে তৈরি।",
-      },
-      {
-        q: "ঘি কীভাবে তৈরি হয়?",
-        a: "আমাদের ঘি দেশি গাভীর দুধ থেকে ঐতিহ্যবাহী পদ্ধতিতে তৈরি করা হয়, কোনো কৃত্রিম উপাদান ছাড়া।",
-      },
-      {
-        q: "ডিম কি এখন পাওয়া যায়?",
-        a: "বর্তমানে ডিম স্টকে নেই। আমরা শীঘ্রই পুনরায় সরবরাহ শুরু করার চেষ্টা করছি, আপডেটের জন্য আমাদের Facebook ও YouTube পেজ ফলো করুন।",
-      },
-      {
-        q: "চীন হাঁসের বাচ্চা কীভাবে অর্ডার করব?",
-        a: "চীন হাঁসের বাচ্চার দাম বয়স ও সাইজ অনুযায়ী ভিন্ন হয়, তাই এর জন্য নির্দিষ্ট কোনো ফিক্সড দাম নেই। অর্ডার করতে চাইলে সরাসরি হোয়াটসঅ্যাপে যোগাযোগ করুন, আলোচনার মাধ্যমে দাম ও পরিমাণ ঠিক হবে। আপনার লোকেশন অনুযায়ী ডেলিভারি সম্ভব কিনা যাচাই করা হবে, এবং ডেলিভারির আগে পেমেন্ট সম্পন্ন করতে হয়।",
+        q: "Can I see your farm's activities online?",
+        a: "Yes. We regularly publish videos of various farm activities, production processes, and educational farming content on our Facebook and YouTube channels.",
       },
     ],
   },
   {
-    category: "অর্ডার ও পেমেন্ট",
+    category: "About Our Products",
     items: [
       {
-        q: "কীভাবে অর্ডার করব?",
-        a: "ওয়েবসাইটে পছন্দের পণ্য কার্টে যুক্ত করে চেকআউট পেজ থেকে অর্ডার কনফার্ম করুন। অর্ডার দেওয়ার পর হোয়াটসঅ্যাপে একটি কনফার্মেশন মেসেজ পাবেন।",
+        q: "What flower is your honey from?",
+        a: "We primarily supply mustard flower honey, collected seasonally.",
       },
       {
-        q: "কী কী পেমেন্ট পদ্ধতি গ্রহণ করা যায়?",
-        a: "আমরা ক্যাশ অন ডেলিভারি (COD) গ্রহণ করি। এছাড়া চেকআউটে অনলাইন পেমেন্ট অপশন বেছে নিলে বিকাশ, নগদ বা রকেট নম্বর দেখানো হয় (কপি বাটন সহ), যেখানে সেন্ড মানি করে পেমেন্ট সম্পন্ন করতে পারবেন। সরাসরি গেটওয়ে পেমেন্ট সুবিধা আগামীতে যুক্ত করা হবে।",
+        q: "How can I tell if honey is pure?",
+        a: "The best way to identify pure honey is to check the source and the seller's credibility. Farmer Kamol publishes real videos of honey collection and processing, so customers get a clear picture of the production process.",
       },
       {
-        q: "অর্ডারের আপডেট কীভাবে পাবো?",
-        a: "অর্ডার কনফার্মেশন ও ডেলিভারি স্ট্যাটাস হোয়াটসঅ্যাপে জানানো হয়। এছাড়া ওয়েবসাইটে লগইন করে আপনার অ্যাকাউন্ট ড্যাশবোর্ড থেকেও অর্ডার ট্র্যাক করতে পারবেন।",
+        q: "Does crystallized honey mean it's fake?",
+        a: "No. Natural honey can crystallize depending on temperature and flower source. This is not always a sign of being fake.",
       },
       {
-        q: "অর্ডার করার জন্য কি অ্যাকাউন্ট খুলতে হবে?",
-        a: "না। অতিথি (Guest) হিসেবেও অর্ডার করা যায়। তবে অ্যাকাউন্ট খুললে ভবিষ্যতে অর্ডার হিস্টোরি ও স্ট্যাটাস সহজে দেখতে পারবেন।",
-      },
-      
-      {
-        q: "পেমেন্ট করার পরে কী করতে হবে?",
-        a: "বিকাশ, নগদ বা রকেটে পেমেন্ট সম্পন্ন করার পর ট্রানজেকশন নম্বর সংরক্ষণ করুন। প্রয়োজন হলে আমাদের টিম যাচাইয়ের জন্য সেটি চাইতে পারে।",
+        q: "How long can honey be stored?",
+        a: "Honey stays good for a long time if stored in a clean, dry container. Keep it away from direct sunlight and excess moisture.",
       },
       {
-        q: "ক্যাশ অন ডেলিভারি কি সারা বাংলাদেশে পাওয়া যায়?",
-        a: "বেশিরভাগ এলাকায় ক্যাশ অন ডেলিভারি সুবিধা রয়েছে। তবে কিছু নির্দিষ্ট পণ্য বা এলাকার ক্ষেত্রে অগ্রিম পেমেন্ট প্রয়োজন হতে পারে।",
+        q: "How should I store mustard oil?",
+        a: "Mustard oil should be stored in a covered container in a cool, dry place. This keeps its quality intact for a long time.",
+      },
+      {
+        q: "Does a strong smell mean the mustard oil is pure?",
+        a: "Mustard oil naturally has a pungent smell. However, purity shouldn't be judged based on smell alone.",
+      },
+      {
+        q: "Where do your products come from?",
+        a: "All our products come from our own farm in Raiganj, Sirajganj. You can watch the production process on our YouTube channel.",
+      },
+      {
+        q: "Are your products adulteration-free?",
+        a: "Yes. No sugar or syrup is mixed into our honey, no vegetable oil is in our ghee, and our mustard oil is made through a proper cold-pressed process.",
+      },
+      {
+        q: "How is your ghee made?",
+        a: "Our ghee is made from local cow's milk using a traditional method, with no artificial ingredients.",
+      },
+      {
+        q: "Are eggs available right now?",
+        a: "Eggs are currently out of stock. We're working to resume supply soon — follow our Facebook and YouTube pages for updates.",
+      },
+      {
+        q: "How do I order duck chicks?",
+        a: "The price of duck chicks varies by age and size, so there's no fixed price. To order, please contact us directly on WhatsApp — price and quantity will be settled through discussion. We'll confirm whether delivery is possible to your location, and payment must be completed before delivery.",
       },
     ],
   },
   {
-    category: "ডেলিভারি",
+    category: "Orders & Payment",
     items: [
       {
-        q: "ডেলিভারি চার্জ কত?",
-        a: "ঢাকার ভেতরে ডেলিভারি চার্জ প্রতি কেজি ৭৫ টাকা (মিনিমাম ৬০ টাকা), এবং ঢাকার বাইরে প্রতি কেজি ১২০ টাকা (মিনিমাম ১০০ টাকা)। চেকআউটের সময় সঠিক চার্জ দেখানো হবে।",
+        q: "How do I place an order?",
+        a: "Add your preferred products to the cart on the website and confirm your order from the checkout page. You'll receive a confirmation message on WhatsApp after ordering.",
       },
       {
-        q: "সারা বাংলাদেশে মধু ও সরিষার তেল পাঠানো হয়?",
-        a: "হ্যাঁ। আমরা কুরিয়ার সার্ভিসের মাধ্যমে সারা বাংলাদেশে মধু, সরিষার তেল ও অন্যান্য অনুমোদিত পণ্য ডেলিভারি করে থাকি।",
+        q: "What payment methods are accepted?",
+        a: "We accept Cash on Delivery (COD). You can also choose the online payment option at checkout, where a bKash, Nagad, or Rocket number is shown (with a copy button) — send money there to complete payment. Direct gateway payment will be added in the future.",
       },
       {
-        q: "অর্ডার করার পরে কিভাবে নিশ্চিত হব?",
-        a: "অর্ডার সফলভাবে সম্পন্ন হলে হোয়াটসঅ্যাপ বা ফোনের মাধ্যমে কনফার্মেশন প্রদান করা হয়।",
-      },
-
-      {
-        q: "ডেলিভারি পেতে কত সময় লাগে?",
-        a: "সাধারণত অর্ডার কনফার্মের পর ২-৫ কার্যদিবসের মধ্যে ডেলিভারি সম্পন্ন হয়, এলাকার দূরত্ব অনুযায়ী সময় কিছুটা ভিন্ন হতে পারে।",
+        q: "How will I get order updates?",
+        a: "Order confirmation and delivery status are sent via WhatsApp. You can also track your order by logging into your account dashboard on the website.",
       },
       {
-        q: "আপনারা কোন কোন এলাকায় ডেলিভারি দেন?",
-        a: "আমরা সারা বাংলাদেশে কুরিয়ার সার্ভিসের মাধ্যমে ডেলিভারি দিয়ে থাকি।",
+        q: "Do I need to create an account to order?",
+        a: "No. You can order as a guest. However, creating an account lets you easily view your order history and status in the future.",
+      },
+      {
+        q: "What should I do after making a payment?",
+        a: "After completing payment via bKash, Nagad, or Rocket, keep the transaction number. Our team may request it for verification if needed.",
+      },
+      {
+        q: "Is Cash on Delivery available across Bangladesh?",
+        a: "Cash on Delivery is available in most areas. However, advance payment may be required for certain products or locations.",
       },
     ],
   },
   {
-    category: "রিটার্ন ও এক্সচেঞ্জ",
+    category: "Delivery",
     items: [
       {
-        q: "পণ্য ক্ষতিগ্রস্ত অবস্থায় পেলে কী করব?",
-        a: "ডেলিভারি পাওয়ার ২৪-৪৮ ঘণ্টার মধ্যে আমাদের হোয়াটসঅ্যাপে জানান, প্রয়োজনে ছবি/ভিডিও সহ। বিস্তারিত শর্তের জন্য আমাদের রিটার্ন পলিসি দেখুন।",
+        q: "How much is the delivery charge?",
+        a: "Delivery within Dhaka costs 75 taka per kg (minimum 60 taka), and outside Dhaka costs 120 taka per kg (minimum 100 taka). The exact charge is shown at checkout.",
       },
       {
-        q: "ভুল পণ্য পেলে পরিবর্তন করা যায়?",
-        a: "হ্যাঁ, ভুল পণ্য পাঠানো হলে আমরা সম্পূর্ণ দায়িত্ব নিয়ে সঠিক পণ্য পুনরায় পাঠাবো, কোনো অতিরিক্ত খরচ ছাড়াই।",
+        q: "Do you deliver honey and mustard oil across all of Bangladesh?",
+        a: "Yes. We deliver honey, mustard oil, and other approved products across Bangladesh via courier service.",
+      },
+      {
+        q: "How will I know my order is confirmed?",
+        a: "Once an order is successfully placed, confirmation is sent via WhatsApp or phone call.",
+      },
+      {
+        q: "How long does delivery take?",
+        a: "Delivery is usually completed within 2-5 business days after order confirmation; timing may vary slightly depending on distance.",
+      },
+      {
+        q: "Which areas do you deliver to?",
+        a: "We deliver across all of Bangladesh via courier service.",
       },
     ],
   },
   {
-    category: "খামার ও যোগাযোগ",
+    category: "Returns & Exchanges",
     items: [
       {
-        q: "আপনাদের খামার কোথায়?",
-        a: "আমাদের খামার সিরাজগঞ্জ জেলার রায়গঞ্জ উপজেলার সারইল গ্রামে অবস্থিত।",
+        q: "What should I do if I receive a damaged product?",
+        a: "Let us know on WhatsApp within 24-48 hours of delivery, including photos/video if possible. See our Return Policy for detailed terms.",
       },
       {
-        q: "আপনাদের সাথে কীভাবে যোগাযোগ করব?",
-        a: "হোয়াটসঅ্যাপ/ফোন: 01737939688। এছাড়া আমাদের Facebook ও YouTube (@FarmerKamol) পেজেও মেসেজ করতে পারেন।",
+        q: "Can I exchange a wrongly delivered product?",
+        a: "Yes, if the wrong product was sent, we take full responsibility and will resend the correct product at no extra cost.",
+      },
+    ],
+  },
+  {
+    category: "Farm & Contact",
+    items: [
+      {
+        q: "Where is your farm located?",
+        a: "Our farm is located in Sarail village, Raiganj Upazila, Sirajganj District.",
+      },
+      {
+        q: "How can I contact you?",
+        a: "WhatsApp/Phone: 01737939688. You can also message our Facebook and YouTube (@FarmerKamol) pages.",
       },
     ],
   },
 ];
 
-export default function FaqPage() {
+export default function FaqPageEn() {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -200,7 +196,7 @@ export default function FaqPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }}
       />
-      <PolicyPage title="প্রশ্ন ও উত্তর">
+      <PolicyPage title="Frequently Asked Questions">
   <div className="space-y-4">
     {faqGroups.map((group) => (
       <details

@@ -1,69 +1,69 @@
-// TODO: translate to English
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "গোপনীয়তা নীতি | Farmer Kamol",
+  title: "Privacy Policy | Farmer Kamol",
   description:
-    "Farmer Kamol আপনার ব্যক্তিগত তথ্য কীভাবে সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখে — জানুন আমাদের সম্পূর্ণ গোপনীয়তা নীতিতে।",
+    "Learn how Farmer Kamol collects, uses, and protects your personal information — read our full privacy policy.",
+  alternates: { canonical: "/en/privacy-policy" },
 };
 
 const sections = [
   {
-    title: "ভূমিকা",
+    title: "Introduction",
     content:
-      "Farmer Kamol (\"আমরা\", \"আমাদের\") আমাদের ওয়েবসাইট www.farmerkamol.com ব্যবহারকারীদের গোপনীয়তা রক্ষাকে গুরুত্ব দেয়। এই নীতিতে বলা আছে আমরা কী তথ্য সংগ্রহ করি, কীভাবে ব্যবহার করি এবং কীভাবে সুরক্ষিত রাখি। আমাদের ওয়েবসাইট ব্যবহার করার মাধ্যমে আপনি এই নীতিতে সম্মত হচ্ছেন।",
+      "Farmer Kamol (\"we\", \"us\") values the privacy of users of our website www.farmerkamol.com. This policy explains what information we collect, how we use it, and how we protect it. By using our website, you agree to this policy.",
   },
   {
-    title: "আমরা কী তথ্য সংগ্রহ করি",
+    title: "Information We Collect",
     content:
-      "অর্ডার করার সময় আমরা সংগ্রহ করি: আপনার নাম, ফোন নম্বর, ডেলিভারি ঠিকানা, এবং অর্ডার করা পণ্যের বিবরণ। অনলাইন পেমেন্ট মেথড (বিকাশ/নগদ/রকেট) বেছে নিলে আমরা শুধুমাত্র পেমেন্ট সম্পন্ন হয়েছে কিনা সেই তথ্য রাখি — কোনো পিন, পাসওয়ার্ড বা সংবেদনশীল আর্থিক তথ্য আমরা সংগ্রহ বা সংরক্ষণ করি না, কারণ পেমেন্ট সরাসরি আপনার বিকাশ/নগদ/রকেট অ্যাপ থেকে সম্পন্ন হয়।",
+      "When you place an order, we collect: your name, phone number, delivery address, and details of the products ordered. If you choose an online payment method (bKash/Nagad/Rocket), we only keep a record of whether the payment was completed — we do not collect or store any PIN, password, or sensitive financial information, since payment is completed directly through your bKash/Nagad/Rocket app.",
   },
   {
-    title: "তথ্য কীভাবে ব্যবহার করি",
+    title: "How We Use Information",
     content:
-      "আপনার তথ্য আমরা ব্যবহার করি অর্ডার প্রসেস ও ডেলিভারি সম্পন্ন করতে, হোয়াটসঅ্যাপের মাধ্যমে অর্ডার কনফার্মেশন ও স্ট্যাটাস আপডেট জানাতে, কাস্টমার সাপোর্ট দিতে, এবং প্রয়োজনে রিটার্ন/এক্সচেঞ্জ প্রক্রিয়া সম্পন্ন করতে। আপনার অনুমতি ছাড়া আমরা মার্কেটিং উদ্দেশ্যে আপনাকে যোগাযোগ করি না।",
+      "We use your information to process orders and complete delivery, to send order confirmations and status updates via WhatsApp, to provide customer support, and to handle returns/exchanges when needed. We do not contact you for marketing purposes without your consent.",
   },
   {
-    title: "তথ্য শেয়ারিং",
+    title: "Information Sharing",
     content:
-      "আমরা আপনার ব্যক্তিগত তথ্য তৃতীয় পক্ষের কাছে বিক্রি করি না। আপনার অর্ডার সম্পন্ন করার জন্য প্রয়োজনীয় তথ্য (নাম, ঠিকানা, ফোন নম্বর) শুধুমাত্র আমাদের কুরিয়ার পার্টনারের সাথে শেয়ার করা হয়, যাতে আপনার পণ্য সঠিকভাবে পৌঁছে দেওয়া যায়।",
+      "We do not sell your personal information to third parties. Information necessary to complete your order (name, address, phone number) is shared only with our courier partner, so your product can be delivered correctly.",
   },
   {
-    title: "কুকিজ ও লোকাল স্টোরেজ",
+    title: "Cookies & Local Storage",
     content:
-      "আমাদের ওয়েবসাইট আপনার কার্টের তথ্য ব্রাউজারে সংরক্ষণ করতে লোকাল স্টোরেজ ব্যবহার করে, যাতে পেজ রিফ্রেশ করলেও আপনার কার্ট থেকে পণ্য হারিয়ে না যায়। লগইন করা থাকলে আপনার সেশন সচল রাখতে প্রয়োজনীয় কুকিজ ব্যবহার করা হয়। আপনি চাইলে ব্রাউজার সেটিংস থেকে এগুলো নিয়ন্ত্রণ করতে পারেন, তবে এতে ওয়েবসাইটের কিছু সুবিধা (যেমন কার্ট) ঠিকমতো কাজ না করতে পারে।",
+      "Our website uses local storage to save your cart information in your browser, so your cart items aren't lost if you refresh the page. If you're logged in, necessary cookies are used to keep your session active. You can control these through your browser settings, though this may prevent some website features (like the cart) from working properly.",
   },
   {
-    title: "তথ্য সুরক্ষা",
+    title: "Data Security",
     content:
-      "আমরা যথাযথ প্রযুক্তিগত ব্যবস্থা নিয়ে আপনার তথ্য সুরক্ষিত রাখার চেষ্টা করি। তবে ইন্টারনেটে কোনো ডেটা ট্রান্সমিশন ১০০% নিরাপদ নয় বলে সম্পূর্ণ নিশ্চয়তা দেওয়া সম্ভব নয়।",
+      "We take reasonable technical measures to protect your information. However, no data transmission over the internet is 100% secure, so we cannot guarantee absolute security.",
   },
   {
-    title: "শিশুদের গোপনীয়তা",
+    title: "Children's Privacy",
     content:
-      "আমাদের ওয়েবসাইট ১৮ বছরের কম বয়সী ব্যক্তিদের কাছ থেকে সচেতনভাবে কোনো তথ্য সংগ্রহ করে না। অভিভাবকরা যদি মনে করেন তাদের শিশুর তথ্য আমাদের কাছে আছে, অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন।",
+      "Our website does not knowingly collect any information from individuals under 18. If a parent believes we may have their child's information, please contact us.",
   },
   {
-    title: "আপনার অধিকার",
+    title: "Your Rights",
     content:
-      "আপনি চাইলে আমাদের সংগৃহীত আপনার তথ্য দেখতে, সংশোধন করতে বা মুছে ফেলতে অনুরোধ করতে পারেন — নিচের যোগাযোগ মাধ্যমে জানালে আমরা যত দ্রুত সম্ভব ব্যবস্থা নেব।",
+      "You may request to view, correct, or delete the information we've collected about you — contact us through the details below and we'll act on it as quickly as possible.",
   },
   {
-    title: "নীতির পরিবর্তন",
+    title: "Changes to This Policy",
     content:
-      "আমরা প্রয়োজনে এই গোপনীয়তা নীতি পরিবর্তন করতে পারি। কোনো পরিবর্তন হলে এই পেজে আপডেট করা হবে, তাই সময়ে সময়ে এই পেজ দেখে নেওয়ার পরামর্শ দেওয়া হচ্ছে।",
+      "We may update this privacy policy as needed. Any changes will be posted on this page, so we recommend checking it periodically.",
   },
   {
-    title: "যোগাযোগ",
+    title: "Contact",
     content:
-      "গোপনীয়তা সংক্রান্ত কোনো প্রশ্ন থাকলে আমাদের হোয়াটসঅ্যাপে (01737939688) যোগাযোগ করুন। আমাদের খামার: সারইল, রায়গঞ্জ, সিরাজগঞ্জ।",
+      "If you have any questions about privacy, please contact us on WhatsApp (01737939688). Our farm: Sarail, Raiganj, Sirajganj.",
   },
 ];
 
-export default function PrivacyPolicyPage() {
+export default function PrivacyPolicyPageEn() {
   return (
-    <PolicyPage title="গোপনীয়তা নীতি">
+    <PolicyPage title="Privacy Policy">
       {sections.map((section) => (
         <div key={section.title}>
           <h2 className="text-xl font-semibold text-green-700 mb-2">

@@ -1,21 +1,20 @@
-// TODO: translate to English
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "যোগাযোগ করুন | Farmer Kamol",
+  title: "Contact Us | Farmer Kamol",
   description:
-    "Farmer Kamol-এর সাথে ফোন, হোয়াটসঅ্যাপ, ফেসবুক বা ইউটিউবে যোগাযোগ করুন। আমাদের খামার: রায়গঞ্জ, সিরাজগঞ্জ।",
-  alternates: { canonical: "/contact" },
+    "Contact Farmer Kamol via phone, WhatsApp, Facebook, or YouTube. Our farm: Raiganj, Sirajganj.",
+  alternates: { canonical: "/en/contact" },
 }
 
-export default function ContactPage() {
+export default function ContactPageEn() {
     const mapsLink = "https://maps.app.goo.gl/m6P53sDikkd5GE6g6"
   
     return (
       <main className="pt-6 sm:pt-10 pb-6 bg-white">
         <div className="max-w-2xl mx-auto px-2 flex flex-col items-center text-center">
           <h1 className="text-lg sm:text-3xl font-extrabold text-green-900 mb-4 sm:mb-8">
-          আমাদের সাথে যোগাযোগের উপায় 
+          Ways to Reach Us
           </h1>
   
           <a
@@ -39,7 +38,7 @@ export default function ContactPage() {
             rel="noopener noreferrer"
             className="mt-2 text-lg font-bold text-green-900 underline hover:text-yellow-600 transition"
           >
-            রায়গঞ্জ, সিরাজগঞ্জ
+            Raiganj, Sirajganj
           </a>
   
            <div className="flex gap-2 sm:gap-5 mt-4 sm:mt-10 flex-nowrap justify-center">
@@ -69,7 +68,7 @@ export default function ContactPage() {
   
             <a
               href="tel:+8801737939688"
-              aria-label="ফোন করুন"
+              aria-label="Call us"
               className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform"
             >
               <svg
@@ -137,7 +136,7 @@ export default function ContactPage() {
             </div>
 
 <p className="mt-8 text-gray-600 text-sm">
-  ফোন / হোয়াটসঅ্যাপ:{" "}
+  Phone / WhatsApp:{" "}
   <a href="tel:+8801737939688" className="font-bold text-green-800 hover:text-yellow-600 transition">
     01737939688
   </a>
@@ -146,4 +145,3 @@ export default function ContactPage() {
 </main>
 )
 }
-  

@@ -1,74 +1,74 @@
-// TODO: translate to English
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "শর্তাবলী | Farmer Kamol",
+  title: "Terms & Conditions | Farmer Kamol",
   description:
-    "Farmer Kamol ওয়েবসাইট ব্যবহার, অর্ডার, পেমেন্ট ও ডেলিভারি সংক্রান্ত শর্তাবলী জানুন।",
+    "Read the terms and conditions for using the Farmer Kamol website, placing orders, payment, and delivery.",
+  alternates: { canonical: "/en/terms" },
 };
 
 const sections = [
   {
-    title: "ভূমিকা ও সম্মতি",
+    title: "Introduction & Agreement",
     content:
-      "www.farmerkamol.com ওয়েবসাইট ব্যবহার করার মাধ্যমে আপনি নিচের শর্তাবলীতে সম্মত হচ্ছেন। অনুগ্রহ করে অর্ডার করার আগে সম্পূর্ণ শর্তাবলী পড়ে নিন।",
+      "By using the website www.farmerkamol.com, you agree to the terms below. Please read the full terms before placing an order.",
   },
   {
-    title: "ওয়েবসাইট ব্যবহার",
+    title: "Use of the Website",
     content:
-      "এই ওয়েবসাইট শুধুমাত্র বৈধ উদ্দেশ্যে ব্যবহার করা যাবে। কোনো প্রতারণামূলক, ক্ষতিকর বা অবৈধ কাজে ওয়েবসাইট ব্যবহার নিষিদ্ধ।",
+      "This website may only be used for lawful purposes. Any fraudulent, harmful, or illegal use of the website is prohibited.",
   },
   {
-    title: "পণ্য ও মূল্য",
+    title: "Products & Pricing",
     content:
-      "মধু, ঘি ও সরিষার তেলের মূল্য ওয়েবসাইটে প্রদর্শিত আকারেই নির্ধারিত। প্রাকৃতিক পণ্য হওয়ায় রং বা টেক্সচারে ব্যাচ ভেদে সামান্য পার্থক্য হতে পারে, যা পণ্যের গুণগত মানে কোনো প্রভাব ফেলে না। পণ্যের মূল্য পূর্ব ঘোষণা ছাড়া পরিবর্তনের অধিকার আমরা সংরক্ষণ করি। স্টক সীমিত থাকলে অর্ডার বাতিল বা পরিবর্তন হতে পারে, যা গ্রাহককে জানানো হবে।",
+      "The prices of honey, ghee, and mustard oil are as shown on the website. Since these are natural products, slight variations in color or texture may occur between batches, which does not affect product quality. We reserve the right to change prices without prior notice. If stock is limited, orders may be cancelled or adjusted, and the customer will be informed.",
   },
   {
-    title: "চীন হাঁসের বাচ্চা সংক্রান্ত বিশেষ শর্ত",
+    title: "Special Terms for Duck Chicks",
     content:
-      "চীন হাঁসের বাচ্চার দাম ফিক্সড নয় — বয়স ও সাইজ অনুযায়ী আলোচনার মাধ্যমে নির্ধারিত হয়। অর্ডার নিশ্চিত করতে হোয়াটসঅ্যাপে যোগাযোগ করতে হবে। জীবন্ত প্রাণী হওয়ায় ডেলিভারির আগে সম্পূর্ণ পেমেন্ট সম্পন্ন করতে হয়। আপনার এলাকায় ডেলিভারি সম্ভব কিনা তা লোকেশন যাচাইয়ের পর নিশ্চিত করা হবে। ডেলিভারি প্রক্রিয়ায় বিলম্ব বা জীবন্ত প্রাণী পরিবহনজনিত কোনো অনিচ্ছাকৃত ক্ষতির ক্ষেত্রে আমরা যথাসাধ্য সহযোগিতা করব, তবে সম্পূর্ণ দায়বদ্ধতা নিশ্চিত করা সম্ভব নয়।",
+      "The price of duck chicks is not fixed — it's determined through discussion based on age and size. Orders must be confirmed via WhatsApp. As these are live animals, full payment must be completed before delivery. Whether delivery is possible to your area will be confirmed after checking your location. In case of delay or unintentional harm during transport of live animals, we will assist as best we can, but full liability cannot be guaranteed.",
   },
   {
-    title: "অর্ডার ও পেমেন্ট",
+    title: "Orders & Payment",
     content:
-      "আমরা ক্যাশ অন ডেলিভারি (COD) গ্রহণ করি। অনলাইন পেমেন্ট অপশন বেছে নিলে বিকাশ, নগদ বা রকেট নম্বরে সরাসরি সেন্ড মানি করতে হয়, যা চেকআউটের সময় প্রদর্শিত হবে। পেমেন্ট সম্পন্ন না হলে অর্ডার প্রসেস করা সম্ভব নয় (চীন হাঁসের বাচ্চা ও COD অর্ডার ছাড়া)।",
+      "We accept Cash on Delivery (COD). If you choose the online payment option, you must send money directly to the bKash, Nagad, or Rocket number shown at checkout. Orders cannot be processed without completed payment (except for duck chicks and COD orders).",
   },
   {
-    title: "ডেলিভারি",
+    title: "Delivery",
     content:
-      "ঢাকার ভেতরে ডেলিভারি চার্জ প্রতি কেজি ৭৫ টাকা (মিনিমাম ৬০ টাকা), ঢাকার বাইরে প্রতি কেজি ১২০ টাকা (মিনিমাম ১০০ টাকা)। ডেলিভারির সময়সীমা আনুমানিক এবং আবহাওয়া বা লজিস্টিক কারণে কিছুটা বিলম্ব হতে পারে। সঠিক ঠিকানা ও ফোন নম্বর প্রদান করা গ্রাহকের দায়িত্ব।",
+      "Delivery within Dhaka costs 75 taka per kg (minimum 60 taka), and outside Dhaka 120 taka per kg (minimum 100 taka). Delivery timeframes are approximate and may be slightly delayed due to weather or logistical reasons. Providing an accurate address and phone number is the customer's responsibility.",
   },
   {
-    title: "মেধাস্বত্ব",
+    title: "Intellectual Property",
     content:
-      "এই ওয়েবসাইটের সকল কন্টেন্ট, লোগো, ছবি ও ভিডিও Farmer Kamol-এর সম্পত্তি। অনুমতি ছাড়া কপি বা পুনঃব্যবহার নিষিদ্ধ।",
+      "All content, logos, images, and videos on this website are the property of Farmer Kamol. Copying or reuse without permission is prohibited.",
   },
   {
-    title: "দায়বদ্ধতার সীমাবদ্ধতা",
+    title: "Limitation of Liability",
     content:
-      "Farmer Kamol যথাসাধ্য সঠিক ও মানসম্পন্ন পণ্য সরবরাহ করার চেষ্টা করে। তবে অনিচ্ছাকৃত ভুল বা অনিয়ন্ত্রিত পরিস্থিতির (যেমন প্রাকৃতিক দুর্যোগ, কুরিয়ার বিলম্ব) কারণে সৃষ্ট ক্ষতির জন্য আমরা দায়ী থাকব না।",
+      "Farmer Kamol makes every effort to supply accurate, quality products. However, we are not liable for damages arising from unintentional errors or uncontrollable circumstances (such as natural disasters or courier delays).",
   },
   {
-    title: "শর্তাবলীর পরিবর্তন",
+    title: "Changes to Terms",
     content:
-      "আমরা প্রয়োজনে এই শর্তাবলী পরিবর্তনের অধিকার সংরক্ষণ করি। পরিবর্তিত শর্তাবলী এই পেজে প্রকাশ হওয়ার সাথেই কার্যকর হবে।",
+      "We reserve the right to change these terms as needed. Updated terms take effect as soon as they are published on this page.",
   },
   {
-    title: "প্রযোজ্য আইন",
+    title: "Governing Law",
     content:
-      "এই শর্তাবলী বাংলাদেশের প্রচলিত আইন দ্বারা পরিচালিত হবে।",
+      "These terms are governed by the laws of Bangladesh.",
   },
   {
-    title: "যোগাযোগ",
+    title: "Contact",
     content:
-      "শর্তাবলী সংক্রান্ত কোনো প্রশ্ন থাকলে হোয়াটসঅ্যাপে (01737939688) যোগাযোগ করুন। আমাদের খামার: সারইল, রায়গঞ্জ, সিরাজগঞ্জ।",
+      "If you have any questions about these terms, contact us on WhatsApp (01737939688). Our farm: Sarail, Raiganj, Sirajganj.",
   },
 ];
 
-export default function TermsPage() {
+export default function TermsPageEn() {
   return (
-    <PolicyPage title="শর্তাবলী">
+    <PolicyPage title="Terms & Conditions">
       {sections.map((section) => (
         <div key={section.title}>
           <h2 className="text-xl font-semibold text-green-700 mb-2">
