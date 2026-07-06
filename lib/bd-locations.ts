@@ -142,7 +142,7 @@ export const districts = [
 export const upazilasEn: { [key: number]: string[] } = {
   1: ["Cox's Bazar Sadar", "Ukhiya", "Teknaf", "Ramu", "Chakaria", "Moheshkhali", "Pekua", "Kutubdia", "Eidgaon"],
   2: ["Kishoreganj Sadar", "Karimganj", "Tarail", "Hossainpur", "Kotiadi", "Kuliarchar", "Bhairab", "Nikli", "Bajitpur", "Itna", "Mithamain", "Austagram", "Pakundia"],
-  3: ["Cumilla Sadar", "Laksam", "Debidwar", "Muradnagar", "Daudkandi", "Chauddagram", "Barura", "Burichang", "Brahmanpara", "Chandina", "Homna", "Laksam", "Meghna", "Monohargonj", "Titas", "Sadar South"],
+  3: ["Cumilla Sadar", "Laksam", "Debidwar", "Muradnagar", "Daudkandi", "Chauddagram", "Barura", "Burichang", "Brahmanpara", "Chandina", "Homna", "Langalkot", "Meghna", "Monohargonj", "Titas", "Sadar South"],
   4: ["Kushtia Sadar", "Kumarkhali", "Khoksa", "Mirpur", "Daulatpur", "Bheramara"],
   5: ["Kurigram Sadar", "Ulipur", "Chilmari", "Rhumari", "Char Rajibpur", "Nageshwari", "Bhurungamari", "Rajarhat", "Kurigram Phulbari"],
   6: ["Khagrachhari Sadar", "Dighinala", "Panchhari", "Matiranga", "Mahalchhari", "Manikchhari", "Ramgarh", "Lakshmichhari", "Guimara"],
@@ -207,6 +207,6 @@ export const upazilasEn: { [key: number]: string[] } = {
   60: ["Satkhira Sadar", "Kalaroa", "Tala", "Ashashuni", "Shyamnagar", "Kaliganj", "Debhata"],
   61: ["Sirajganj Sadar", "Belkuchi", "Chauhali", "Kamarkhanda", "Kazipur", "Rayganj", "Shahzadpur", "Tarash", "Ullapara"],
   62: ["Sylhet Sadar", "Beanibazar", "Golapganj", "Fenchuganj", "Balaganj", "Biswanath", "Companiganj", "Gauripur", "Jaintiapur", "Kanaighat", "Zakiganj", "South Surma", "Osmaninagar"],
-  63: ["Sunamganj Sadar", "Chhatak", "Jagannathpur", "Derai", "Shalla", "Dharampasha", "Tahirpur", "Bishwamavpur", "Dowarabazar", "Jamalganj", "Jagannathpur"],
+  63: ["Sunamganj Sadar", "Chhatak", "Jagannathpur", "Derai", "Shalla", "Dharampasha", "Tahirpur", "Bishwamavpur", "Dowarabazar", "Jamalganj", "Madhyanagar"],
   64: ["Habiganj Sadar", "Nabiganj", "Bahubal", "Azmiriganj", "Baniachachong", "Lakhai", "Chunarughat", "Madhabpur", "Shayestaganj"]
 };

@@ -321,7 +321,7 @@ function OrderForm() {
             <p className="font-bold text-green-700 mt-2">মোট: ৳ {totalPrice + deliveryCharge}</p>
           </div>
           <PasswordSetSection phone={form.phone} />
-          <button onClick={() => router.push("/en/shop")} className="text-gray-400 text-sm hover:text-green-700 transition underline mt-4 block w-full">
+          <button onClick={() => router.push("/shop")} className="text-gray-400 text-sm hover:text-green-700 transition underline mt-4 block w-full">
             এখন শপে যান
           </button>
         </div>
