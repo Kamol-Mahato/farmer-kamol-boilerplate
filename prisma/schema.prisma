@@ -366,3 +366,9 @@ model GalleryItemImage {
   createdAt     DateTime     @default(now())
   galleryItem   GalleryItem  @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
 }
+
+model BlogCategory {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  nameEn String?
+}

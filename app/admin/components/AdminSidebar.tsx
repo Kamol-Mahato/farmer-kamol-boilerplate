@@ -15,6 +15,7 @@ const navItems = [
   { label: "ভিডিও ম্যানেজমেন্ট", href: "/admin/videos" },
   { label: "গ্যালারি ম্যানেজমেন্ট", href: "/admin/images" },
   { label: "ক্যাটাগরি ম্যানেজমেন্ট", href: "/admin/categories" },
+  { label: "ব্লগ ক্যাটাগরি", href: "/admin/blog-categories" },
   { label: "ইনভয়েস", href: "/admin/invoice" },
 ]
 
