@@ -12,22 +12,20 @@ export async function generateMetadata() {
   }
 }
 
-const categories = [
-  { bn: "সব", en: "All" },
-  { bn: "খামারের গল্প", en: "Farm Stories" },
-  { bn: "স্বাস্থ্যকর লাইফস্টাইল", en: "Healthy Lifestyle" },
-  { bn: "পাখি পালন", en: "Poultry Farming" },
-  { bn: "ফসল চাষ", en: "Crop Cultivation" },
-  { bn: "পশুপালন", en: "Livestock Rearing" },
-]
-
 export default async function BlogPageEn({
   searchParams,
+  
 }: {
   searchParams: Promise<{ category?: string }>
 }) {
   const { category } = await searchParams
   const activeCategory = category || "সব"
+
+  const dbCategories = await prisma.blogCategory.findMany({ orderBy: { name: "asc" } })
+  const categories = [
+    { bn: "সব", en: "All" },
+    ...dbCategories.map(c => ({ bn: c.name, en: c.nameEn || c.name })),
+  ]
 
   const blogs = await prisma.blog.findMany({
     where: {
@@ -39,16 +37,6 @@ export default async function BlogPageEn({
     },
     orderBy: { createdAt: "desc" },
   })
-
-  return (
-    <div>
-      <Breadcrumb items={[
-        { label: "Home", href: "/en" },
-        { label: "Blog" },
-      ]} />
-      <div className="max-w-6xl mx-auto px-1 py-16 pt-8 text-center">
-      <h1 className="text-2xl font-bold text-green-800 mb-2">Our Farming Blog</h1>
-      <p className="text-gray-500 mb-8">Articles on farming, livestock, and life on the farm</p>
 
       {/* Category Filter */}
       <div className="flex gap-2 flex-wrap justify-center mb-8">
@@ -104,7 +92,4 @@ export default async function BlogPageEn({
           ))}
         </div>
       )}
-      </div>
-    </div>
-  )
 }
