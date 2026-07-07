@@ -1,7 +1,7 @@
-// TODO: translate to English
 "use client"
 import { useState } from "react"
 import Image from "next/image"
+
 type GalleryImage = {
   id: number
   imageUrl: string
@@ -9,13 +9,21 @@ type GalleryImage = {
 type GalleryItem = {
   id: number
   title: string
+  titleEn: string | null
   slug: string
+  slugEn: string | null
   description: string | null
+  descriptionEn: string | null
   images: GalleryImage[]
 }
+
 export default function GalleryCard({ item }: { item: GalleryItem }) {
   const [index, setIndex] = useState(0)
   const [expanded, setExpanded] = useState(false)
+
+  const displayTitle = item.titleEn || item.title
+  const displayDescription = item.descriptionEn || item.description
+
   function prev(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -26,12 +34,13 @@ export default function GalleryCard({ item }: { item: GalleryItem }) {
     e.stopPropagation()
     setIndex((i) => (i === item.images.length - 1 ? 0 : i + 1))
   }
+
   return (
     <div className="bg-white rounded-xl shadow group overflow-hidden">
       <div className="relative w-full aspect-square">
         <Image
           src={item.images[index].imageUrl}
-          alt={`${item.title} - ছবি ${index + 1}`}
+          alt={`${displayTitle} - Photo ${index + 1}`}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-110"
           sizes="(max-width: 768px) 50vw, 33vw"
@@ -41,14 +50,14 @@ export default function GalleryCard({ item }: { item: GalleryItem }) {
             <button
               onClick={prev}
               className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white items-center justify-center opacity-0 group-hover:opacity-100 transition hidden md:flex"
-              aria-label="আগের ছবি"
+              aria-label="Previous image"
             >
               ‹
             </button>
             <button
               onClick={next}
               className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white items-center justify-center opacity-0 group-hover:opacity-100 transition hidden md:flex"
-              aria-label="পরের ছবি"
+              aria-label="Next image"
             >
               ›
             </button>
@@ -64,12 +73,12 @@ export default function GalleryCard({ item }: { item: GalleryItem }) {
         )}
       </div>
       <div className="p-3">
-        <p className="font-bold text-gray-800 text-sm md:text-base">{item.title}</p>
-        {item.description && (
+        <p className="font-bold text-gray-800 text-sm md:text-base">{displayTitle}</p>
+        {displayDescription && (
           <>
             <p
               className={`text-gray-500 text-xs md:text-sm mt-1 whitespace-pre-line ${expanded ? "" : "line-clamp-2"}`}
-              dangerouslySetInnerHTML={{ __html: item.description as string }}
+              dangerouslySetInnerHTML={{ __html: displayDescription as string }}
             />
             <button
               onClick={(e) => {
@@ -79,7 +88,7 @@ export default function GalleryCard({ item }: { item: GalleryItem }) {
               }}
               className="text-green-700 text-xs font-bold mt-1"
             >
-              {expanded ? "সংক্ষেপে দেখুন" : "See more"}
+              {expanded ? "Show less" : "See more"}
             </button>
           </>
         )}
