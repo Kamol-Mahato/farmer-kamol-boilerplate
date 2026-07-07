@@ -21,7 +21,9 @@ export async function POST(req: Request) {
     const video = await prisma.youtubeVideo.create({
       data: {
         title: body.title,
+        titleEn: body.titleEn || null,
         description: body.description ? sanitizeHtml(body.description) : null,
+        descriptionEn: body.descriptionEn ? sanitizeHtml(body.descriptionEn) : null,
         youtubeUrl: body.youtubeUrl,
         platform: body.platform || "YOUTUBE",
         displayOrder: body.displayOrder ?? 0,
@@ -41,7 +43,9 @@ export async function PUT(req: Request) {
       where: { id: body.id },
       data: {
         title: body.title,
+        titleEn: body.titleEn || null,
         description: body.description ? sanitizeHtml(body.description) : null,
+        descriptionEn: body.descriptionEn ? sanitizeHtml(body.descriptionEn) : null,
         youtubeUrl: body.youtubeUrl,
         platform: body.platform || "YOUTUBE",
         displayOrder: body.displayOrder,

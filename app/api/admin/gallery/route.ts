@@ -5,7 +5,7 @@ import { sanitizeHtml } from "@/lib/sanitize"
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { title, slug, description, imageUrls } = body
+    const { title, titleEn, slug, slugEn, description, descriptionEn, imageUrls } = body
     if (!title || !slug || !Array.isArray(imageUrls) || imageUrls.length === 0) {
       return NextResponse.json(
         { error: "শিরোনাম, Slug এবং অন্তত একটি ছবি দিন" },
@@ -19,11 +19,23 @@ export async function POST(request: Request) {
         { status: 409 }
       )
     }
+    if (slugEn) {
+      const existingEn = await prisma.galleryItem.findUnique({ where: { slugEn } })
+      if (existingEn) {
+        return NextResponse.json(
+          { error: "এই English Slug দিয়ে আগেই একটি আইটেম আছে। ভিন্ন Slug দিন।" },
+          { status: 409 }
+        )
+      }
+    }
     const galleryItem = await prisma.galleryItem.create({
       data: {
         title,
+        titleEn: titleEn || null,
         slug,
+        slugEn: slugEn || null,
         description: description ? sanitizeHtml(description) : description,
+        descriptionEn: descriptionEn ? sanitizeHtml(descriptionEn) : descriptionEn,
         images: {
           create: imageUrls.map((url: string, index: number) => ({
             imageUrl: url,
@@ -32,6 +44,7 @@ export async function POST(request: Request) {
         },
       },
     })
+    
     return NextResponse.json({ success: true, id: galleryItem.id })
   } catch (error: any) {
     console.error("GALLERY CREATE ERROR ->", error)

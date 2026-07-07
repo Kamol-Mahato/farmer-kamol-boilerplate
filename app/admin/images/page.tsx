@@ -32,7 +32,15 @@ export default async function AdminGalleryListPage() {
               <p className="text-sm text-gray-500 mt-1">{item.images.length} টি ছবি গ্রুপে</p>
               <p className="text-xs text-gray-400 mt-1">/media/image/{item.slug}</p>
             </div>
-            <DeleteGalleryButton id={item.id} />
+            <div className="flex flex-col gap-2 shrink-0">
+              <Link
+                href={`/admin/images/${item.id}/edit`}
+                className="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-100 transition text-center"
+              >
+                এডিট
+              </Link>
+              <DeleteGalleryButton id={item.id} />
+            </div>
           </div>
         ))}
         {items.length === 0 && (

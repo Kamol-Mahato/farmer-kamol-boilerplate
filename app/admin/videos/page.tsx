@@ -5,7 +5,9 @@ import RichTextField from "../components/RichTextField"
 interface Video {
   id: number
   title: string
+  titleEn: string | null
   description: string | null
+  descriptionEn: string | null
   youtubeUrl: string
   platform: string
   displayOrder: number
@@ -16,7 +18,9 @@ export default function AdminVideosPage() {
   const [videos, setVideos] = useState<Video[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState("")
+  const [titleEn, setTitleEn] = useState("")
   const [description, setDescription] = useState("")
+  const [descriptionEn, setDescriptionEn] = useState("")
   const [youtubeUrl, setYoutubeUrl] = useState("")
   const [platform, setPlatform] = useState("YOUTUBE")
   const [displayOrder, setDisplayOrder] = useState(0)
@@ -97,17 +101,19 @@ export default function AdminVideosPage() {
       await fetch("/api/admin/videos", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingId, title, description, youtubeUrl, platform, displayOrder, isActive: true }),
+        body: JSON.stringify({ id: editingId, title, titleEn, description, descriptionEn, youtubeUrl, platform, displayOrder, isActive: true }),
       })
     } else {
       await fetch("/api/admin/videos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, youtubeUrl, platform, displayOrder, isActive: true }),
+        body: JSON.stringify({ title, titleEn, description, descriptionEn, youtubeUrl, platform, displayOrder, isActive: true }),
       })
     }
     setTitle("")
+    setTitleEn("")
     setDescription("")
+    setDescriptionEn("")
     setYoutubeUrl("")
     setPlatform("YOUTUBE")
     setDisplayOrder(0)
@@ -137,7 +143,9 @@ export default function AdminVideosPage() {
   function handleEdit(video: Video) {
     setEditingId(video.id)
     setTitle(video.title)
+    setTitleEn(video.titleEn || "")
     setDescription(video.description || "")
+    setDescriptionEn(video.descriptionEn || "")
     setYoutubeUrl(video.youtubeUrl)
     setPlatform(video.platform)
     setDisplayOrder(video.displayOrder)
@@ -207,13 +215,32 @@ export default function AdminVideosPage() {
               rows={1}
             />
           </div>
+          <div className="md:col-span-3 border-t pt-4 mt-2">
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Video Title (English)</label>
+            <input
+              type="text"
+              value={titleEn}
+              onChange={(e) => setTitleEn(e.target.value)}
+              placeholder="e.g. Poultry Farming Method"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
+            />
+          </div>
+          <div className="md:col-span-3">
+            <label className="block text-xs font-semibold text-gray-500 mb-1">Description (English, optional)</label>
+            <RichTextField
+              value={descriptionEn}
+              onChange={(val) => setDescriptionEn(val)}
+              placeholder="Write description in English..."
+              rows={1}
+            />
+          </div>
         </div>
         <div className="mt-4 flex gap-3">
           <button onClick={handleSave} className="bg-green-700 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition">
             {editingId ? "আপডেট করুন" : "যোগ করুন"}
           </button>
           {editingId && (
-            <button onClick={() => { setEditingId(null); setTitle(""); setDescription(""); setYoutubeUrl(""); setPlatform("YOUTUBE"); setDisplayOrder(0) }}
+            <button onClick={() => { setEditingId(null); setTitle(""); setTitleEn(""); setDescription(""); setDescriptionEn(""); setYoutubeUrl(""); setPlatform("YOUTUBE"); setDisplayOrder(0) }}
               className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-bold text-sm hover:bg-gray-300 transition">
               বাতিল
             </button>
