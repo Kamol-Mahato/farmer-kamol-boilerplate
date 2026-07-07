@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import AnnouncementBar from "./AnnouncementBar"
@@ -53,10 +53,14 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
 
+  // ড্রপডাউন বাইরের ক্লিকে বন্ধ করার জন্য রেফারেন্স
+  const authRef = useRef<HTMLDivElement>(null)
+  const userRef = useRef<HTMLDivElement>(null)
+
   function translateTitle(menu: Menu): string {
-  if (locale === "bn") return menu.title
-  return menu.titleEn || menu.title
-}
+    if (locale === "bn") return menu.title
+    return menu.titleEn || menu.title
+  }
 
   function localizeMenus(items: Menu[]): Menu[] {
     return items.map((m) => ({
@@ -85,6 +89,21 @@ export default function Navbar() {
       setCartCount(0)
     }
   }
+
+  // বাইরে ক্লিক করলে লগইন বা ইউজার মেনু বন্ধ করার ইফেক্ট (আপনার ২ নম্বর ভুলটি ফিক্স করার জন্য)
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (authRef.current && !authRef.current.contains(event.target as Node)) {
+        setAuthMenuOpen(false)
+      }
+      if (userRef.current && !userRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   useEffect(() => {
     checkUser()
     checkCart()
@@ -125,7 +144,7 @@ export default function Navbar() {
           <Link href={href("/")} className="flex items-center gap-2" onClick={() => closeSidebarForNav()}>
             <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
             <div className="flex flex-col leading-tight">
-              <span className="text-sm text-basefont-extrabold text-white drop-shadow-lg">Farmer Kamol</span>
+              <span className="text-sm font-extrabold text-white drop-shadow-lg">Farmer Kamol</span>
               <span className="text-xs text-yellow-300">খামার থেকে আপনার দরজায়</span>
             </div>
           </Link>
@@ -169,16 +188,17 @@ export default function Navbar() {
       </div>
       <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-2 px-3 md:px-6 shadow-md z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button className="md:hidden text-white text-2xl" onClick={openSidebar}>☰</button>
-            <Link href={href("/")} className="flex items-center gap-2">
-              <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400" />
+            <Link href={href("/")} className="flex items-center gap-1.5">
+              <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={36} height={36} priority className="w-9 h-9 rounded-full object-cover border-2 border-white-400" />
               <div className="flex flex-col leading-tight">
-                <span className="text-sm font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
-                <span className="text-xs text-yellow-300 font-bold whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
+                <span className="text-xs font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
+                <span className="text-[9px] text-yellow-300 font-bold whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
               </div>
             </Link>
           </div>
+          
           <div className="hidden md:flex items-center gap-2 text-lg font-medium">
             {menus.map(menu => (
               <div key={menu.id} className="relative"
@@ -220,18 +240,38 @@ export default function Navbar() {
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-1.5 xs:gap-2 flex-nowrap shrink-0">
+            {/* 🌐 মোবাইলের জন্য গোল ওয়ার্ল্ড ল্যাঙ্গুয়েজ আইকন বাটন (শুধু মোবাইলে দেখাবে) */}
+<Link
+  href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
+  className="flex md:hidden items-center justify-center p-1 text-white active:scale-95 transition shrink-0 mr--2"
+  aria-label="Language Switch"
+  title={t.langSwitch}
+>
+  {/* ব্যাকগ্রাউন্ড ও বর্ডার ছাড়া শুধু প্লেইন বড় আইকন */}
+  <span className="text-2xl leading-none">🌐</span>
+</Link>
+
+            {/* 📊 পিসির জন্য এক্সেল স্টাইল টগল বাটন (মোবাইলে হাইড থাকবে) */}
             <Link
               href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
-              className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center text-lg"
+              className="hidden md:flex items-center bg-green-900 border border-green-700 rounded-lg overflow-hidden h-7 text-xs font-bold shrink-0 shadow-inner transition hover:border-yellow-400 group ml-3"
               aria-label="ভাষা পরিবর্তন"
               title={t.langSwitch}
             >
-              🌐
+              <span className={`px-2 h-full flex items-center justify-center transition-colors ${locale === 'bn' ? 'bg-yellow-400 text-green-900' : 'text-green-300 group-hover:text-white'}`}>
+                BN
+              </span>
+              <span className={`px-2 h-full flex items-center justify-center transition-colors ${locale === 'en' ? 'bg-yellow-400 text-green-900' : 'text-green-300 group-hover:text-white'}`}>
+                EN
+              </span>
             </Link>
+
             {user && (user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
               <NewOrderNotifier />
             )}
+            
             <div className="hidden md:flex items-center">
               <form onSubmit={handleSearch} className="flex items-center">
                 <input
@@ -246,8 +286,9 @@ export default function Navbar() {
                 </button>
               </form>
             </div>
+            
             {user ? (
-              <div className="relative">
+              <div className="relative" ref={userRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="bg-white text-green-900 hover:bg-yellow-400 transition p-2 rounded-full flex items-center justify-center"
@@ -271,10 +312,7 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <div className="relative"
-                onMouseEnter={() => setAuthMenuOpen(true)}
-                onMouseLeave={() => setAuthMenuOpen(false)}
-              >
+              <div className="relative" ref={authRef}>
                 <button
                   onClick={() => setAuthMenuOpen(!authMenuOpen)}
                   className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center"
@@ -299,6 +337,7 @@ export default function Navbar() {
                 </div>
               </div>
             )}
+            
             <Link href={href("/cart")} className="text-white hover:text-yellow-400 transition p-2 rounded-full flex items-center justify-center">
               <div className="relative flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">

@@ -48,10 +48,11 @@ export default function Footer() {
   const href = (path: string) => localizeHref(path, locale)
 
   return (
-    <footer className="bg-green-800 text-white mt-auto">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+    // 1. প্রধান ফুটার এরিয়া: কাস্টমার রিভিউ সেকশনের মতো লাইট ব্যাকগ্রাউন্ড কালার দেওয়া হয়েছে
+    <footer className="bg-green-50 text-gray-700 mt-auto">
+      <div className="max-w-7xl mx-auto px-4 pt-8 pb-6">
 
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-6">
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
 
           <div className="col-span-4 md:col-span-1">
             <Link href={href("/")} className="flex items-center gap-2 mb-1">
@@ -62,10 +63,11 @@ export default function Footer() {
                 height={50}
                 className="rounded-full"
               />
-              <h4 className="text-lg font-bold">Farmer Kamol</h4>
+              {/* টেক্সট কালার ডার্ক গ্রিন করা হয়েছে যাতে লাইট ব্যাকগ্রাউন্ডে ফুটে ওঠে */}
+              <h4 className="text-lg font-bold text-green-900">Farmer Kamol</h4>
             </Link>
-            <p className="text-sm text-yellow-400 mb-2 font-bold">{t.slogan}</p>
-            <p className="text-sm text-white-300 mb-4">{t.description}</p>
+            <p className="text-sm text-amber-600 mb-2 font-bold">{t.slogan}</p>
+            <p className="text-sm text-gray-600 mb-4">{t.description}</p>
 
             <div className="flex flex-wrap gap-2">
               <a href="https://facebook.com/farmerkamol" target="_blank"
@@ -109,43 +111,47 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold mb-3 text-sm">{t.productsHeading}</h4>
-            <div className="flex flex-col gap-1.5 text-sm text-green-300">
+            <h4 className="font-bold mb-3 text-sm text-green-900">{t.productsHeading}</h4>
+            <div className="flex flex-col gap-1.5 text-sm text-gray-600">
               {t.products.map((p) => (
-                <Link key={p} href={href("/shop")} className="hover:text-yellow-400">{p}</Link>
+                <Link key={p} href={href("/shop")} className="hover:text-green-700 transition">{p}</Link>
               ))}
             </div>
           </div>
 
           <div>
-            <h4 className="font-bold mb-3 text-sm">{t.serviceHeading}</h4>
-            <div className="flex flex-col gap-1.5 text-sm text-green-300">
-              <Link href={href("/customer/dashboard")} className="hover:text-yellow-400">{t.trackOrder}</Link>
-              <Link href={href("/return-policy")} className="hover:text-yellow-400">{t.returnPolicy}</Link>
-              <Link href={href("/faq")} className="hover:text-yellow-400">{t.faq}</Link>
-              <Link href={href("/contact")} className="hover:text-yellow-400">{t.contact}</Link>
+            <h4 className="font-bold mb-3 text-sm text-green-900">{t.serviceHeading}</h4>
+            <div className="flex flex-col gap-1.5 text-sm text-gray-600">
+              <Link href={href("/customer/dashboard")} className="hover:text-green-700 transition">{t.trackOrder}</Link>
+              <Link href={href("/return-policy")} className="hover:text-green-700 transition">{t.returnPolicy}</Link>
+              <Link href={href("/faq")} className="hover:text-green-700 transition">{t.faq}</Link>
+              <Link href={href("/contact")} className="hover:text-green-700 transition">{t.contact}</Link>
             </div>
           </div>
 
           <div className="col-span-2 md:col-span-1">
-            <h4 className="font-bold mb-3 text-sm">{t.farmHeading}</h4>
-            <div className="flex flex-col gap-1.5 text-sm text-green-300">
-              <a href="https://maps.app.goo.gl/vsE66z72VEgxzNM68" target="_blank" className="hover:text-yellow-400">
+            <h4 className="font-bold mb-3 text-sm text-green-900">{t.farmHeading}</h4>
+            <div className="flex flex-col gap-1.5 text-sm text-gray-600">
+              <a href="https://maps.app.goo.gl/vsE66z72VEgxzNM68" target="_blank" className="hover:text-green-700 transition">
                 {t.location}
               </a>
-              <a href="tel:+8801737939688" className="hover:text-yellow-400">📞 01737939688</a>
-              <a href="https://wa.me/8801737939688" target="_blank" className="hover:text-yellow-400">💬 01737939688</a>
-              <a href="https://wa.me/8801521406139" target="_blank" className="hover:text-yellow-400">💼 {t.businessContact}: 01521406139</a>
+              <a href="tel:+8801737939688" className="hover:text-green-700 transition">📞 01737939688</a>
+              <a href="https://wa.me/8801737939688" target="_blank" className="hover:text-green-700 transition">💬 01737939688</a>
+              <a href="https://wa.me/8801521406139" target="_blank" className="hover:text-green-700 transition">💼 {t.businessContact}: 01521406139</a>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-green-500 mt-6 pt-4 flex flex-col md:flex-row justify-between items-center text-xs text-green-400 gap-2">
+      </div>
+
+      {/* 2. কপিরাইট এরিয়া: আপনার আসল ফুটারের ডার্ক গ্রিন (bg-green-800) কালারটি এখানে ব্যবহার করা হয়েছে */}
+      <div className="bg-green-800 text-white border-t border-green-700 py-4 mt-2">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-xs text-green-200 gap-2">
           <p>{t.copyright}</p>
           <div className="flex gap-4">
-            <Link href={href("/privacy-policy")} className="hover:text-yellow-400">{t.privacyPolicy}</Link>
-            <Link href={href("/terms")} className="hover:text-yellow-400">{t.terms}</Link>
-            <Link href={href("/return-policy")} className="hover:text-yellow-400">{t.returnPolicy}</Link>
+            <Link href={href("/privacy-policy")} className="hover:text-yellow-400 transition">{t.privacyPolicy}</Link>
+            <Link href={href("/terms")} className="hover:text-yellow-400 transition">{t.terms}</Link>
+            <Link href={href("/return-policy")} className="hover:text-yellow-400 transition">{t.returnPolicy}</Link>
           </div>
         </div>
       </div>
