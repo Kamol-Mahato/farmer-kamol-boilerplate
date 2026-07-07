@@ -2,11 +2,15 @@
 import Link from "next/link"
 import { ShoppingCart, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { usePathname } from "next/navigation"
+import { getLocaleFromPath, localizeHref } from "@/lib/i18n"
 
 const DISMISS_KEY = "farmer_kamol_cart_dismissed_at"
 const RESHOW_AFTER_MS = 30 * 60 * 1000 // ৩০ মিনিট
 
 export default function FloatingCartButton() {
+  const pathname = usePathname()
+  const locale = getLocaleFromPath(pathname)
   const btnRef = useRef<HTMLAnchorElement>(null)
   const lastScrollY = useRef(0)
   const current = useRef(0)
@@ -126,11 +130,11 @@ export default function FloatingCartButton() {
   return (
     <Link
       ref={btnRef}
-      href="/cart"
+      href={localizeHref("/cart", locale)}
       className={`fixed right-3 sm:right-4 top-1/2 z-[60] bg-green-700 hover:bg-green-600 text-white w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-xl transition-opacity duration-[3000ms] ease-in-out ${
         cartCount === 0 && !isVisible ? "opacity-30" : "opacity-100"
       }`}
-      aria-label="কার্টে যান"
+      aria-label={locale === "en" ? "Go to cart" : "কার্টে যান"}
     >
       <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.2} />
       {cartCount > 0 && (
@@ -141,7 +145,7 @@ export default function FloatingCartButton() {
       {cartCount === 0 && (
         <button
           onClick={handleClose}
-          aria-label="বন্ধ করুন"
+          aria-label={locale === "en" ? "Close" : "বন্ধ করুন"}
           className="absolute -top-2 -left-2 w-5 h-5 sm:w-6 sm:h-6 bg-gray-700 text-white rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
         >
           <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />

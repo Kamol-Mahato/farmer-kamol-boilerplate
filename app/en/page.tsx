@@ -1,11 +1,11 @@
 import Link from "next/link"
-import HeroSlider from "@/app/components/HeroSlider"
+import HeroSlider from "@/app/en/components/HeroSlider"
 import { prisma } from "@/lib/prisma"
-import ProductCard from "@/app/components/ProductCard"
-import BlogSection from "@/app/components/BlogSection"
+import ProductCard from "@/app/en/components/ProductCard"
+import BlogSection from "@/app/en/components/BlogSection"
 import type { Metadata } from "next"
-import NoticeModal from "@/app/components/NoticeModal"
-import VideoSection from "@/app/components/VideoSection"
+import NoticeModal from "@/app/en/components/NoticeModal"
+import VideoSection from "@/app/en/components/VideoSection"
 
 export const metadata: Metadata = {
   title: "Farmer Kamol - From Our Farm To Your Door",
@@ -35,8 +35,16 @@ export default async function HomePageEn() {
     orderBy: { createdAt: "desc" },
     take: 4,
   })
+  const dbCategories = await prisma.blogCategory.findMany({ orderBy: { name: "asc" } })
+  const blogCategories = dbCategories.map(c => ({ bn: c.name, en: c.nameEn || c.name }))
+
   const blogs = await prisma.blog.findMany({
-    where: { isPublished: true },
+    where: {
+      isPublished: true,
+      titleEn: { not: null },
+      slugEn: { not: null },
+      contentEn: { not: null },
+    },
     orderBy: { createdAt: "desc" },
     take: 3,
   })
@@ -82,7 +90,7 @@ export default async function HomePageEn() {
         </div>
       </div>
 
-      <BlogSection blogs={blogs} />
+      <BlogSection blogs={blogs} categories={blogCategories} />
 
       <VideoSection videos={videos} />
 

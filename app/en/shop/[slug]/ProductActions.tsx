@@ -1,4 +1,3 @@
-// TODO: translate to English
 "use client"
 import Link from "next/link"
 import { useState } from "react"
@@ -13,7 +12,7 @@ type Product = {
   priceType: "FIXED" | "NEGOTIABLE"
 }
 
-// ✅ একই toast logic যা ProductCard এ আছে
+// ✅ same toast logic as ProductCard, English version
 function showCartToast(name: string) {
   const existing = document.getElementById("cart-toast")
   if (existing) existing.remove()
@@ -24,7 +23,7 @@ function showCartToast(name: string) {
       <span style="font-size:22px;">🛒</span>
       <div>
         <div style="font-weight:700;font-size:14px;">${name}</div>
-        <div style="font-size:12px;opacity:0.85;">কার্টে যোগ হয়েছে!</div>
+        <div style="font-size:12px;opacity:0.85;">Added to cart!</div>
       </div>
       <span style="font-size:20px;margin-left:4px;">✅</span>
     </div>
@@ -60,7 +59,7 @@ function showCartToast(name: string) {
 
 function buildWhatsAppLink(productName: string) {
   const phone = "8801737939688"
-  const message = `আমি "${productName}" সম্পর্কে জানতে চাই`
+  const message = `I would like to know more about "${productName}"`
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
 
@@ -73,6 +72,7 @@ export default function ProductActions({
 }) {
   const [added, setAdded] = useState(false)
   const isOutOfStock = product.stockQty <= 0
+  const displayName = product.nameEn || product.name
 
   function handleAddToCart() {
     const cart = JSON.parse(localStorage.getItem("farmer_kamol_cart") || "[]")
@@ -93,18 +93,18 @@ export default function ProductActions({
     window.dispatchEvent(new CustomEvent("cartUpdated"))
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
-    showCartToast(product.name)
+    showCartToast(displayName)
   }
 
   if (product.priceType === "NEGOTIABLE") {
     return (
       <a
-        href={buildWhatsAppLink(product.name)}
+        href={buildWhatsAppLink(displayName)}
         target="_blank"
         rel="noopener noreferrer"
         className="w-full py-3 rounded-xl font-bold text-base flex items-center justify-center gap-2 bg-green-600 text-white hover:bg-green-500 active:scale-95 transition"
       >
-        💬 WhatsApp এ যোগাযোগ করুন
+        💬 Contact via WhatsApp
       </a>
     )
   }
@@ -122,17 +122,17 @@ export default function ProductActions({
             : "border-green-600 bg-white text-green-700 hover:bg-green-50"
         }`}
       >
-        {added ? "✓ যোগ হয়েছে" : "🛒 Add to Cart"}
+        {added ? "✓ Added" : "🛒 Add to Cart"}
       </button>
       <Link
-        href={isOutOfStock ? "#" : `/order?productId=${product.id}`}
+        href={isOutOfStock ? "#" : `/en/order?productId=${product.id}`}
         className={`flex-1 py-3 rounded-xl font-bold text-base flex items-center justify-center text-center transition ${
           isOutOfStock
             ? "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
             : "bg-green-700 text-white hover:bg-green-600 active:scale-95"
         }`}
       >
-        অর্ডার করুন
+        Order Now
       </Link>
     </div>
   )

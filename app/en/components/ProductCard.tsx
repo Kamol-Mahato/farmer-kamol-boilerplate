@@ -2,6 +2,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useRef, useEffect, useState } from "react"
+import { translateUnit } from "@/lib/unitTranslate"
 
 type Product = {
   id: number
@@ -189,7 +190,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </Link>
         <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-2">
           <span className="text-[10px] md:text-xs bg-green-600 font-bold text-white px-2 py-1 md:px-2.5 md:py-2 rounded-full whitespace-nowrap w-fit">
-            Per {product.unit}
+            Per {translateUnit(product.unit)}
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-[10px] md:text-xs text-gray-400 font-medium">Price</span>

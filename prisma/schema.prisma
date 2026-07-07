@@ -345,6 +345,8 @@ model YoutubeVideo {
   heroOrder    Int?     // null = হিরো স্লাইডে নেই, সংখ্যা = হিরো রোটেশনে ক্রম (০,১,২,৩)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  titleEn      String?
+  descriptionEn String?
 }
 
 model GalleryItem {
@@ -357,7 +359,10 @@ model GalleryItem {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   images      GalleryItemImage[]
+  titleEn     String?
+  descriptionEn String?
 }
+
 model GalleryItemImage {
   id            Int          @id @default(autoincrement())
   galleryItemId Int
