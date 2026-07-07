@@ -71,7 +71,7 @@ function UpazilaSearch({ upazilas, onSelect, disabled }: {
         onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
         onFocus={() => setShow(true)}
         onBlur={() => setTimeout(() => setShow(false), 200)}
-        placeholder={disabled ? "আগে জেলা বেছে নিন" : "উপজেলা লিখুন বা খুঁজুন"}
+        placeholder={disabled ? "আগে জেলা বেছে নিন" : "উপজেলা /এরিয়া লিখুন বা খুঁজুন"}
         disabled={disabled}
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100"
       />
@@ -373,7 +373,7 @@ function OrderForm() {
             <DistrictSearch districts={districts} onSelect={(d) => { setSelectedDistrictId(d.id); setForm(prev => ({ ...prev, district: d.name, upazila: "" })) }} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">উপজেলা *</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">উপজেলা /এরিয়া*</label>
             <UpazilaSearch
               key={selectedDistrictId ?? "none"}
               upazilas={selectedDistrictId ? (upazilas[selectedDistrictId] || []) : []}

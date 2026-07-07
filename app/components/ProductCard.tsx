@@ -2,6 +2,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useRef, useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import { getLocaleFromPath, localizeHref } from "@/lib/i18n"
 
 type Product = {
   id: number
@@ -70,6 +72,8 @@ function buildWhatsAppLink(productName: string) {
 }
 
 export default function ProductCard({ product }: { product: Product }) {
+  const pathname = usePathname()
+  const locale = getLocaleFromPath(pathname)
   const btnRef = useRef<HTMLAnchorElement>(null)
   const [bounced, setBounced] = useState(false)
   const [added, setAdded] = useState(false)
@@ -224,7 +228,7 @@ export default function ProductCard({ product }: { product: Product }) {
             </button>
             <Link
               ref={btnRef}
-              href={isOutOfStock ? "#" : `/order?productId=${product.id}`}
+              href={isOutOfStock ? "#" : localizeHref(`/order?productId=${product.id}`, locale)}
               className={`flex-1 py-2 md:py-2.5 rounded-2xl font-bold text-xs md:text-sm flex items-center justify-center text-center transition ${
                 isOutOfStock
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
