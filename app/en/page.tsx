@@ -13,6 +13,10 @@ export const metadata: Metadata = {
     "Pure honey, ghee, mustard oil, and duck chicks — delivered directly from our farm in Raiganj, Sirajganj, with no middlemen.",
   alternates: {
     canonical: "/en",
+    languages: {
+      bn: "/",
+      en: "/en",
+    },
   },
 }
 

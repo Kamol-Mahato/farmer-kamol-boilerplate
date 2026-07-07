@@ -6,7 +6,13 @@ export const metadata: Metadata = {
   title: "FAQ | Farmer Kamol",
   description:
     "Common questions about Farmer Kamol's products, orders, delivery, and returns. Learn about our pure honey, ghee, mustard oil, and duck chicks from Sirajganj.",
-  alternates: { canonical: "/en/faq" },
+  alternates: {
+    canonical: "/en/faq",
+    languages: {
+      bn: "/faq",
+      en: "/en/faq",
+    },
+  },
 };
 
 const faqGroups = [

@@ -6,6 +6,13 @@ export const metadata: Metadata = {
   title: "প্রশ্ন ও উত্তর (FAQ) | Farmer Kamol",
   description:
     "Farmer Kamol-এর পণ্য, অর্ডার, ডেলিভারি ও রিটার্ন সংক্রান্ত সাধারণ প্রশ্নের উত্তর। সিরাজগঞ্জের খাঁটি মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা সম্পর্কে জানুন।",
+  alternates: {
+    canonical: "/faq",
+    languages: {
+      bn: "/faq",
+      en: "/en/faq",
+    },
+  },
 };
 
 const faqGroups = [

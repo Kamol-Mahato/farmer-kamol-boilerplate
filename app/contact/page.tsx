@@ -4,7 +4,13 @@ export const metadata: Metadata = {
   title: "যোগাযোগ করুন | Farmer Kamol",
   description:
     "Farmer Kamol-এর সাথে ফোন, হোয়াটসঅ্যাপ, ফেসবুক বা ইউটিউবে যোগাযোগ করুন। আমাদের খামার: রায়গঞ্জ, সিরাজগঞ্জ।",
-  alternates: { canonical: "/contact" },
+  alternates: {
+    canonical: "/contact",
+    languages: {
+      bn: "/contact",
+      en: "/en/contact",
+    },
+  },
 }
 
 export default function ContactPage() {

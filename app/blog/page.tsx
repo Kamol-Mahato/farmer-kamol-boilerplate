@@ -9,7 +9,13 @@ export async function generateMetadata() {
     title: "কৃষি বিষয়ক ব্লগ - পশুপালন, পাখি পালন ও ফসল চাষ | Farmer Kamol",
     description:
       "Farmer Kamol-এর ব্লগে পড়ুন পশুপালন, পাখি পালন, ফসল চাষ ও খামারের গল্প সম্পর্কে বাস্তব অভিজ্ঞতা ও গাইড।",
-    alternates: { canonical: "/blog" },
+    alternates: {
+      canonical: "/blog",
+      languages: {
+        bn: "/blog",
+        en: "/en/blog",
+      },
+    },
   }
 }
 

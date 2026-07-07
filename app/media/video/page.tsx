@@ -1,6 +1,19 @@
 import { prisma } from "@/lib/prisma"
 import Breadcrumb from "@/app/components/Breadcrumb"
 import VideoGalleryClient from "./VideoGalleryClient"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "ভিডিও গ্যালারি - Farmer Kamol",
+  description: "Farmer Kamol YouTube চ্যানেলের ভিডিওগুলো দেখুন — আমাদের খামার, পণ্য ও কার্যক্রম সম্পর্কে।",
+  alternates: {
+    canonical: "/media/video",
+    languages: {
+      bn: "/media/video",
+      en: "/en/media/video",
+    },
+  },
+}
 
 export default async function MediaVideoPage() {
   const videos = await prisma.youtubeVideo.findMany({

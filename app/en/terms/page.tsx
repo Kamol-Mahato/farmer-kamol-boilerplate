@@ -5,7 +5,13 @@ export const metadata: Metadata = {
   title: "Terms & Conditions | Farmer Kamol",
   description:
     "Read the terms and conditions for using the Farmer Kamol website, placing orders, payment, and delivery.",
-  alternates: { canonical: "/en/terms" },
+  alternates: {
+    canonical: "/en/terms",
+    languages: {
+      bn: "/terms",
+      en: "/en/terms",
+    },
+  },
 };
 
 const sections = [

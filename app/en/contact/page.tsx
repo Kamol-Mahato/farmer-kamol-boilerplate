@@ -4,7 +4,13 @@ export const metadata: Metadata = {
   title: "Contact Us | Farmer Kamol",
   description:
     "Contact Farmer Kamol via phone, WhatsApp, Facebook, or YouTube. Our farm: Raiganj, Sirajganj.",
-  alternates: { canonical: "/en/contact" },
+  alternates: {
+    canonical: "/en/contact",
+    languages: {
+      bn: "/contact",
+      en: "/en/contact",
+    },
+  },
 }
 
 export default function ContactPageEn() {

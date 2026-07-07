@@ -5,6 +5,13 @@ export const metadata: Metadata = {
   title: "শর্তাবলী | Farmer Kamol",
   description:
     "Farmer Kamol ওয়েবসাইট ব্যবহার, অর্ডার, পেমেন্ট ও ডেলিভারি সংক্রান্ত শর্তাবলী জানুন।",
+  alternates: {
+    canonical: "/terms",
+    languages: {
+      bn: "/terms",
+      en: "/en/terms",
+    },
+  },
 };
 
 const sections = [

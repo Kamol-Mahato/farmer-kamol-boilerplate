@@ -5,6 +5,13 @@ export const metadata: Metadata = {
   title: "গোপনীয়তা নীতি | Farmer Kamol",
   description:
     "Farmer Kamol আপনার ব্যক্তিগত তথ্য কীভাবে সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখে — জানুন আমাদের সম্পূর্ণ গোপনীয়তা নীতিতে।",
+  alternates: {
+    canonical: "/privacy-policy",
+    languages: {
+      bn: "/privacy-policy",
+      en: "/en/privacy-policy",
+    },
+  },
 };
 
 const sections = [

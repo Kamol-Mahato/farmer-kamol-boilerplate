@@ -13,7 +13,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${blog.titleEn} | Farmer Kamol Blog`,
     description: (blog.contentEn || "").slice(0, 160),
-    alternates: { canonical: `/en/blog/${blog.slugEn}` },
+    alternates: {
+      canonical: `/en/blog/${blog.slugEn}`,
+      languages: {
+        bn: `/blog/${blog.slug}`,
+        en: `/en/blog/${blog.slugEn}`,
+      },
+    },
   }
 }
 

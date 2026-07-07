@@ -8,7 +8,13 @@ export async function generateMetadata() {
     title: "Farming Blog - Livestock, Poultry & Crop Cultivation | Farmer Kamol",
     description:
       "Read real experiences and guides on livestock rearing, poultry farming, crop cultivation, and farm stories on the Farmer Kamol blog.",
-    alternates: { canonical: "/en/blog" },
+    alternates: {
+      canonical: "/en/blog",
+      languages: {
+        bn: "/blog",
+        en: "/en/blog",
+      },
+    },
   }
 }
 

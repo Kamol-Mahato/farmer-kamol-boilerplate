@@ -5,7 +5,13 @@ export const metadata: Metadata = {
   title: "Return Policy | Farmer Kamol",
   description:
     "Learn about Farmer Kamol's return, exchange, and refund policy for honey, ghee, mustard oil, and duck chicks.",
-  alternates: { canonical: "/en/return-policy" },
+  alternates: {
+    canonical: "/en/return-policy",
+    languages: {
+      bn: "/return-policy",
+      en: "/en/return-policy",
+    },
+  },
 };
 
 const sections = [

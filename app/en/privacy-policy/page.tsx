@@ -5,7 +5,13 @@ export const metadata: Metadata = {
   title: "Privacy Policy | Farmer Kamol",
   description:
     "Learn how Farmer Kamol collects, uses, and protects your personal information — read our full privacy policy.",
-  alternates: { canonical: "/en/privacy-policy" },
+  alternates: {
+    canonical: "/en/privacy-policy",
+    languages: {
+      bn: "/privacy-policy",
+      en: "/en/privacy-policy",
+    },
+  },
 };
 
 const sections = [

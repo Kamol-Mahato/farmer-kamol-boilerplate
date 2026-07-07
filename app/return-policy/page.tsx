@@ -5,6 +5,13 @@ export const metadata: Metadata = {
   title: "রিটার্ন পলিসি | Farmer Kamol",
   description:
     "Farmer Kamol-এর মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চার রিটার্ন, এক্সচেঞ্জ ও রিফান্ড নীতি জানুন।",
+  alternates: {
+    canonical: "/return-policy",
+    languages: {
+      bn: "/return-policy",
+      en: "/en/return-policy",
+    },
+  },
 };
 
 const sections = [
