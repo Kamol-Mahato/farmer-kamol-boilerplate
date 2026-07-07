@@ -1,4 +1,3 @@
-// TODO: translate to English
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -9,7 +8,7 @@ interface User {
   phone: string;
 }
 
-export default function LoginPage() {
+export default function LoginPageEn() {
   const router = useRouter()
   const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
@@ -47,7 +46,7 @@ export default function LoginPage() {
     setForgotError("")
     setForgotMsg("")
     if (!forgotPhone) {
-      setForgotError("মোবাইল নম্বর দিন")
+      setForgotError("Enter your mobile number")
       return
     }
     setForgotLoading(true)
@@ -59,16 +58,17 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setForgotError(data.error || "সমস্যা হয়েছে")
+        setForgotError(data.error || "Something went wrong")
         return
       }
       setForgotMsg(data.message)
     } catch {
-      setForgotError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
+      setForgotError("Something went wrong, please try again")
     } finally {
       setForgotLoading(false)
     }
   }
+
   async function handleLogin() {
     setLoading(true)
     setError("")
@@ -80,7 +80,7 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || "লগইন ব্যর্থ হয়েছে")
+        setError(data.error || "Login failed")
         setLoading(false)
         return
       }
@@ -91,7 +91,7 @@ export default function LoginPage() {
       router.push("/en/customer/dashboard")
     } catch (err) {
       console.error(err)
-      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
+      setError("Something went wrong, please try again")
       setLoading(false)
     }
   }
@@ -101,10 +101,8 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-green-800">Farmer Kamol</h1>
-          <p className="text-sm text-yellow-600 mt-1">খামার থেকে আপনার দরজায়</p>
+          <p className="text-sm text-yellow-600 mt-1">From Our Farm To Your Door</p>
         </div>
-
-        {/* লগইন করা থাকলে */}
         {user ? (
           <div className="text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -123,35 +121,32 @@ export default function LoginPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-1">আমার অ্যাকাউন্ট</h2>
-            <p className="text-gray-600 text-sm mb-6">মোবাইল: {user.phone}</p>
-
+            <h2 className="text-xl font-bold text-gray-800 mb-1">My Account</h2>
+            <p className="text-gray-600 text-sm mb-6">Mobile: {user.phone}</p>
             <div className="flex flex-col gap-3">
               <button
                 type="button"
                 onClick={() => router.push("/en/customer/dashboard")}
                 className="w-full bg-green-700 text-white py-3 rounded-lg font-bold text-base touch-manipulation active:scale-[0.98] transition-all"
               >
-                ড্যাশবোর্ডে যান
+                Go to Dashboard
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
                 className="w-full bg-red-50 text-red-600 py-3 rounded-lg font-bold text-base border border-red-200 touch-manipulation active:scale-[0.98] transition-all"
               >
-                লগআউট করুন
+                Log Out
               </button>
             </div>
           </div>
         ) : (
           <>
-            <h2 className="text-xl font-bold text-gray-800 mb-6">লগইন করুন</h2>
-
-            {/* form এ onSubmit নেই */}
+            <h2 className="text-xl font-bold text-gray-800 mb-6">Login</h2>
             <form onSubmit={(e) => e.preventDefault()}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  মোবাইল নম্বর
+                  Mobile Number
                 </label>
                 <input
                   type="tel"
@@ -164,20 +159,20 @@ export default function LoginPage() {
                 {phone.length > 0 && (
                   <p className={`text-xs mt-1.5 ${/^01[3-9]\d{8}$/.test(phone) ? "text-green-600" : "text-orange-600"}`}>
                     {/^01[3-9]\d{8}$/.test(phone)
-                      ? "✓ সঠিক ফরম্যাট"
-                      : `আরও ${11 - phone.length > 0 ? 11 - phone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)`}
+                      ? "✓ Valid format"
+                      : `Enter ${11 - phone.length > 0 ? 11 - phone.length : 0} more digit(s) (11 digits total)`}
                   </p>
                 )}
               </div>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  পাসওয়ার্ড
+                  Password
                 </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     required
-                    placeholder="পাসওয়ার্ড দিন"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
@@ -206,7 +201,6 @@ export default function LoginPage() {
                   {error}
                 </p>
               )}
-              {/* type="button" — form submit এর বাইরে */}
               <button
                 type="button"
                 onClick={handleLogin}
@@ -239,14 +233,13 @@ export default function LoginPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    <span>লগইন হচ্ছে...</span>
+                    <span>Logging in...</span>
                   </>
                 ) : (
-                  "লগইন করুন"
+                  "Login"
                 )}
               </button>
               </form>
-            {/* পাসওয়ার্ড ভুলে গেছেন */}
             <p className="text-center text-sm mt-4">
               <button
                 type="button"
@@ -258,7 +251,7 @@ export default function LoginPage() {
                 }}
                 className="text-yellow-700 font-medium hover:underline"
               >
-                পাসওয়ার্ড ভুলে গেছেন?
+                Forgot password?
               </button>
             </p>
             {showForgot && (
@@ -268,7 +261,7 @@ export default function LoginPage() {
                 ) : (
                   <>
                     <p className="text-gray-600 text-xs mb-2">
-                      আপনার মোবাইল নম্বর দিন, আমরা সাহায্য করব
+                      Enter your mobile number and we'll help you out
                     </p>
                     <input
                       type="tel"
@@ -279,7 +272,7 @@ export default function LoginPage() {
                     />
                     {forgotPhone.length > 0 && !/^01[3-9]\d{8}$/.test(forgotPhone) && (
                       <p className="text-orange-600 text-xs mb-2">
-                        আরও {11 - forgotPhone.length > 0 ? 11 - forgotPhone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)
+                        Enter {11 - forgotPhone.length > 0 ? 11 - forgotPhone.length : 0} more digit(s) (11 digits total)
                       </p>
                     )}
                     {forgotError && (
@@ -291,21 +284,21 @@ export default function LoginPage() {
                       disabled={forgotLoading || !/^01[3-9]\d{8}$/.test(forgotPhone)}
                       className="w-full bg-yellow-500 text-white py-2 rounded-lg font-bold text-sm hover:bg-yellow-400 transition disabled:opacity-50"
                     >
-                      {forgotLoading ? "পাঠানো হচ্ছে..." : "রিকোয়েস্ট পাঠান"}
+                      {forgotLoading ? "Sending..." : "Send Request"}
                     </button>
                   </>
                 )}
                 <p className="text-center text-xs text-gray-500 mt-3 pt-3 border-t border-yellow-200">
                   <Link href="/en/reset-password" className="hover:underline font-medium">
-                    কোড পেয়েছেন? পাসওয়ার্ড সেট করুন
+                    Got a code? Set your password
                   </Link>
                 </p>
               </div>
             )}
             <p className="text-center text-sm text-gray-500 mt-6">
-              নতুন গ্রাহক?{" "}
+              New customer?{" "}
               <Link href="/en/register" className="text-green-700 font-bold hover:underline">
-                অ্যাকাউন্ট তৈরি করুন
+                Create an Account
               </Link>
             </p>
           </>

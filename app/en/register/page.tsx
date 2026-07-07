@@ -1,10 +1,9 @@
-// TODO: translate to English
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-export default function RegisterPage() {
+export default function RegisterPageEn() {
   const router = useRouter()
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
@@ -31,23 +30,23 @@ export default function RegisterPage() {
   async function handleRegister() {
     if (loading) return
     if (!name || !phone || !password || !confirmPassword) {
-        setError("সব ঘর পূরণ করুন")
+        setError("Please fill in all fields")
         return
       }
       if (!/^01[3-9]\d{8}$/.test(phone)) {
-        setError("সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)")
+        setError("Enter a valid 11-digit mobile number (e.g. 017XXXXXXXX)")
         return
       }
       if (password.length < 4) {
-      setError("পাসওয়ার্ড কমপক্ষে ৪ ডিজিট/অক্ষর হতে হবে")
+      setError("Password must be at least 4 characters")
       return
     }
     if (password !== confirmPassword) {
-      setError("পাসওয়ার্ড মিলছে না")
+      setError("Passwords do not match")
       return
     }
     if (parseInt(captchaAnswer) !== captchaNums.a + captchaNums.b) {
-      setError("যাচাইকরণের উত্তরটি সঠিক না, আবার চেষ্টা করুন")
+      setError("Verification answer is incorrect, please try again")
       generateCaptcha()
       return
     }
@@ -61,7 +60,7 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || "অ্যাকাউন্ট তৈরি করা যায়নি")
+        setError(data.error || "Could not create account")
         setLoading(false)
         generateCaptcha()
         return
@@ -72,7 +71,7 @@ export default function RegisterPage() {
       router.push("/en/customer/dashboard")
     } catch (err) {
       console.error(err)
-      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
+      setError("Something went wrong, please try again")
       setLoading(false)
     }
   }
@@ -82,23 +81,23 @@ export default function RegisterPage() {
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-green-800">Farmer Kamol</h1>
-          <p className="text-sm text-yellow-600 mt-1">খামার থেকে আপনার দরজায়</p>
+          <p className="text-sm text-yellow-600 mt-1">From Our Farm To Your Door</p>
         </div>
-        <h2 className="text-xl font-bold text-gray-800 mb-6">নতুন অ্যাকাউন্ট খুলুন</h2>
+        <h2 className="text-xl font-bold text-gray-800 mb-6">Create an Account</h2>
         <form onSubmit={(e) => e.preventDefault()}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">নাম</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
             <input
               type="text"
               required
-              placeholder="আপনার নাম লিখুন"
+              placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">মোবাইল নম্বর</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
             <input
               type="tel"
               required
@@ -110,18 +109,18 @@ export default function RegisterPage() {
             {phone.length > 0 && (
   <p className={`text-xs mt-1.5 ${/^01[3-9]\d{8}$/.test(phone) ? "text-green-600" : "text-orange-600"}`}>
     {/^01[3-9]\d{8}$/.test(phone)
-      ? "✓ সঠিক ফরম্যাট"
-      : `আরও ${11 - phone.length > 0 ? 11 - phone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)`}
+      ? "✓ Valid format"
+      : `Enter ${11 - phone.length > 0 ? 11 - phone.length : 0} more digit(s) (11 digits total)`}
   </p>
 )}
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="পাসওয়ার্ড দিন"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
@@ -143,15 +142,15 @@ export default function RegisterPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-1">কমপক্ষে ৪ ডিজিট/অক্ষর দিতে হবে</p>
+            <p className="text-xs text-gray-400 mt-1">Must be at least 4 characters</p>
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">পাসওয়ার্ড আবার লিখুন</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 required
-                placeholder="পাসওয়ার্ড আবার লিখুন"
+                placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
@@ -175,19 +174,18 @@ export default function RegisterPage() {
             </div>
             {confirmPassword.length > 0 && (
               <p className={`text-xs mt-1.5 flex items-center gap-1 ${password === confirmPassword ? "text-green-600" : "text-red-500"}`}>
-                {password === confirmPassword ? "✓ পাসওয়ার্ড মিলেছে" : "✗ পাসওয়ার্ড মিলছে না"}
+                {password === confirmPassword ? "✓ Passwords match" : "✗ Passwords do not match"}
               </p>
             )}
           </div>
-          {/* 🔐 সহজ ম্যাথ ক্যাপচা — স্প্যাম/বট আটকানোর জন্য */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              যাচাইকরণ: {captchaNums.a} + {captchaNums.b} = ?
+              Verification: {captchaNums.a} + {captchaNums.b} = ?
             </label>
             <input
               type="number"
               required
-              placeholder="উত্তর লিখুন"
+              placeholder="Enter the answer"
               value={captchaAnswer}
               onChange={(e) => setCaptchaAnswer(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
@@ -208,13 +206,13 @@ export default function RegisterPage() {
                        disabled:opacity-60 disabled:pointer-events-none
                        flex items-center justify-center gap-3"
           >
-            {loading ? "অ্যাকাউন্ট তৈরি হচ্ছে..." : "অ্যাকাউন্ট তৈরি করুন"}
+            {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
         <p className="text-center text-sm text-gray-500 mt-6">
-          আগে থেকেই অ্যাকাউন্ট আছে?{" "}
+          Already have an account?{" "}
           <Link href="/en/login" className="text-green-700 font-bold hover:underline">
-            লগইন করুন
+            Login
           </Link>
         </p>
       </div>
