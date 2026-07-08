@@ -3,6 +3,7 @@ import { Hind_Siliguri } from "next/font/google"
 import ConditionalLayout from "./components/ConditionalLayout"
 import OrganizationSchema from "./components/OrganizationSchema"
 import "./globals.css"
+import { headers } from "next/headers"
 
 const hindSiliguri = Hind_Siliguri({
   weight: ["300", "400", "500", "600", "700"],
@@ -47,13 +48,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const headersList = await headers()
+  const pathname = headersList.get("x-pathname") || ""
+  const lang = pathname.startsWith("/en") ? "en" : "bn"
+
   return (
-    <html lang="bn">
+    <html lang={lang}>
       <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
         <OrganizationSchema />
         <ConditionalLayout>{children}</ConditionalLayout>

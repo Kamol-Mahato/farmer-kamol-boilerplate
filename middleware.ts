@@ -21,40 +21,46 @@ const AGENT_ALLOWED_PREFIXES = [
   "/api/agent",
 ]
 
+// শুধু এই prefix গুলোতেই admin/agent auth চেক হবে — বাকি কোনো পেজে auth চেক হবে না
+const ADMIN_AGENT_PREFIXES = ["/api/admin", "/admin", "/agent", "/api/agent"]
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
-  const isApiRoute = path.startsWith("/api/")
+  const isAdminOrAgentRoute = ADMIN_AGENT_PREFIXES.some((p) => path.startsWith(p))
 
-  if (PUBLIC_PATHS.some((p) => path.startsWith(p))) {
-    return NextResponse.next()
-  }
+  if (isAdminOrAgentRoute) {
+    const isApiRoute = path.startsWith("/api/")
 
-  const isAgentAllowed = AGENT_ALLOWED_PREFIXES.some((p) => path.startsWith(p))
-
-  const user = isAgentAllowed
-    ? await verifyAdminOrAgent()
-    : await verifyAdminOnly()
-
-  if (!user) {
-    if (isApiRoute) {
-      return NextResponse.json(
-        { error: "অনুমতি নেই, দয়া করে লগইন করুন" },
-        { status: 401 }
-      )
+    if (PUBLIC_PATHS.some((p) => path.startsWith(p))) {
+      return NextResponse.next()
     }
-    const loginPath = path.startsWith("/agent") ? "/agent/login" : "/admin/login"
-    return NextResponse.redirect(new URL(loginPath, request.url))
+
+    const isAgentAllowed = AGENT_ALLOWED_PREFIXES.some((p) => path.startsWith(p))
+    const user = isAgentAllowed
+      ? await verifyAdminOrAgent()
+      : await verifyAdminOnly()
+
+    if (!user) {
+      if (isApiRoute) {
+        return NextResponse.json(
+          { error: "অনুমতি নেই, দয়া করে লগইন করুন" },
+          { status: 401 }
+        )
+      }
+      const loginPath = path.startsWith("/agent") ? "/agent/login" : "/admin/login"
+      return NextResponse.redirect(new URL(loginPath, request.url))
+    }
   }
 
-  return NextResponse.next()
+  // 🌐 প্রতিটা পেজের path root layout-কে জানিয়ে দেওয়া হচ্ছে,
+  // যাতে EN পেজে lang="en" আর BN পেজে lang="bn" ঠিকভাবে বসে
+  const response = NextResponse.next()
+  response.headers.set("x-pathname", path)
+  return response
 }
 
 export const config = {
-  // শুধু admin ও agent-এর রুটেই middleware চলবে — বাকি সব পেজ (shop, cart, blog, en/* ইত্যাদি) স্বাভাবিকভাবে চলবে
   matcher: [
-    "/api/admin/:path*", 
-    "/admin/:path*", 
-    "/agent/:path*", 
-    "/api/agent/:path*"
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|manifest.json|robots.txt|sitemap.xml|images|uploads).*)"
   ],
 }

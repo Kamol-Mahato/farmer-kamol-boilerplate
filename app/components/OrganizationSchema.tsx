@@ -45,7 +45,7 @@ export default function OrganizationSchema() {
       paymentAccepted: "Cash on Delivery, bKash, Nagad",
       currenciesAccepted: "BDT",
       areaServed: "Bangladesh",
-      knowsLanguage: "bn",
+      knowsLanguage: ["bn", "en"],
 
     }
 
