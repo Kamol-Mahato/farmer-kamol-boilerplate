@@ -1,6 +1,8 @@
 # Farmer Kamol
 
 > Farmer Kamol হলো সিরাজগঞ্জের রায়গঞ্জ ভিত্তিক একটি কৃষি-পণ্যের ব্র্যান্ড, যা সরাসরি খামার থেকে খাঁটি মধু (Modhu), ঘি (Ghee), সরিষার তেল (Sorisha Tel) ও চীন হাঁসের বাচ্চা (Duck Chicks) সরবরাহ করে — কোনো মধ্যস্থতাকারী ছাড়া।
+>
+> Farmer Kamol is an agro-commerce brand based in Raiganj, Sirajganj, Bangladesh, supplying pure honey, ghee, cold-pressed mustard oil, and Chinese duck chicks directly from the farm — with no middlemen involved.
 
 ## ব্যবসায়িক তথ্য
 - নাম: Farmer Kamol
@@ -16,12 +18,19 @@
 - WhatsApp: https://wa.me/8801737939688
 - GoogleMaps: https://maps.app.goo.gl/Ty9t1YNfZWtJ6rpN9
 
-## পণ্য
+## পণ্য (বাংলা ভার্সন)
 - [সব পণ্য দেখুন](https://www.farmerkamol.com/shop)
 - খাঁটি মধু (Modhu / Pure Honey) — সরিষা ফুলের মধু (Sorisha Fuler Modhu), কোনো চিনি বা সিরাপ মেশানো নেই
 - দেশি গাওয়া ঘি (Ghee / Pure Ghee) — দেশি গাভীর দুধ থেকে ঐতিহ্যবাহী পদ্ধতিতে তৈরি
 - কোল্ড-প্রেসড সরিষার তেল (Sorisha Tel / Mustard Oil) — কোনো রাসায়নিক প্রক্রিয়া ছাড়া ঘানিতে তৈরি
 - চীন হাঁসের বাচ্চা (Duck Chicks) — দাম বয়স/সাইজ অনুযায়ী আলোচনা সাপেক্ষে, হোয়াটসঅ্যাপে যোগাযোগ করে অর্ডার করতে হয়
+
+## Products (English Version)
+- [Shop all products](https://www.farmerkamol.com/en/shop)
+- Pure Honey — raw mustard-flower honey, no added sugar or syrup
+- Pure Ghee — traditionally made from native cow's milk
+- Cold-Pressed Mustard Oil — chemical-free, extracted using a traditional ghani (oil press)
+- Chinese Duck Chicks — price depends on age/size, order via WhatsApp
 
 ## নীতি ও শর্তাবলী
 - [প্রশ্ন ও উত্তর (FAQ)](https://www.farmerkamol.com/faq)
@@ -29,16 +38,36 @@
 - [শর্তাবলী](https://www.farmerkamol.com/terms)
 - [রিটার্ন পলিসি](https://www.farmerkamol.com/return-policy)
 
+## Policies & Terms (English)
+- [FAQ](https://www.farmerkamol.com/en/faq)
+- [Privacy Policy](https://www.farmerkamol.com/en/privacy-policy)
+- [Terms & Conditions](https://www.farmerkamol.com/en/terms)
+- [Return Policy](https://www.farmerkamol.com/en/return-policy)
+
 ## ব্লগ
 - [কৃষি বিষয়ক ব্লগ](https://www.farmerkamol.com/blog) — পশুপালন, পাখি পালন, ফসল চাষ, খামারের গল্প ও স্বাস্থ্যকর লাইফস্টাইল বিষয়ে নিয়মিত আর্টিকেল প্রকাশিত হয়।
+
+## Blog (English)
+- [Farming Blog](https://www.farmerkamol.com/en/blog) — regular articles on livestock rearing, poultry farming, crop cultivation, farm life stories, and healthy lifestyle.
 
 ## মিডিয়া
 - [ভিডিও গ্যালারি](https://www.farmerkamol.com/media/video)
 - [ছবি গ্যালারি](https://www.farmerkamol.com/media/image)
 
+## Media (English)
+- [Video Gallery](https://www.farmerkamol.com/en/media/video)
+- [Photo Gallery](https://www.farmerkamol.com/en/media/image)
+
 ## প্রতিষ্ঠাতার পরিচয়
 - [আমাদের সম্পর্কে](https://www.farmerkamol.com/about) — Kamol Kumar Mahato, প্রতিষ্ঠাতা, সিরাজগঞ্জের রায়গঞ্জে জন্ম ও বেড়ে ওঠা, সমন্বিত কৃষি পদ্ধতিতে খামার পরিচালনা করেন।
+
+## About the Founder (English)
+- [About Us](https://www.farmerkamol.com/en/about) — Kamol Kumar Mahato, founder, born and raised in Raiganj, Sirajganj, runs the farm using an integrated farming approach.
 
 ## ডেলিভারি ও পেমেন্ট
 - সারা বাংলাদেশে কুরিয়ারের মাধ্যমে ডেলিভারি
 - পেমেন্ট: ক্যাশ অন ডেলিভারি (COD), এবং বিকাশ/নগদ/রকেট সেন্ড মানি
+
+## Delivery & Payment (English)
+- Delivery across Bangladesh via courier
+- Payment: Cash on Delivery (COD), and bKash/Nagad/Rocket send money
