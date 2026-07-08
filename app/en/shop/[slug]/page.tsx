@@ -77,6 +77,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       displayDescription ||
       `${displayName} — straight from the Farmer Kamol farm in Sirajganj.`,
     sku: product.slug,
+    category: displayCategory,
+    alternateName: product.nameBanglish || undefined,
     brand: {
       "@type": "Brand",
       name: "Farmer Kamol",

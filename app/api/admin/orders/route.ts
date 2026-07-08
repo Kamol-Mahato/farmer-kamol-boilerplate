@@ -164,6 +164,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true, message: "অর্ডার ডিলিট হয়েছে এবং স্টক ফিরিয়ে দেওয়া হয়েছে" })
   } catch (error: any) {
     console.error("DELETE ORDER ERROR ->", error)
-    return NextResponse.json({ error: error?.message || "ডিলিট করা যায়নি" }, { status: 500 })
+   return NextResponse.json({ error: "ডিলিট করা যায়নি" }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
+import { sanitizeHtml } from "@/lib/sanitize"
 
 export async function GET() {
   const isAuthorized = await verifyAdminOrAgent()
@@ -62,8 +63,8 @@ export async function POST(request: Request) {
         nameEn: nameEn || null,
         slugEn: slugEn || null,
         nameBanglish: nameBanglish || null,
-        description,
-        descriptionEn: descriptionEn || null,
+        description: description ? sanitizeHtml(description) : description,
+        descriptionEn: descriptionEn ? sanitizeHtml(descriptionEn) : null,
         categoryId: categoryId || null,
         pricePerUnit,
         discountPrice,

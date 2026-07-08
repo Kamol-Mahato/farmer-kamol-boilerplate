@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("GALLERY CREATE ERROR ->", error)
     return NextResponse.json(
-      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
+      { error: "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }
@@ -65,7 +65,7 @@ export async function GET() {
   } catch (error: any) {
     console.error("GALLERY FETCH ERROR ->", error)
     return NextResponse.json(
-      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
+      { error: "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }

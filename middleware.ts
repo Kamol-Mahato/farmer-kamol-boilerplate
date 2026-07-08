@@ -50,13 +50,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // আগের ম্যাচের সাথে নেক্সট জেসের স্ট্যাটিক ফাইল এবং manifest ফাইলগুলোকে মিডলওয়্যার থেকে পুরোপুরি এক্সক্লুড (বাদ) করা হলো
+  // শুধু admin ও agent-এর রুটেই middleware চলবে — বাকি সব পেজ (shop, cart, blog, en/* ইত্যাদি) স্বাভাবিকভাবে চলবে
   matcher: [
     "/api/admin/:path*", 
     "/admin/:path*", 
     "/agent/:path*", 
-    "/api/agent/:path*",
-    // এই নিচের রুলটি নিশ্চিত করবে যেন manifest বা স্ট্যাটিক কোনো ফাইল মিডলওয়্যারে আটকে রিডাইরেক্ট লুপ না তৈরি করে
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|manifest.json|robots.txt|images|uploads).*)"
+    "/api/agent/:path*"
   ],
 }

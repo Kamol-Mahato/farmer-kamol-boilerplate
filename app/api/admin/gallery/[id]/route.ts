@@ -19,7 +19,7 @@ export async function GET(
   } catch (error: any) {
     console.error("GALLERY GET ONE ERROR ->", error)
     return NextResponse.json(
-      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
+      { error: "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }
@@ -70,7 +70,7 @@ export async function PUT(
   } catch (error: any) {
     console.error("GALLERY UPDATE ERROR ->", error)
     return NextResponse.json(
-      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
+      { error: "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }
@@ -89,7 +89,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error("GALLERY DELETE ERROR ->", error)
     return NextResponse.json(
-      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
+      { error: "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }

@@ -65,6 +65,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       product.description ||
       `${product.name} — Farmer Kamol থেকে সরাসরি খামার থেকে, সিরাজগঞ্জ।`,
     sku: product.slug,
+    category: product.category?.name,
+    alternateName: product.nameBanglish || undefined,
     brand: {
       "@type": "Brand",
       name: "Farmer Kamol",

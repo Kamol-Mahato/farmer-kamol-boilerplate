@@ -161,7 +161,7 @@ export async function POST(request: Request) {
     }
     console.error("CRITICAL ORDER API ERROR DETAILS ->", error)
     return NextResponse.json(
-      { error: error?.message || "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
+      { error: "ডাটাবেস বা সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }

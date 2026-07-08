@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { sanitizeHtml } from "@/lib/sanitize"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -28,8 +29,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         nameEn: body.nameEn || null,
         slugEn: body.slugEn || null,
         nameBanglish: body.nameBanglish || null,
-        description: body.description,
-        descriptionEn: body.descriptionEn || null,
+        description: body.description ? sanitizeHtml(body.description) : body.description,
+        descriptionEn: body.descriptionEn ? sanitizeHtml(body.descriptionEn) : null,
         categoryId: body.categoryId || null,
         pricePerUnit: body.pricePerUnit,
         discountPrice: body.discountPrice,

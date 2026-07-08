@@ -60,7 +60,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("CONFIRM PAYMENT API ERROR ->", error)
     return NextResponse.json(
-      { error: error?.message || "সার্ভারে সমস্যা হয়েছে" },
+      { error: "সার্ভারে সমস্যা হয়েছে" },
       { status: 500 }
     )
   }
