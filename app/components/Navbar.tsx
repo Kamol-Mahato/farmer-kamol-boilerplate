@@ -139,32 +139,28 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/50 z-[70] md:hidden" onClick={() => closeSidebar()} />
       )}
-      <div className={`fixed top-0 left-0 h-auto max-h-[85vh] overflow-y-auto w-64 bg-green-800 rounded-br-2xl z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="flex items-center justify-between p-4 border-b border-green-700">
-          <Link href={href("/")} className="flex items-center gap-2" onClick={() => closeSidebarForNav()}>
-            <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={40} height={40} priority className="w-10 h-10 rounded-full object-cover border-2 border-white-400" />
-            <div className="flex flex-col leading-tight">
-              <span className="text-sm font-extrabold text-white drop-shadow-lg">Farmer Kamol</span>
-              <span className="text-xs text-yellow-300">খামার থেকে আপনার দরজায়</span>
-            </div>
+      <div className={`fixed top-0 left-0 h-auto max-h-[85vh] overflow-y-auto w-56 bg-green-800 rounded-br-2xl z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className="flex items-center justify-between p-3 border-b border-green-700">
+          <Link href={href("/")} className="flex items-center" onClick={() => closeSidebarForNav()}>
+            <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={44} height={44} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400" />
           </Link>
           <button onClick={() => { closeSidebar(); setOpenMobileMenu(null) }} className="text-white text-2xl">✕</button>
         </div>
-        <div className="p-4 flex flex-col gap-2">
+        <div className="p-2 flex flex-col gap-2">
           {menus.map(menu => (
             <div key={menu.id}>
               <div className="w-full flex justify-between items-center bg-green-800 rounded-full hover:bg-yellow-400 transition">
                 <Link
                   href={menu.url}
                   onClick={() => closeSidebarForNav()}
-                  className="flex-1 text-left px-4 py-2 text-white text-lg font-medium hover:text-green-900 transition"
+                  className="flex-1 text-left px-4 py-1 text-white text-sm font-medium hover:text-green-900 transition"
                 >
                   {translateTitle(menu)}
                 </Link>
                 {menu.subMenus.length > 0 && (
                   <button
                     onClick={() => setOpenMobileMenu(openMobileMenu === menu.id ? null : menu.id)}
-                    className="px-4 py-2 text-white hover:text-green-900 transition"
+                    className="px-4 py-1 text-white hover:text-green-900 transition"
                   >
                     {openMobileMenu === menu.id ? "▴" : "▾"}
                   </button>
@@ -186,7 +182,7 @@ export default function Navbar() {
           ))}
         </div>
       </div>
-      <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-2 px-3 md:px-6 shadow-md z-50 transition-all duration-300">
+      <nav className="fixed top-8 left-0 w-full bg-green-800/90 backdrop-blur-md text-white py-0.5 md:py-2 px-3 md:px-6 shadow-md z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <button className="md:hidden text-white text-2xl" onClick={openSidebar}>☰</button>
