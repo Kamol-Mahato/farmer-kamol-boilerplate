@@ -238,15 +238,15 @@ export default function Navbar() {
           </div>
           
           <div className="flex items-center gap-1.5 xs:gap-2 flex-nowrap shrink-0">
-            {/* 🌐 মোবাইলের জন্য গোল ওয়ার্ল্ড ল্যাঙ্গুয়েজ আইকন বাটন (শুধু মোবাইলে দেখাবে) */}
+            {/* 🌐 মোবাইলের জন্য প্রফেশনাল ল্যাঙ্গুয়েজ বক্স বাটন (শুধু মোবাইলে দেখাবে) */}
 <Link
   href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
-  className="flex md:hidden items-center justify-center p-1 text-white active:scale-95 transition shrink-0 mr--2"
+  className="flex md:hidden items-center justify-center px-2.5 py-1 text-xs font-semibold tracking-wide text-white border border-white/20 rounded-md bg-white/10 backdrop-blur-sm active:scale-95 hover:bg-white/20 transition duration-200 shrink-0 -mr-1"
   aria-label="Language Switch"
   title={t.langSwitch}
 >
-  {/* ব্যাকগ্রাউন্ড ও বর্ডার ছাড়া শুধু প্লেইন বড় আইকন */}
-  <span className="text-2xl leading-none">🌐</span>
+  {/* বর্তমান ভাষার বিপরীত ভাষাটি বক্সে দেখাবে (যেমন: বাংলা থাকলে EN, ইংরেজি থাকলে বাং) */}
+  {locale === "bn" ? "EN" : "বাং"}
 </Link>
 
             {/* 📊 পিসির জন্য এক্সেল স্টাইল টগল বাটন (মোবাইলে হাইড থাকবে) */}

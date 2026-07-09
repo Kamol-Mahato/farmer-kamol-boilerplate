@@ -66,8 +66,8 @@ export default function Footer() {
               {/* টেক্সট কালার ডার্ক গ্রিন করা হয়েছে যাতে লাইট ব্যাকগ্রাউন্ডে ফুটে ওঠে */}
               <h4 className="text-lg font-bold text-green-900">Farmer Kamol</h4>
             </Link>
-            <p className="text-sm text-amber-600 mb-2 font-bold">{t.slogan}</p>
-            <p className="text-sm text-gray-600 mb-4">{t.description}</p>
+            <p className="text-sm text-amber-700 mb-2 font-bold">{t.slogan}</p>
+            <p className="text-sm text-black mb-4">{t.description}</p>
 
             <div className="flex flex-wrap gap-2">
               <a href="https://facebook.com/farmerkamol" target="_blank"
@@ -112,7 +112,7 @@ export default function Footer() {
 
           <div>
             <h4 className="font-bold mb-3 text-sm text-green-900">{t.productsHeading}</h4>
-            <div className="flex flex-col gap-1.5 text-sm text-gray-600">
+            <div className="flex flex-col gap-1.5 text-sm text-black">
               {t.products.map((p) => (
                 <Link key={p} href={href("/shop")} className="hover:text-green-700 transition">{p}</Link>
               ))}
@@ -121,8 +121,8 @@ export default function Footer() {
 
           <div>
             <h4 className="font-bold mb-3 text-sm text-green-900">{t.serviceHeading}</h4>
-            <div className="flex flex-col gap-1.5 text-sm text-gray-600">
-              <Link href={href("/customer/dashboard")} className="hover:text-green-700 transition">{t.trackOrder}</Link>
+            <div className="flex flex-col gap-1.5 text-sm text-black">
+              <Link href={href("/customer/dashboard")}className="hover:text-green-700 transition">{t.trackOrder}</Link>
               <Link href={href("/return-policy")} className="hover:text-green-700 transition">{t.returnPolicy}</Link>
               <Link href={href("/faq")} className="hover:text-green-700 transition">{t.faq}</Link>
               <Link href={href("/contact")} className="hover:text-green-700 transition">{t.contact}</Link>
@@ -130,8 +130,8 @@ export default function Footer() {
           </div>
 
           <div className="col-span-2 md:col-span-1">
-            <h4 className="font-bold mb-3 text-sm text-green-900">{t.farmHeading}</h4>
-            <div className="flex flex-col gap-1.5 text-sm text-gray-600">
+          <h4 className="font-bold mb-3 text-sm text-green-900">{t.farmHeading}</h4>
+            <div className="flex flex-col gap-1.5 text-sm text-black">
               <a href="https://maps.app.goo.gl/vsE66z72VEgxzNM68" target="_blank" className="hover:text-green-700 transition">
                 {t.location}
               </a>

@@ -131,12 +131,12 @@ export default function FloatingCartButton() {
     <Link
       ref={btnRef}
       href={localizeHref("/cart", locale)}
-      className={`fixed right-3 sm:right-4 top-1/2 z-[60] bg-green-700 hover:bg-green-600 text-white w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-xl transition-opacity duration-[3000ms] ease-in-out ${
+      className={`fixed right-3 sm:right-4 top-1/2 z-[60] bg-green-700 hover:bg-green-600 text-white w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl transition-opacity duration-[3000ms] ease-in-out ${
         cartCount === 0 && !isVisible ? "opacity-30" : "opacity-100"
       }`}
       aria-label={locale === "en" ? "Go to cart" : "কার্টে যান"}
     >
-      <ShoppingCart className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.2} />
+      <ShoppingCart className="w-5 h-5 sm:w-7 sm:h-7" strokeWidth={2.2} />
       {cartCount > 0 && (
         <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-extrabold min-w-[18px] h-[18px] px-0.5 rounded-full flex items-center justify-center border-2 border-white">
           {cartCount > 99 ? "99+" : cartCount}
@@ -144,12 +144,12 @@ export default function FloatingCartButton() {
       )}
       {cartCount === 0 && (
         <button
-          onClick={handleClose}
-          aria-label={locale === "en" ? "Close" : "বন্ধ করুন"}
-          className="absolute -top-2 -left-2 w-5 h-5 sm:w-6 sm:h-6 bg-gray-700 text-white rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
-        >
-          <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
-        </button>
+        onClick={handleClose}
+        aria-label={locale === "en" ? "Close" : "বন্ধ করুন"}
+        className="absolute -top-1 -left-1 w-4.5 h-4.5 sm:w-6 sm:h-6 bg-gray-700 text-white rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
+      >
+        <X className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
+      </button>
       )}
     </Link>
   )
