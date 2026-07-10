@@ -141,6 +141,7 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
 
 function StickerInvoice({ order }: { order: Order }) {
   const customId = generateCustomId(order.createdAt, order.dailySeq)
+  const dueAmount = order.finalCodAmount - order.paymentAmountPaid
   return (
     <div className="invoice-container bg-white p-3 mb-4 border border-gray-200 rounded-xl" style={{ width: "302px" }}>
       <div className="flex items-center gap-2 mb-2">
@@ -150,6 +151,7 @@ function StickerInvoice({ order }: { order: Order }) {
       <div className="border-t border-dashed border-gray-400 my-2" />
       <p className="text-sm font-bold text-gray-800">{order.customer.name}</p>
       <p className="text-sm text-gray-700">{order.customer.phone}</p>
+      <p className="text-sm font-extrabold text-red-600 mt-1">কালেক্ট করুন: ৳ {dueAmount}</p>
       <div className="mt-2 flex justify-center">
         <Barcode value={customId} width={1.2} height={35} fontSize={9} />
       </div>
@@ -190,19 +192,26 @@ function InvoicePage() {
       const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;"
       invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: 20px; padding: ${wrapperPadding};">${el.innerHTML}</div>`
     })
+
+    // 🔒 বাইরের CDN থেকে না টেনে, নিজের পেজে লোড হওয়া CSS ফাইলগুলোই কপি করা হচ্ছে
+    const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .map((link) => `<link rel="stylesheet" href="${(link as HTMLLinkElement).href}">`)
+      .join("\n")
+
     printWindow.document.write(`
       <html>
         <head>
           <title>Invoice</title>
+          ${styleLinks}
           <style>
             body { font-family: sans-serif; padding: ${type === "a4" ? "20px" : "0"}; margin: 0; }
+            .invoice-container { break-inside: avoid; page-break-inside: avoid; }
             @media print {
-              @page { size: ${type === "a4" ? "A4" : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : "0mm"}; }
+              @page { size: ${type === "a4" ? "A4" : type === "sticker" ? "80mm 90mm" : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : type === "sticker" ? "2mm" : "0mm"}; }
               body { -webkit-print-color-adjust: exact; }
-              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; } img { filter: grayscale(100%) contrast(1.2); }" : ""}
+              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
             }
           </style>
-          <script src="https://cdn.tailwindcss.com"></script>
         </head>
         <body>
           ${invoiceHTML}

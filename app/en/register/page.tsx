@@ -120,7 +120,6 @@ export default function RegisterPageEn() {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
@@ -150,7 +149,6 @@ export default function RegisterPageEn() {
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 required
-                placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"

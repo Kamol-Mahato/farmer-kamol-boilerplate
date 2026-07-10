@@ -16,9 +16,9 @@ export async function POST(request: Request) {
       )
     }
 
-    if (password.length < 4) {
+    if (password.length < 6) {
       return NextResponse.json(
-        { error: "পাসওয়ার্ড কমপক্ষে ৪ ডিজিট/অক্ষর হতে হবে" },
+        { error: "পাসওয়ার্ড কমপক্ষে ৬ ডিজিট/অক্ষর হতে হবে" },
         { status: 400 }
       )
     }
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
           {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
             maxAge: 60 * 60 * 24 * 7,
             path: "/",
           }
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
       {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 60 * 60 * 24 * 7,
         path: "/",
       }

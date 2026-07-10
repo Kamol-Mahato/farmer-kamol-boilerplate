@@ -73,7 +73,6 @@ export default function AdminLoginPage() {
             <input
               type="password"
               required
-              placeholder="পাসওয়ার্ড দিন"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500"

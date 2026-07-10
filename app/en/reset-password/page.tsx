@@ -82,7 +82,6 @@ export default function ResetPasswordPageEn() {
             <div className="relative mb-3">
               <input
                 type={showNewPassword ? "text" : "password"}
-                placeholder="New password (at least 6 characters)"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:border-green-400"
@@ -108,7 +107,6 @@ export default function ResetPasswordPageEn() {
             <div className="relative mb-3">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Re-enter new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:border-green-400"

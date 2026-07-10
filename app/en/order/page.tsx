@@ -198,14 +198,12 @@ function OrderForm() {
           type="password"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          placeholder="Password (min. 6 characters)"
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-yellow-400"
         />
         <input
           type="password"
           value={confirm}
           onChange={e => setConfirm(e.target.value)}
-          placeholder="Confirm password"
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-yellow-400"
         />
         {error && <p className="text-red-500 text-xs mb-2">{error}</p>}

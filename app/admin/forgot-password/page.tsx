@@ -186,7 +186,6 @@ export default function ForgotPasswordPage() {
               </label>
               <input
                 type="password"
-                placeholder="নতুন পাসওয়ার্ড দিন"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500"
@@ -198,7 +197,6 @@ export default function ForgotPasswordPage() {
               </label>
               <input
                 type="password"
-                placeholder="আবার দিন"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500"

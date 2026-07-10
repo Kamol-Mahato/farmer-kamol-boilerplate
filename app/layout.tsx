@@ -60,7 +60,7 @@ export default async function RootLayout({
   return (
     <html lang={lang}>
       <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
-        <OrganizationSchema />
+      <OrganizationSchema lang={lang} />
         <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
