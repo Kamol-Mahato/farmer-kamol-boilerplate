@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json(product)
   } catch (error) {
     console.error(error)
-    return NextResponse.json({ error: "সমস্যা হয়েছে", details: String(error) }, { status: 500 })
+    return NextResponse.json({ error: "সমস্যা হয়েছে" }, { status: 500 })
   }
 }
 
@@ -59,6 +59,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json(product)
   } catch (error) {
     console.error(error)
-    return NextResponse.json({ error: "সমস্যা হয়েছে", details: String(error) }, { status: 500 })
+    return NextResponse.json({ error: "সমস্যা হয়েছে" }, { status: 500 })
   }
 }
