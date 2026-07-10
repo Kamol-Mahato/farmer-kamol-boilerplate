@@ -24,11 +24,18 @@ export default function ConditionalLayout({
     return <main className="flex-grow">{children}</main>
   } 
 
-  return (
-    <MobileMenuProvider>
-      <Navbar />
-      <FloatingCartButton />
-      <FloatingWhatsAppButton />
+  // ✅ order/cart পেজে floating cart button দরকার নেই — customer ইতিমধ্যে checkout ফ্লো-তে আছে
+  const hideFloatingCart =
+    pathname === "/order" ||
+    pathname === "/en/order" ||
+    pathname === "/cart" ||
+    pathname === "/en/cart"
+
+    return (
+      <MobileMenuProvider>
+        <Navbar />
+        {!hideFloatingCart && <FloatingCartButton />}
+        {!hideFloatingCart && <FloatingWhatsAppButton />}
       <div className="h-[76px]" />
       <main className="flex-grow">{children}</main>
       <Footer />
