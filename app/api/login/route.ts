@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const rateCheck = checkRateLimit(`customer-login:${phone}`)
+    const rateCheck = await checkRateLimit(`customer-login:${phone}`)
     if (!rateCheck.allowed) {
       const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
       return NextResponse.json(
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     })
 
     if (!user || !user.password) {
-      recordFailedAttempt(`customer-login:${phone}`)
+      await recordFailedAttempt(`customer-login:${phone}`)
       return NextResponse.json(
         { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
@@ -40,13 +40,13 @@ export async function POST(request: Request) {
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
-      recordFailedAttempt(`customer-login:${phone}`)
+      await recordFailedAttempt(`customer-login:${phone}`)
       return NextResponse.json(
         { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
       )
     }
-    clearAttempts(`customer-login:${phone}`)
+    await clearAttempts(`customer-login:${phone}`)
 
     // 🔒 ব্রাউজারে সেশন কুকি সেট করা (নেভবার যেন লগইন ডিটেক্ট করতে পারে)
     const cookieStore = await cookies()

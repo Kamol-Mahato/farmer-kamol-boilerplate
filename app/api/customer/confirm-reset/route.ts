@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     // 🔒 বার বার ভুল temp password try করে guess করা ঠেকাতে rate limit
-    const rateCheck = checkRateLimit(`confirm-reset:${phone}`)
+    const rateCheck = await checkRateLimit(`confirm-reset:${phone}`)
     if (!rateCheck.allowed) {
       const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
       return NextResponse.json(
@@ -43,13 +43,13 @@ export async function POST(request: Request) {
     // ✅ Admin-এর দেওয়া temporary password যাচাই — এটাই এখানে verify code হিসেবে কাজ করছে
     const isTempValid = await bcrypt.compare(tempPassword, customer.password)
     if (!isTempValid) {
-      recordFailedAttempt(`confirm-reset:${phone}`)
+      await recordFailedAttempt(`confirm-reset:${phone}`)
       return NextResponse.json(
         { error: "ভুল কোড/পাসওয়ার্ড দেওয়া হয়েছে" },
         { status: 401 }
       )
     }
-    clearAttempts(`confirm-reset:${phone}`)
+    await clearAttempts(`confirm-reset:${phone}`)
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10)
 

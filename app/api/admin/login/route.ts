@@ -16,7 +16,7 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-    const rateCheck = checkRateLimit(`admin-login:${phone}`)
+    const rateCheck = await checkRateLimit(`admin-login:${phone}`)
     if (!rateCheck.allowed) {
       const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       !user.isActive ||
       !user.password
     ) {
-      recordFailedAttempt(`admin-login:${phone}`)
+      await recordFailedAttempt(`admin-login:${phone}`)
       return NextResponse.json(
         { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
@@ -44,13 +44,13 @@ export async function POST(request: Request) {
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
-      recordFailedAttempt(`admin-login:${phone}`)
+      await recordFailedAttempt(`admin-login:${phone}`)
       return NextResponse.json(
         { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
       )
     }
-    clearAttempts(`admin-login:${phone}`)
+    await clearAttempts(`admin-login:${phone}`)
 
     const cookieStore = await cookies()
     const sessionToken = await signSession({ id: user.id, name: user.name, phone: user.phone, role: user.role })

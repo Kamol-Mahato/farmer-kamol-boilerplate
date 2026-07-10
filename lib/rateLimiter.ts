@@ -1,50 +1,50 @@
-// 🔒 Simple in-memory rate limiter — একই phone/email থেকে বারবার ভুল password আটকাতে
-type Attempt = { count: number; lockedUntil: number | null }
+import { Redis } from "@upstash/redis"
 
-const attemptsMap = new Map<string, Attempt>()
-
-// 🧹 প্রতি ৩০ মিনিটে পুরোনো/মেয়াদ-উত্তীর্ণ entry মুছে ফেলা হয় — persistent container-এ memory যাতে ক্রমাগত না বাড়ে
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, record] of attemptsMap.entries()) {
-    if (!record.lockedUntil || record.lockedUntil <= now) {
-      attemptsMap.delete(key)
-    }
-  }
-}, 30 * 60 * 1000)
+// 🔒 Upstash Redis — .env থেকে UPSTASH_REDIS_REST_URL ও UPSTASH_REDIS_REST_TOKEN নিজে থেকেই পড়ে নেয়
+const redis = Redis.fromEnv()
 
 const MAX_ATTEMPTS = 5
-const LOCK_DURATION_MS = 15 * 60 * 1000 // ১৫ মিনিট
+const LOCK_DURATION_SECONDS = 15 * 60 // ১৫ মিনিট
 
-export function checkRateLimit(identifier: string): { allowed: boolean; remainingMs?: number } {
-  const record = attemptsMap.get(identifier)
+type Attempt = { count: number; lockedUntil: number | null }
 
-  if (!record) return { allowed: true }
+export async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; remainingMs?: number }> {
+  try {
+    const record = await redis.get<Attempt>(`ratelimit:${identifier}`)
+    if (!record) return { allowed: true }
 
-  if (record.lockedUntil && record.lockedUntil > Date.now()) {
-    return { allowed: false, remainingMs: record.lockedUntil - Date.now() }
-  }
+    if (record.lockedUntil && record.lockedUntil > Date.now()) {
+      return { allowed: false, remainingMs: record.lockedUntil - Date.now() }
+    }
 
-  // লক সময় পার হয়ে গেছে, রিসেট করা
-  if (record.lockedUntil && record.lockedUntil <= Date.now()) {
-    attemptsMap.delete(identifier)
+    return { allowed: true }
+  } catch (error) {
+    // Redis-এ সাময়িক সমস্যা হলেও যেন লগইন বন্ধ না হয়ে যায় (fail-open)
+    console.error("Rate limiter check error:", error)
     return { allowed: true }
   }
-
-  return { allowed: true }
 }
 
-export function recordFailedAttempt(identifier: string) {
-  const record = attemptsMap.get(identifier) || { count: 0, lockedUntil: null }
-  record.count += 1
+export async function recordFailedAttempt(identifier: string) {
+  try {
+    const key = `ratelimit:${identifier}`
+    const record = (await redis.get<Attempt>(key)) || { count: 0, lockedUntil: null }
+    record.count += 1
 
-  if (record.count >= MAX_ATTEMPTS) {
-    record.lockedUntil = Date.now() + LOCK_DURATION_MS
+    if (record.count >= MAX_ATTEMPTS) {
+      record.lockedUntil = Date.now() + LOCK_DURATION_SECONDS * 1000
+    }
+
+    await redis.set(key, record, { ex: LOCK_DURATION_SECONDS })
+  } catch (error) {
+    console.error("Rate limiter record error:", error)
   }
-
-  attemptsMap.set(identifier, record)
 }
 
-export function clearAttempts(identifier: string) {
-  attemptsMap.delete(identifier)
+export async function clearAttempts(identifier: string) {
+  try {
+    await redis.del(`ratelimit:${identifier}`)
+  } catch (error) {
+    console.error("Rate limiter clear error:", error)
+  }
 }

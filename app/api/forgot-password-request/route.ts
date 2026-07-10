@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     // 🔒 বার বার request করে spam করা ঠেকাতে rate limit
-    const rateCheck = checkRateLimit(`forgot-password:${phone}`)
+    const rateCheck = await checkRateLimit(`forgot-password:${phone}`)
     if (!rateCheck.allowed) {
       const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
       return NextResponse.json(
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
         { status: 429 }
       )
     }
-    recordFailedAttempt(`forgot-password:${phone}`)
+    await recordFailedAttempt(`forgot-password:${phone}`)
 
     const customer = await prisma.user.findUnique({ where: { phone } })
 
