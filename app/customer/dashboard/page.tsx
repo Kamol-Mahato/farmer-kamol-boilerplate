@@ -73,9 +73,14 @@ export default function CustomerDashboard() {
           <h1 className="text-2xl font-bold text-green-800">Welcome, {customer?.name}!</h1>
           <p className="text-sm text-gray-500 mt-1">আপনার অ্যাকাউন্টে স্বাগতম। এখান থেকে আপনার অর্ডারের লাইভ ট্র্যাকিং দেখতে পারবেন।</p>
         </div>
-        <Link href="/shop" className="bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-green-600 transition">
-          🛒 নতুন পণ্য অর্ডার করুন
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/customer/settings" className="bg-white text-green-800 border border-green-200 px-5 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-green-50 transition">
+            ⚙️ আমার তথ্য
+          </Link>
+          <Link href="/shop" className="bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-green-600 transition">
+            🛒 নতুন পণ্য অর্ডার করুন
+          </Link>
+        </div>
       </div>
 
       <h2 className="text-xl font-bold text-gray-800 mb-6">আমার অর্ডার হিস্ট্রি</h2>

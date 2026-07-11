@@ -64,9 +64,14 @@ export default function CustomerDashboardEn() {
           <h1 className="text-2xl font-bold text-green-800">Welcome, {customer?.name}!</h1>
           <p className="text-sm text-gray-500 mt-1">Welcome to your account. Track your order status live from here.</p>
         </div>
-        <Link href="/en/shop" className="bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-green-600 transition">
-          🛒 Order New Products
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/en/customer/settings" className="bg-white text-green-800 border border-green-200 px-5 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-green-50 transition">
+            ⚙️ My Info
+          </Link>
+          <Link href="/en/shop" className="bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-green-600 transition">
+            🛒 Order New Products
+          </Link>
+        </div>
       </div>
       <h2 className="text-xl font-bold text-gray-800 mb-6">My Order History</h2>
       <div className="bg-white rounded-xl shadow overflow-hidden">
