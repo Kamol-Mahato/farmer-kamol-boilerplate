@@ -2,10 +2,17 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// 🔒 build-time এ env variable না থাকলেও crash না করার জন্য lazy init
+let supabase: ReturnType<typeof createClient> | null = null
+function getSupabase() {
+  if (!supabase) {
+    supabase = createClient(
+      process.env.SUPABASE_URL ?? "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
+    )
+  }
+  return supabase
+}
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/jpg"]
@@ -66,7 +73,7 @@ export async function POST(request: Request) {
 
     // ✅ Supabase Storage-এ আপলোড করা (filesystem-এর বদলে)
     const buffer = Buffer.from(await file.arrayBuffer())
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await getSupabase().storage
       .from(process.env.SUPABASE_BUCKET!)
       .upload(filename, buffer, { contentType: file.type })
 
@@ -78,7 +85,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data } = supabase.storage
+    const { data } = getSupabase().storage
       .from(process.env.SUPABASE_BUCKET!)
       .getPublicUrl(filename)
 

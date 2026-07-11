@@ -1,7 +1,16 @@
 import { Redis } from "@upstash/redis"
 
-// 🔒 Upstash Redis — .env থেকে UPSTASH_REDIS_REST_URL ও UPSTASH_REDIS_REST_TOKEN নিজে থেকেই পড়ে নেয়
-const redis = Redis.fromEnv()
+// 🔒 Upstash Redis — build-time এ env variable না থাকলেও যেন crash না করে, তাই lazy init
+let redis: Redis | null = null
+function getRedis() {
+  if (!redis) {
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL ?? "",
+      token: process.env.UPSTASH_REDIS_REST_TOKEN ?? "",
+    })
+  }
+  return redis
+}
 
 const MAX_ATTEMPTS = 5
 const LOCK_DURATION_SECONDS = 15 * 60 // ১৫ মিনিট
@@ -10,7 +19,7 @@ type Attempt = { count: number; lockedUntil: number | null }
 
 export async function checkRateLimit(identifier: string): Promise<{ allowed: boolean; remainingMs?: number }> {
   try {
-    const record = await redis.get<Attempt>(`ratelimit:${identifier}`)
+    const record = await getRedis().get<Attempt>(`ratelimit:${identifier}`)
     if (!record) return { allowed: true }
 
     if (record.lockedUntil && record.lockedUntil > Date.now()) {
@@ -28,14 +37,14 @@ export async function checkRateLimit(identifier: string): Promise<{ allowed: boo
 export async function recordFailedAttempt(identifier: string) {
   try {
     const key = `ratelimit:${identifier}`
-    const record = (await redis.get<Attempt>(key)) || { count: 0, lockedUntil: null }
+    const record = (await getRedis().get<Attempt>(key)) || { count: 0, lockedUntil: null }
     record.count += 1
 
     if (record.count >= MAX_ATTEMPTS) {
       record.lockedUntil = Date.now() + LOCK_DURATION_SECONDS * 1000
     }
 
-    await redis.set(key, record, { ex: LOCK_DURATION_SECONDS })
+    await getRedis().set(key, record, { ex: LOCK_DURATION_SECONDS })
   } catch (error) {
     console.error("Rate limiter record error:", error)
   }
@@ -43,7 +52,7 @@ export async function recordFailedAttempt(identifier: string) {
 
 export async function clearAttempts(identifier: string) {
   try {
-    await redis.del(`ratelimit:${identifier}`)
+    await getRedis().del(`ratelimit:${identifier}`)
   } catch (error) {
     console.error("Rate limiter clear error:", error)
   }
