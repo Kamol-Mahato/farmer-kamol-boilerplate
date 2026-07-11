@@ -12,13 +12,13 @@ interface ProductData {
   images: { imageUrl: string }[]
 }
 
-function DistrictSearch({ districts, onSelect }: {
+function DistrictSearch({ districts, value, onSelect }: {
   districts: { id: number; name: string; en_name: string }[]
+  value: string
   onSelect: (d: { id: number; name: string; en_name: string }) => void
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
-  const [selected, setSelected] = useState("")
   const filtered = districts.filter(d =>
     d.en_name.toLowerCase().includes(query.toLowerCase())
   )
@@ -26,9 +26,9 @@ function DistrictSearch({ districts, onSelect }: {
     <div className="relative">
       <input
         type="text"
-        value={selected || query}
-        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
-        onFocus={() => setShow(true)}
+        value={query || value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setQuery(""); setShow(true) }}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         placeholder="Type or search district"
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
@@ -38,12 +38,7 @@ function DistrictSearch({ districts, onSelect }: {
           {filtered.map(d => (
             <div key={d.id}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => {
-                setSelected(d.en_name)
-                setQuery("")
-                setShow(false)
-                onSelect(d)
-              }}
+              onMouseDown={() => { setQuery(""); setShow(false); onSelect(d) }}
             >
               {d.en_name}
             </div>
@@ -54,22 +49,22 @@ function DistrictSearch({ districts, onSelect }: {
   )
 }
 
-function UpazilaSearch({ upazilas, onSelect, disabled }: {
+function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
   upazilas: string[]
+  value: string
   onSelect: (u: string) => void
   disabled?: boolean
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
-  const [selected, setSelected] = useState("")
   const filtered = upazilas.filter(u => u.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="relative">
       <input
         type="text"
-        value={selected || query}
-        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
-        onFocus={() => setShow(true)}
+        value={query || value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setQuery(""); setShow(true) }}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         placeholder={disabled ? "Select district first" : "Type or search upazila / area"}
         disabled={disabled}
@@ -80,7 +75,7 @@ function UpazilaSearch({ upazilas, onSelect, disabled }: {
           {filtered.map(u => (
             <div key={u}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setSelected(u); setQuery(""); setShow(false); onSelect(u) }}
+              onMouseDown={() => { setQuery(""); setShow(false); onSelect(u) }}
             >
               {u}
             </div>
@@ -103,6 +98,7 @@ function OrderForm() {
   const [success, setSuccess] = useState(false)
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -151,6 +147,27 @@ function OrderForm() {
       }
     }
     fetchProduct()
+
+    // ✅ Auto-fill name/address for logged-in customers
+    async function fetchProfileForAutofill() {
+      try {
+        const res = await fetch("/api/customer/profile")
+        if (!res.ok) return // guest — nothing to do
+        const data = await res.json()
+        setIsLoggedIn(true)
+        setForm(prev => ({
+          ...prev,
+          name: data.name || prev.name,
+          district: data.district || prev.district,
+          upazila: data.upazila || prev.upazila,
+          address: data.address || prev.address,
+        }))
+        if (data.districtId) setSelectedDistrictId(data.districtId)
+      } catch {
+        // silently ignore — form still works for guests
+      }
+    }
+    fetchProfileForAutofill()
   }, [productId])
 
   function PasswordSetSection({ phone }: { phone: string }) {
@@ -327,21 +344,27 @@ function OrderForm() {
 
   return (
     <div className="max-w-lg mx-auto px-3 py-4">
-      <div className="bg-white rounded-xl p-3 mb-3 border border-green-200 shadow-sm flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
-          {product?.images?.[0]?.imageUrl ? <img src={product.images[0].imageUrl} alt={product.name} className="w-full h-full object-cover rounded-xl" /> : <span>🌿</span>}
+      <div className="bg-white rounded-xl p-3 mb-3 border border-green-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
+            {product?.images?.[0]?.imageUrl ? <img src={product.images[0].imageUrl} alt={product.name} className="w-full h-full object-cover rounded-xl" /> : <span>🌿</span>}
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-gray-800 text-sm">{product?.name}</p>
+            <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="font-bold text-gray-800 text-sm">{product?.name}</p>
-          <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+          <span className="text-xs font-medium text-gray-700">Quantity</span>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.max(1, Number(f.quantity) - 1) }))} className="w-6 h-6 bg-green-100 text-green-800 rounded-full text-xl font-bold hover:bg-green-200 flex items-center justify-center">−</button>
+            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-10 text-center border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+            <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.min(product?.stockQty || 99, Number(f.quantity) + 1) }))} className="w-6 h-6 bg-green-800 text-white rounded-full text-xl font-bold hover:bg-green-700 flex items-center justify-center">+</button>
+          </div>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Name *</label>
-            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Mobile *</label>
             <input
@@ -361,34 +384,29 @@ function OrderForm() {
               <p className="text-red-500 text-[10px] mt-1 font-bold">Enter a valid 11-digit number (starting with 01)</p>
             )}
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Name *</label>
+            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Address *</label>
+          <textarea name="address" value={form.address} onChange={handleChange} placeholder="House no., road, area" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">District *</label>
-            <DistrictSearch districts={districts} onSelect={(d) => { setSelectedDistrictId(d.id); setForm(prev => ({ ...prev, district: d.en_name, upazila: "" })) }} />
+            <DistrictSearch districts={districts} value={form.district} onSelect={(d) => { setSelectedDistrictId(d.id); setForm(prev => ({ ...prev, district: d.en_name, upazila: "" })) }} />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Upazila/Area *</label>
             <UpazilaSearch
               key={selectedDistrictId ?? "none"}
               upazilas={selectedDistrictId ? (upazilasEn[selectedDistrictId] || []) : []}
+              value={form.upazila}
               disabled={!selectedDistrictId}
               onSelect={(u) => setForm(prev => ({ ...prev, upazila: u }))}
             />
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Address *</label>
-            <textarea name="address" value={form.address} onChange={handleChange} placeholder="House no., road, area" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.max(1, Number(f.quantity) - 1) }))} className="w-9 h-9 bg-green-100 text-green-800 rounded-full text-xl font-bold hover:bg-green-200 flex items-center justify-center">−</button>
-              <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-16 text-center border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-              <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.min(product?.stockQty || 99, Number(f.quantity) + 1) }))} className="w-9 h-9 bg-green-800 text-white rounded-full text-xl font-bold hover:bg-green-700 flex items-center justify-center">+</button>
-            </div>
           </div>
         </div>
         <div>

@@ -12,13 +12,13 @@ type CartItem = {
   quantity: number
 }
 
-function DistrictSearch({ districts, onSelect }: {
+function DistrictSearch({ districts, value, onSelect }: {
   districts: { id: number; name: string; en_name: string }[]
+  value: string
   onSelect: (d: { id: number; name: string; en_name: string }) => void
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
-  const [selected, setSelected] = useState("")
   const filtered = districts.filter(d =>
     d.name.includes(query) ||
     d.en_name.toLowerCase().includes(query.toLowerCase())
@@ -27,9 +27,9 @@ function DistrictSearch({ districts, onSelect }: {
     <div className="relative">
       <input
         type="text"
-        value={selected || query}
-        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
-        onFocus={() => setShow(true)}
+        value={query || value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setQuery(""); setShow(true) }}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         placeholder="জেলা লিখুন বা খুঁজুন"
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
@@ -39,12 +39,7 @@ function DistrictSearch({ districts, onSelect }: {
           {filtered.map(d => (
             <div key={d.id}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => {
-                setSelected(d.name)
-                setQuery("")
-                setShow(false)
-                onSelect(d)
-              }}
+              onMouseDown={() => { setQuery(""); setShow(false); onSelect(d) }}
             >
               {d.name} <span className="text-gray-400 text-xs">({d.en_name})</span>
             </div>
@@ -54,22 +49,22 @@ function DistrictSearch({ districts, onSelect }: {
     </div>
   )
 }
-function UpazilaSearch({ upazilas, onSelect, disabled }: {
+function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
   upazilas: string[]
+  value: string
   onSelect: (u: string) => void
   disabled?: boolean
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
-  const [selected, setSelected] = useState("")
   const filtered = upazilas.filter(u => u.includes(query))
   return (
     <div className="relative">
       <input
         type="text"
-        value={selected || query}
-        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
-        onFocus={() => setShow(true)}
+        value={query || value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setQuery(""); setShow(true) }}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         placeholder={disabled ? "আগে জেলা বেছে নিন" : "উপজেলা লিখুন বা খুঁজুন"}
         disabled={disabled}
@@ -80,7 +75,7 @@ function UpazilaSearch({ upazilas, onSelect, disabled }: {
           {filtered.map(u => (
             <div key={u}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setSelected(u); setQuery(""); setShow(false); onSelect(u) }}
+              onMouseDown={() => { setQuery(""); setShow(false); onSelect(u) }}
             >
               {u}
             </div>
@@ -98,6 +93,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -131,6 +127,29 @@ export default function CartPage() {
       window.removeEventListener("cartUpdated", loadCart)
       window.removeEventListener("storage", loadCart)
     }
+  }, [])
+
+  useEffect(() => {
+    // ✅ Login করা কাস্টমার হলে নাম/ঠিকানা auto-fill
+    async function fetchProfileForAutofill() {
+      try {
+        const res = await fetch("/api/customer/profile")
+        if (!res.ok) return // guest — কিছু করার দরকার নেই
+        const data = await res.json()
+        setIsLoggedIn(true)
+        setForm(prev => ({
+          ...prev,
+          name: data.name || prev.name,
+          district: data.district || prev.district,
+          upazila: data.upazila || prev.upazila,
+          address: data.address || prev.address,
+        }))
+        if (data.districtId) setSelectedDistrictId(data.districtId)
+      } catch {
+        // চুপচাপ ignore — guest হিসেবেই ফর্ম কাজ করবে
+      }
+    }
+    fetchProfileForAutofill()
   }, [])
 
   function updateQuantity(id: number, delta: number) {
@@ -269,34 +288,35 @@ export default function CartPage() {
         ))}
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">নাম *</label>
-            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="আপনার নাম" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">মোবাইল *</label>
             <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="01XXXXXXXXX" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">নাম *</label>
+            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="আপনার নাম" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">ঠিকানা *</label>
+          <textarea name="address" value={form.address} onChange={handleChange} placeholder="বাড়ি নং, রাস্তা, এলাকা" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">জেলা *</label>
-            <DistrictSearch districts={districts} onSelect={(d) => { setSelectedDistrictId(d.id); setForm(prev => ({ ...prev, district: d.name, upazila: "" })) }} />
+            <DistrictSearch districts={districts} value={form.district} onSelect={(d) => { setSelectedDistrictId(d.id); setForm(prev => ({ ...prev, district: d.name, upazila: "" })) }} />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">উপজেলা *</label>
             <UpazilaSearch
               key={selectedDistrictId ?? "none"}
               upazilas={selectedDistrictId ? (upazilas[selectedDistrictId] || []) : []}
+              value={form.upazila}
               disabled={!selectedDistrictId}
               onSelect={(u) => setForm(prev => ({ ...prev, upazila: u }))}
             />
           </div>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">ঠিকানা *</label>
-          <textarea name="address" value={form.address} onChange={handleChange} placeholder="বাড়ি নং, রাস্তা, এলাকা" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">নোট (ঐচ্ছিক)</label>

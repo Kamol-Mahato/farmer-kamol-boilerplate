@@ -12,13 +12,13 @@ type CartItem = {
   quantity: number
 }
 
-function DistrictSearch({ districts, onSelect }: {
+function DistrictSearch({ districts, value, onSelect }: {
   districts: { id: number; name: string; en_name: string }[]
+  value: string
   onSelect: (d: { id: number; name: string; en_name: string }) => void
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
-  const [selected, setSelected] = useState("")
   const filtered = districts.filter(d =>
     d.en_name.toLowerCase().includes(query.toLowerCase())
   )
@@ -26,9 +26,9 @@ function DistrictSearch({ districts, onSelect }: {
     <div className="relative">
       <input
         type="text"
-        value={selected || query}
-        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
-        onFocus={() => setShow(true)}
+        value={query || value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setQuery(""); setShow(true) }}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         placeholder="Type or select district"
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
@@ -38,12 +38,7 @@ function DistrictSearch({ districts, onSelect }: {
           {filtered.map(d => (
             <div key={d.id}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => {
-                setSelected(d.en_name)
-                setQuery("")
-                setShow(false)
-                onSelect(d)
-              }}
+              onMouseDown={() => { setQuery(""); setShow(false); onSelect(d) }}
             >
               {d.en_name}
             </div>
@@ -55,15 +50,15 @@ function DistrictSearch({ districts, onSelect }: {
 }
 
 // ✅ upazilas (bn) and upazilasEn are index-matched arrays — zip them for display
-function UpazilaSearch({ upazilasBn, upazilasList, onSelect, disabled }: {
+function UpazilaSearch({ upazilasBn, upazilasList, value, onSelect, disabled }: {
   upazilasBn: string[]
   upazilasList: string[]
+  value: string
   onSelect: (u: { bn: string; en: string }) => void
   disabled?: boolean
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
-  const [selected, setSelected] = useState("")
   const filtered = upazilasList
     .map((en, i) => ({ en, bn: upazilasBn[i] }))
     .filter(u => u.en.toLowerCase().includes(query.toLowerCase()))
@@ -71,9 +66,9 @@ function UpazilaSearch({ upazilasBn, upazilasList, onSelect, disabled }: {
     <div className="relative">
       <input
         type="text"
-        value={selected || query}
-        onChange={e => { setQuery(e.target.value); setSelected(""); setShow(true) }}
-        onFocus={() => setShow(true)}
+        value={query || value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setQuery(""); setShow(true) }}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         placeholder={disabled ? "Select district first" : "Type or select upazila"}
         disabled={disabled}
@@ -84,7 +79,7 @@ function UpazilaSearch({ upazilasBn, upazilasList, onSelect, disabled }: {
           {filtered.map(u => (
             <div key={u.en}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setSelected(u.en); setQuery(""); setShow(false); onSelect(u) }}
+              onMouseDown={() => { setQuery(""); setShow(false); onSelect(u) }}
             >
               {u.en}
             </div>
@@ -103,6 +98,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -136,6 +132,29 @@ export default function CartPage() {
       window.removeEventListener("cartUpdated", loadCart)
       window.removeEventListener("storage", loadCart)
     }
+  }, [])
+
+  useEffect(() => {
+    // ✅ Auto-fill name/address for logged-in customers
+    async function fetchProfileForAutofill() {
+      try {
+        const res = await fetch("/api/customer/profile")
+        if (!res.ok) return // guest — nothing to do
+        const data = await res.json()
+        setIsLoggedIn(true)
+        setForm(prev => ({
+          ...prev,
+          name: data.name || prev.name,
+          district: data.district || prev.district,
+          upazila: data.upazila || prev.upazila,
+          address: data.address || prev.address,
+        }))
+        if (data.districtId) setSelectedDistrictId(data.districtId)
+      } catch {
+        // silently ignore — form still works for guests
+      }
+    }
+    fetchProfileForAutofill()
   }, [])
 
   function updateQuantity(id: number, delta: number) {
@@ -274,20 +293,24 @@ export default function CartPage() {
         ))}
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Name *</label>
-            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Mobile *</label>
             <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="01XXXXXXXXX" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Name *</label>
+            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Address *</label>
+          <textarea name="address" value={form.address} onChange={handleChange} placeholder="House no, road, area" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">District *</label>
-            <DistrictSearch districts={districts} onSelect={(d) => { setSelectedDistrictId(d.id); setForm(prev => ({ ...prev, district: d.en_name, upazila: "" })) }} />
+            <DistrictSearch districts={districts} value={form.district} onSelect={(d) => { setSelectedDistrictId(d.id); setForm(prev => ({ ...prev, district: d.en_name, upazila: "" })) }} />
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Upazila *</label>
@@ -295,14 +318,11 @@ export default function CartPage() {
               key={selectedDistrictId ?? "none"}
               upazilasBn={selectedDistrictId ? (upazilas[selectedDistrictId] || []) : []}
               upazilasList={selectedDistrictId ? (upazilasEn[selectedDistrictId] || []) : []}
+              value={form.upazila}
               disabled={!selectedDistrictId}
               onSelect={(u) => setForm(prev => ({ ...prev, upazila: u.en }))}
             />
           </div>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Address *</label>
-          <textarea name="address" value={form.address} onChange={handleChange} placeholder="House no, road, area" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">Note (optional)</label>
