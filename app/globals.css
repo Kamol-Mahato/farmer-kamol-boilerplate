@@ -66,3 +66,16 @@ label {
 .animate-bounce-once {
   animation: bounce-once 0.8s ease;
 }
+@keyframes attention-shake {
+  0%, 100% { transform: translateX(0); }
+  2% { transform: translateX(-6px); }
+  4% { transform: translateX(6px); }
+  6% { transform: translateX(-6px); }
+  8% { transform: translateX(6px); }
+  10% { transform: translateX(-3px); }
+  12% { transform: translateX(3px); }
+  14%, 100% { transform: translateX(0); }
+}
+.animate-attention-shake {
+  animation: attention-shake 3s ease-in-out infinite;
+}

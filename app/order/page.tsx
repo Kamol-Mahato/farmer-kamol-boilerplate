@@ -347,21 +347,27 @@ function OrderForm() {
 
   return (
     <div className="max-w-lg mx-auto px-3 py-4">
-      <div className="bg-white rounded-xl p-3 mb-3 border border-green-200 shadow-sm flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
-          {product?.images?.[0]?.imageUrl ? <img src={product.images[0].imageUrl} alt={product.name} className="w-full h-full object-cover rounded-xl" /> : <span>🌿</span>}
+      <div className="bg-white rounded-xl p-3 mb-3 border border-green-200 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
+            {product?.images?.[0]?.imageUrl ? <img src={product.images[0].imageUrl} alt={product.name} className="w-full h-full object-cover rounded-xl" /> : <span>🌿</span>}
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-gray-800 text-sm">{product?.name}</p>
+            <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="font-bold text-gray-800 text-sm">{product?.name}</p>
-          <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+          <span className="text-xs font-medium text-gray-700">পরিমাণ</span>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.max(1, Number(f.quantity) - 1) }))} className="w-6 h-6 bg-green-100 text-green-800 rounded-full text-xl font-bold hover:bg-green-200 flex items-center justify-center">−</button>
+            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-10 text-center border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+            <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.min(product?.stockQty || 99, Number(f.quantity) + 1) }))} className="w-6 h-6 bg-green-800 text-white rounded-full text-xl font-bold hover:bg-green-700 flex items-center justify-center">+</button>
+          </div>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">নাম *</label>
-            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="আপনার নাম" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">মোবাইল *</label>
             <input 
@@ -378,9 +384,17 @@ function OrderForm() {
               }`} 
             />
             {form.phone.length > 0 && (form.phone.length !== 11 || !form.phone.startsWith("01")) && (
-              <p className="text-red-500 text-[10px] mt-1 font-bold">সঠিক ১১ ডিজিটের নম্বর দিন (01 দিয়ে শুরু)</p>
+              <p className="text-red-500 text-[10px] mt-1 font-bold">সঠিক ১১ ডিজিটের নম্বর দিন (01 দিয়ে শুরু)</p>
             )}
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">নাম *</label>
+            <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="আপনার নাম" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">ঠিকানা *</label>
+          <textarea name="address" value={form.address} onChange={handleChange} placeholder="বাড়ি নং, রাস্তা, এলাকা" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -396,20 +410,6 @@ function OrderForm() {
               disabled={!selectedDistrictId}
               onSelect={(u) => setForm(prev => ({ ...prev, upazila: u }))}
             />
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">ঠিকানা *</label>
-            <textarea name="address" value={form.address} onChange={handleChange} placeholder="বাড়ি নং, রাস্তা, এলাকা" rows={2} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">পরিমাণ</label>
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.max(1, Number(f.quantity) - 1) }))} className="w-9 h-9 bg-green-100 text-green-800 rounded-full text-xl font-bold hover:bg-green-200 flex items-center justify-center">−</button>
-              <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-16 text-center border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
-              <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.min(product?.stockQty || 99, Number(f.quantity) + 1) }))} className="w-9 h-9 bg-green-800 text-white rounded-full text-xl font-bold hover:bg-green-700 flex items-center justify-center">+</button>
-            </div>
           </div>
         </div>
 
