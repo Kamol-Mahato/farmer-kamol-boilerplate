@@ -120,7 +120,7 @@ export const districts = [
   "যাত্রাবাড়ী (Jatrabari)", "শনির আখড়া (Shonir Akhra)", "রায়েরবাগ (Rayerbagh)", "মাতুয়াইল (Matuail)", "দনিয়া (Donia)", "ডেমরা (Demra)", "শ্যামপুর (Shyampur)", "কামরাঙ্গীরচর (Kamrangirchor)", "পোস্তগোলা (Postogola)", "জুড়াইন (Jurain)",
   "সবুজবাগ (Sabujbagh)", "বাসাবো (Bashabo)", "খিলগাঁও (Khilgaon)", "গোড়ান (Goran)", "রামপুরা (Rampura)", "বনশ্রী (Banasree)", "আফতাবনগর (Aftabnagar)", "মালিবাগ (Malibagh)", "মৌচাক (Mouchak)", "মগবাজার (Moghbazar)",
   "সিদ্ধেশ্বরী (Siddheswari)", "বেইলি রোড (Bailey Road)", "শান্তিনগর (Shantinagar)", "কাকরাইল (Kakrail)", "পল্টন (Paltan)", "মতিঝিল (Motijheel)", "দিলকুশা (Dilkusha)", "কমলাপুর (Komlapur)", "শাহজাহানপুর (Shahjahanpur)", "মুগদা (Mugda)",
-  "সায়দাবাদ (Sayedabad)", "রমনা (Romna)", "শাহবাগ (Shahbagh)", "ঢাকা বিশ্ববিদ্যালয় এলাকা (Dhaka University Area)", "নিউমার্কেট (New Market)", "আজিমপুর (Azimpur)", "নীলক্ষেত (Nilkhet)", "বক্সিবাজার (Bakshibazar)", "সেগুনবাগিচা (Segunbagicha)", "ঢাকা সেনানিবাস (Dhaka Cantonment)"],
+  "সায়দাবাদ (Sayedabad)", "রমনা (Romna)", "শাহবাগ (Shahbagh)", "ঢাকা বিশ্ববিদ্যালয় এলাকা (Dhaka University Area)", "নিউমার্কেট (New Market)", "আজিমপুর (Azimpur)", "নীলক্ষেত (Nilkhet)", "বক্সিবাজার (Bakshibazar)", "সেগুনবাগিচা (Segunbagicha)", "ঢাকা সেনানিবাস (Dhaka Cantonment)","বংশাল (Bangshal)", "জগন্নাথ বিশ্ববিদ্যালয় (Jagannath University"],
 
     22: ["দিনাজপুর সদর", "বিরামপুর", "নবাবগঞ্জ", "বীরগঞ্জ", "বোচাগঞ্জ","চিরিরবন্দর", "ফুলবাড়ী", "কাহারোল", "খানসামা", "পার্বতীপুর", "হাকিমপুর", "ঘোড়াঘাট"],
     23: ["নওগাঁ সদর", "পত্নীতলা", "ধামইরহাট", "মহাদেবপুর", "পোরশা", "সাপাহার", "বদলগাছী", "আত্রাই", "রানীনগর", "নিয়ামতপুর", "মান্দা"],
@@ -223,7 +223,7 @@ export const upazilasEn: { [key: number]: string[] } = {
   "Jatrabari", "Shonir Akhra", "Rayerbagh", "Matuail", "Donia", "Demra", "Shyampur", "Kamrangirchor", "Postogola", "Jurain",
   "Sabujbagh", "Bashabo", "Khilgaon", "Goran", "Rampura", "Banasree", "Aftabnagar", "Malibagh", "Mouchak", "Moghbazar",
   "Siddheswari", "Bailey Road", "Shantinagar", "Kakrail", "Paltan", "Motijheel", "Dilkusha", "Komlapur", "Shahjahanpur", "Mugda",
-  "Sayedabad", "Romna", "Shahbagh", "Dhaka University Area", "New Market", "Azimpur", "Nilkhet", "Bakshibazar", "Segunbagicha", "Dhaka Cantonment"],
+  "Sayedabad", "Romna", "Shahbagh", "Dhaka University Area", "New Market", "Azimpur", "Nilkhet", "Bakshibazar", "Segunbagicha", "Dhaka Cantonment","Bangshal", "Jagannath University (JnU)"],
 
   22: ["Dinajpur Sadar", "Birampur", "Nawabganj", "Birganj", "Bochaganj", "Chirirbandar", "Phulbari", "Kaharole", "Khansama", "Parbatipur", "Hakimpur", "Ghoraghat"],
   23: ["Naogaon Sadar", "Patnitala", "Dhamoirhat", "Mahadebpur", "Porsha", "Sapahar", "Badalgachhi", "Atrai", "Raninagar", "Niamatpur", "Manda"],
