@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { cookies } from "next/headers"
 import { signSession } from "@/lib/session"
+import { checkRateLimit, recordFailedAttempt } from "@/lib/rateLimiter"
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +16,15 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+    // 🔒 একই নম্বর দিয়ে বারবার চেষ্টা (enumeration/spam) ঠেকাতে rate limit
+const rateCheck = await checkRateLimit(`register:${phone}`)
+if (!rateCheck.allowed) {
+  const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
+  return NextResponse.json(
+    { error: `অনেকবার চেষ্টা হয়েছে। ${minutes} মিনিট পর আবার চেষ্টা করুন।` },
+    { status: 429 }
+  )
+}
 
     if (password.length < 6) {
       return NextResponse.json(
@@ -54,6 +64,7 @@ export async function POST(request: Request) {
           user: { id: updatedUser.id, name: updatedUser.name, role: updatedUser.role },
         })
       }
+      await recordFailedAttempt(`register:${phone}`)
 
       return NextResponse.json(
         { error: "এই মোবাইল নম্বরে অ্যাকাউন্ট আগে থেকেই আছে, লগইন করুন" },
