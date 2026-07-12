@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       return sum + product.pricePerUnit * item.quantity
     }, 0)
     const totalQuantity = items.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0)
-    const deliveryCharge = calculateDeliveryCharge(districtId, totalQuantity)
+    const deliveryCharge = await calculateDeliveryCharge(districtId, totalQuantity)
     const finalCodAmount = totalProductPrice + deliveryCharge
 
     const result = await prisma.$transaction(async (tx) => {

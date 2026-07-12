@@ -3,15 +3,14 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { districts, upazilasEn } from "@/lib/bd-locations"
-
 interface ProductData {
   name: string
+  nameEn?: string | null
   pricePerUnit: number
   unit: string
   stockQty: number
   images: { imageUrl: string }[]
 }
-
 function DistrictSearch({ districts, value, onSelect }: {
   districts: { id: number; name: string; en_name: string }[]
   value: string
@@ -19,6 +18,7 @@ function DistrictSearch({ districts, value, onSelect }: {
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState(false)
   const filtered = districts.filter(d =>
     d.en_name.toLowerCase().includes(query.toLowerCase())
   )
@@ -26,10 +26,10 @@ function DistrictSearch({ districts, value, onSelect }: {
     <div className="relative">
       <input
         type="text"
-        value={query || value}
+        value={editing ? query : value}
         onChange={e => { setQuery(e.target.value); setShow(true) }}
-        onFocus={() => { setQuery(""); setShow(true) }}
-        onBlur={() => setTimeout(() => setShow(false), 200)}
+        onFocus={() => { setEditing(true); setQuery(""); setShow(true) }}
+        onBlur={() => setTimeout(() => { setShow(false); setEditing(false) }, 200)}
         placeholder="Type or search district"
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
       />
@@ -38,7 +38,7 @@ function DistrictSearch({ districts, value, onSelect }: {
           {filtered.map(d => (
             <div key={d.id}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setQuery(""); setShow(false); onSelect(d) }}
+              onMouseDown={() => { setQuery(""); setEditing(false); setShow(false); onSelect(d) }}
             >
               {d.en_name}
             </div>
@@ -48,7 +48,6 @@ function DistrictSearch({ districts, value, onSelect }: {
     </div>
   )
 }
-
 function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
   upazilas: string[]
   value: string
@@ -57,15 +56,16 @@ function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState(false)
   const filtered = upazilas.filter(u => u.toLowerCase().includes(query.toLowerCase()))
   return (
     <div className="relative">
       <input
         type="text"
-        value={query || value}
+        value={editing ? query : value}
         onChange={e => { setQuery(e.target.value); setShow(true) }}
-        onFocus={() => { setQuery(""); setShow(true) }}
-        onBlur={() => setTimeout(() => setShow(false), 200)}
+        onFocus={() => { setEditing(true); setQuery(""); setShow(true) }}
+        onBlur={() => setTimeout(() => { setShow(false); setEditing(false) }, 200)}
         placeholder={disabled ? "Select district first" : "Type or search upazila / area"}
         disabled={disabled}
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100"
@@ -75,7 +75,7 @@ function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
           {filtered.map(u => (
             <div key={u}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setQuery(""); setShow(false); onSelect(u) }}
+              onMouseDown={() => { setQuery(""); setEditing(false); setShow(false); onSelect(u) }}
             >
               {u}
             </div>
@@ -85,7 +85,6 @@ function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
     </div>
   )
 }
-
 function OrderForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -99,6 +98,12 @@ function OrderForm() {
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [deliverySettings, setDeliverySettings] = useState({
+    dhakaBaseCharge: 75,
+    dhakaExtraPerUnit: 20,
+    outsideBaseCharge: 120,
+    outsideExtraPerUnit: 30,
+  })
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -111,20 +116,24 @@ function OrderForm() {
     gatewayName: "",
     trxId: "",
   })
-
   function copyNumber() {
     navigator.clipboard.writeText("01737939688")
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
-
+  // ডেলিভারি চার্জের ডাইনামিক হিসাব (সেটিংস API থেকে আসছে, hardcode না)
   const isDhaka = selectedDistrictId === 21;
-  const base = isDhaka ? 75 : 120;
-  const extra = isDhaka ? 20 : 30;
+  const base = isDhaka ? deliverySettings.dhakaBaseCharge : deliverySettings.outsideBaseCharge;
+  const extra = isDhaka ? deliverySettings.dhakaExtraPerUnit : deliverySettings.outsideExtraPerUnit;
   const deliveryCharge = selectedDistrictId === null
-  ? 75
+  ? deliverySettings.dhakaBaseCharge
   : form.quantity > 1 ? base + ((Number(form.quantity) - 1) * extra) : base;
-
+  useEffect(() => {
+    fetch("/api/settings/delivery")
+      .then(res => res.json())
+      .then(data => setDeliverySettings(data))
+      .catch(() => {}) // ফেইল হলে উপরের ডিফল্ট ভ্যালুই থেকে যাবে
+  }, [])
   useEffect(() => {
     async function fetchProduct() {
       if (!productId) {
@@ -147,7 +156,6 @@ function OrderForm() {
       }
     }
     fetchProduct()
-
     // ✅ Auto-fill name/address for logged-in customers
     async function fetchProfileForAutofill() {
       try {
@@ -169,14 +177,12 @@ function OrderForm() {
     }
     fetchProfileForAutofill()
   }, [productId])
-
   function PasswordSetSection({ phone }: { phone: string }) {
     const [password, setPassword] = useState("")
     const [confirm, setConfirm] = useState("")
     const [done, setDone] = useState(false)
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-
     if (done) {
       return (
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 mb-4 text-center">
@@ -185,7 +191,6 @@ function OrderForm() {
         </div>
       )
     }
-
     async function handleSetPassword() {
       if (password.length < 6) { setError("Enter at least 6 characters"); return }
       if (password !== confirm) { setError("Passwords do not match"); return }
@@ -206,7 +211,6 @@ function OrderForm() {
         setLoading(false)
       }
     }
-
     return (
       <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200 mb-4 text-left">
         <p className="font-bold text-yellow-800 text-sm mb-1">🔐 Set an account password</p>
@@ -234,7 +238,6 @@ function OrderForm() {
       </div>
     )
   }
-
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     const { name, value } = e.target
     setForm(prev => ({
@@ -244,9 +247,7 @@ function OrderForm() {
         : value
     }))
   }
-
   const totalPrice = product ? product.pricePerUnit * Number(form.quantity) : 0
-
   async function handleSubmit(e: React.FormEvent) {
     if (form.phone.length !== 11 || !form.phone.startsWith("01")) {
       setError("Your mobile number isn't valid (must be 11 digits and start with 01)")
@@ -312,7 +313,6 @@ function OrderForm() {
       setLoading(false)
     }
   }
-
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-start justify-center px-4 pt-1">
@@ -326,7 +326,7 @@ function OrderForm() {
           </p>
           <div className="bg-green-50 rounded-xl p-4 border border-green-100 text-left mb-4">
             <p className="font-bold text-green-800 text-sm mb-1">Order Summary</p>
-            <p className="text-gray-600 text-sm">{product?.name}</p>
+            <p className="text-gray-600 text-sm">{product?.nameEn || product?.name}</p>
             <p className="text-gray-500 text-xs">Quantity: {form.quantity} × ৳ {product?.pricePerUnit}</p>
             <p className="text-gray-500 text-xs">Delivery: ৳ {deliveryCharge}</p>
             <p className="font-bold text-green-700 mt-2">Total: ৳ {totalPrice + deliveryCharge}</p>
@@ -339,18 +339,16 @@ function OrderForm() {
       </div>
     )
   }
-
   if (pageLoading) return <div className="text-center py-20 font-medium text-gray-500">Loading product information...</div>
-
   return (
     <div className="max-w-lg mx-auto px-3 py-4">
       <div className="bg-white rounded-xl p-3 mb-3 border border-green-200 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
-            {product?.images?.[0]?.imageUrl ? <img src={product.images[0].imageUrl} alt={product.name} className="w-full h-full object-cover rounded-xl" /> : <span>🌿</span>}
+          {product?.images?.[0]?.imageUrl ? <img src={product.images[0].imageUrl} alt={product.nameEn || product.name} className="w-full h-full object-cover rounded-xl" /> : <span>🌿</span>}
           </div>
           <div className="flex-1">
-            <p className="font-bold text-gray-800 text-sm">{product?.name}</p>
+            <p className="font-bold text-gray-800 text-sm">{product?.nameEn || product?.name}</p>
             <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
           </div>
         </div>
@@ -358,7 +356,7 @@ function OrderForm() {
           <span className="text-xs font-medium text-gray-700">Quantity</span>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.max(1, Number(f.quantity) - 1) }))} className="w-6 h-6 bg-green-100 text-green-800 rounded-full text-xl font-bold hover:bg-green-200 flex items-center justify-center">−</button>
-            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-10 text-center border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-12 text-center border border-gray-200 rounded-lg px-1 py-2 text-sm focus:outline-none focus:border-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
             <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.min(product?.stockQty || 99, Number(f.quantity) + 1) }))} className="w-6 h-6 bg-green-800 text-white rounded-full text-xl font-bold hover:bg-green-700 flex items-center justify-center">+</button>
           </div>
         </div>
@@ -500,7 +498,6 @@ function OrderForm() {
     </div>
   )
 }
-
 export default function OrderPageEn() {
   return (
     <Suspense fallback={<div className="text-center py-20">Loading...</div>}>

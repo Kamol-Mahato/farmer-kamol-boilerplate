@@ -1,9 +1,19 @@
+import { prisma } from "@/lib/prisma"
 // ✅ Server-side delivery charge calculation — client থেকে আসা সংখ্যা trust করা হয় না
-export function calculateDeliveryCharge(districtId: number | null, quantity: number): number {
-  if (districtId === null || districtId === undefined) return 75
+// এখন charge গুলো DB (SystemControlCenter) থেকে আসে, hardcode না
+export async function calculateDeliveryCharge(districtId: number | null, quantity: number): Promise<number> {
+  const settings = await prisma.systemControlCenter.findUnique({ where: { id: 1 } })
+
+  const dhakaBase = settings?.dhakaBaseCharge ?? 75
+  const dhakaExtra = settings?.dhakaExtraPerUnit ?? 20
+  const outsideBase = settings?.outsideBaseCharge ?? 120
+  const outsideExtra = settings?.outsideExtraPerUnit ?? 30
+
+  if (districtId === null || districtId === undefined) return dhakaBase
+
   const isDhaka = districtId === 21
-  const base = isDhaka ? 75 : 120
-  const extra = isDhaka ? 20 : 30
+  const base = isDhaka ? dhakaBase : outsideBase
+  const extra = isDhaka ? dhakaExtra : outsideExtra
   return quantity > 1 ? base + (quantity - 1) * extra : base
 }
 // 🇧🇩 বাংলাদেশ টাইমজোন (+৬ ঘণ্টা) অনুযায়ী "আজকের" শুরু ও শেষ সময় বের করা

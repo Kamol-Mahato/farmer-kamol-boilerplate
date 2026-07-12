@@ -25,6 +25,10 @@ model SystemControlCenter {
   enableCoupons         Boolean @default(false)
   enableWishlist        Boolean @default(false)
   enablePaymentGateway  Boolean @default(false)
+  dhakaBaseCharge       Int     @default(75)
+  dhakaExtraPerUnit     Int     @default(20)
+  outsideBaseCharge     Int     @default(120)
+  outsideExtraPerUnit   Int     @default(30)
 }
 
 model User {

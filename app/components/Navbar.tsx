@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import AnnouncementBar from "./AnnouncementBar"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import NewOrderNotifier from "../admin/components/NewOrderNotifier"
 import { useMobileMenu } from "./MobileMenuContext"
 import { getLocaleFromPath, localizeHref, switchLocalePath } from "@/lib/i18n"
@@ -38,6 +38,7 @@ const uiDict = {
 export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const locale = getLocaleFromPath(pathname)
   const t = uiDict[locale]
   const href = (path: string) => localizeHref(path, locale)
@@ -240,7 +241,7 @@ export default function Navbar() {
           <div className="flex items-center gap-1.5 xs:gap-2 flex-nowrap shrink-0">
             {/* 🌐 মোবাইলের জন্য প্রফেশনাল ল্যাঙ্গুয়েজ বক্স বাটন (শুধু মোবাইলে দেখাবে) */}
 <Link
-  href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
+  href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn", searchParams.toString())}
   className="flex md:hidden items-center justify-center px-2.5 py-1 text-xs font-semibold tracking-wide text-white border border-white/20 rounded-md bg-white/10 backdrop-blur-sm active:scale-95 hover:bg-white/20 transition duration-200 shrink-0 -mr-1"
   aria-label="Language Switch"
   title={t.langSwitch}
@@ -251,7 +252,7 @@ export default function Navbar() {
 
             {/* 📊 পিসির জন্য এক্সেল স্টাইল টগল বাটন (মোবাইলে হাইড থাকবে) */}
             <Link
-              href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn")}
+              href={switchLocalePath(pathname, locale === "bn" ? "en" : "bn", searchParams.toString())}
               className="hidden md:flex items-center bg-green-900 border border-green-700 rounded-lg overflow-hidden h-7 text-xs font-bold shrink-0 shadow-inner transition hover:border-yellow-400 group ml-3"
               aria-label="ভাষা পরিবর্তন"
               title={t.langSwitch}

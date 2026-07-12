@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "SystemControlCenter" ADD COLUMN     "dhakaBaseCharge" INTEGER NOT NULL DEFAULT 75,
+ADD COLUMN     "dhakaExtraPerUnit" INTEGER NOT NULL DEFAULT 20,
+ADD COLUMN     "outsideBaseCharge" INTEGER NOT NULL DEFAULT 120,
+ADD COLUMN     "outsideExtraPerUnit" INTEGER NOT NULL DEFAULT 30;

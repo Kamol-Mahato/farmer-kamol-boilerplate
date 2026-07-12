@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
-import { districts, upazilas } from "@/lib/bd-locations"
+import { districts, upazilas, upazilasEn } from "@/lib/bd-locations"
 
 interface ProductData {
   name: string
@@ -19,6 +19,7 @@ function DistrictSearch({ districts, value, onSelect }: {
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState(false)
   const filtered = districts.filter(d =>
     d.name.includes(query) ||
     d.en_name.toLowerCase().includes(query.toLowerCase())
@@ -27,10 +28,10 @@ function DistrictSearch({ districts, value, onSelect }: {
     <div className="relative">
       <input
         type="text"
-        value={query || value}
+        value={editing ? query : value}
         onChange={e => { setQuery(e.target.value); setShow(true) }}
-        onFocus={() => { setQuery(""); setShow(true) }}
-        onBlur={() => setTimeout(() => setShow(false), 200)}
+        onFocus={() => { setEditing(true); setQuery(""); setShow(true) }}
+        onBlur={() => setTimeout(() => { setShow(false); setEditing(false) }, 200)}
         placeholder="জেলা লিখুন বা খুঁজুন"
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
       />
@@ -39,7 +40,7 @@ function DistrictSearch({ districts, value, onSelect }: {
           {filtered.map(d => (
             <div key={d.id}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setQuery(""); setShow(false); onSelect(d) }}
+              onMouseDown={() => { setQuery(""); setEditing(false); setShow(false); onSelect(d) }}
             >
               {d.name} <span className="text-gray-400 text-xs">({d.en_name})</span>
             </div>
@@ -49,23 +50,28 @@ function DistrictSearch({ districts, value, onSelect }: {
     </div>
   )
 }
-function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
+function UpazilaSearch({ upazilas, upazilasEn, value, onSelect, disabled }: {
   upazilas: string[]
+  upazilasEn: string[]
   value: string
   onSelect: (u: string) => void
   disabled?: boolean
 }) {
   const [query, setQuery] = useState("")
   const [show, setShow] = useState(false)
-  const filtered = upazilas.filter(u => u.includes(query))
+  const [editing, setEditing] = useState(false)
+  const q = query.toLowerCase()
+  const filtered = upazilas.filter((u, i) =>
+    u.includes(query) || (upazilasEn[i] || "").toLowerCase().includes(q)
+  )
   return (
     <div className="relative">
       <input
         type="text"
-        value={query || value}
+        value={editing ? query : value}
         onChange={e => { setQuery(e.target.value); setShow(true) }}
-        onFocus={() => { setQuery(""); setShow(true) }}
-        onBlur={() => setTimeout(() => setShow(false), 200)}
+        onFocus={() => { setEditing(true); setQuery(""); setShow(true) }}
+        onBlur={() => setTimeout(() => { setShow(false); setEditing(false) }, 200)}
         placeholder={disabled ? "আগে জেলা বেছে নিন" : "উপজেলা /এরিয়া লিখুন বা খুঁজুন"}
         disabled={disabled}
         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500 disabled:bg-gray-100"
@@ -75,7 +81,7 @@ function UpazilaSearch({ upazilas, value, onSelect, disabled }: {
           {filtered.map(u => (
             <div key={u}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setQuery(""); setShow(false); onSelect(u) }}
+              onMouseDown={() => { setQuery(""); setEditing(false); setShow(false); onSelect(u) }}
             >
               {u}
             </div>
@@ -98,6 +104,12 @@ function OrderForm() {
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null)
   const [copied, setCopied] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [deliverySettings, setDeliverySettings] = useState({
+    dhakaBaseCharge: 75,
+    dhakaExtraPerUnit: 20,
+    outsideBaseCharge: 120,
+    outsideExtraPerUnit: 30,
+  })
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -118,13 +130,19 @@ function OrderForm() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // ডেলিভারি চার্জের ডাইনামিক হিসাব
+  // ডেলিভারি চার্জের ডাইনামিক হিসাব (সেটিংস API থেকে আসছে, hardcode না)
   const isDhaka = selectedDistrictId === 21;
-  const base = isDhaka ? 75 : 120;
-  const extra = isDhaka ? 20 : 30;
+  const base = isDhaka ? deliverySettings.dhakaBaseCharge : deliverySettings.outsideBaseCharge;
+  const extra = isDhaka ? deliverySettings.dhakaExtraPerUnit : deliverySettings.outsideExtraPerUnit;
   const deliveryCharge = selectedDistrictId === null
-  ? 75
+  ? deliverySettings.dhakaBaseCharge
   : form.quantity > 1 ? base + ((Number(form.quantity) - 1) * extra) : base;
+  useEffect(() => {
+    fetch("/api/settings/delivery")
+      .then(res => res.json())
+      .then(data => setDeliverySettings(data))
+      .catch(() => {}) // ফেইল হলে উপরের ডিফল্ট ভ্যালুই থেকে যাবে
+  }, [])
 
   useEffect(() => {
     async function fetchProduct() {
@@ -250,7 +268,7 @@ function OrderForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     if (form.phone.length !== 11 || !form.phone.startsWith("01")) {
-      setError("আপনার মোবাইল নম্বরটি সঠিক নয় (১১ ডিজিট হতে হবে এবং 01 দিয়ে শুরু হতে হবে)")
+      setError("আপনার মোবাইল নম্বরটি সঠিক নয় (১১ ডিজিট হতে হবে এবং 01 দিয়ে শুরু হতে হবে)")
       return
     }
     e.preventDefault()
@@ -361,7 +379,7 @@ function OrderForm() {
           <span className="text-xs font-medium text-gray-700">পরিমাণ</span>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.max(1, Number(f.quantity) - 1) }))} className="w-6 h-6 bg-green-100 text-green-800 rounded-full text-xl font-bold hover:bg-green-200 flex items-center justify-center">−</button>
-            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-10 text-center border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+            <input type="number" name="quantity" value={form.quantity} onChange={handleChange} className="w-12 text-center border border-gray-200 rounded-lg px-1 py-2 text-sm focus:outline-none focus:border-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
             <button type="button" onClick={() => setForm(f => ({ ...f, quantity: Math.min(product?.stockQty || 99, Number(f.quantity) + 1) }))} className="w-6 h-6 bg-green-800 text-white rounded-full text-xl font-bold hover:bg-green-700 flex items-center justify-center">+</button>
           </div>
         </div>
@@ -406,6 +424,7 @@ function OrderForm() {
             <UpazilaSearch
               key={selectedDistrictId ?? "none"}
               upazilas={selectedDistrictId ? (upazilas[selectedDistrictId] || []) : []}
+              upazilasEn={selectedDistrictId ? (upazilasEn[selectedDistrictId] || []) : []}
               value={form.upazila}
               disabled={!selectedDistrictId}
               onSelect={(u) => setForm(prev => ({ ...prev, upazila: u }))}

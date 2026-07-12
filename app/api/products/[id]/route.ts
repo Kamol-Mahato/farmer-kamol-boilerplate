@@ -17,6 +17,7 @@ export async function GET(
       where: { id: productId },
       select: {
         name: true,
+        nameEn: true,
         pricePerUnit: true,
         unit: true,
         stockQty: true,
