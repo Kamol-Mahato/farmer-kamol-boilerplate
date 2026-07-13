@@ -113,6 +113,7 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
       </div>
       <div className="border-t border-dashed border-gray-400 my-2" />
       <p className="text-xs font-bold text-gray-700">COD: ৳ {order.finalCodAmount}</p>
+      <p className="text-xs text-gray-600">Delivery Charge: ৳ {order.deliveryCharge}</p>
       <p className="text-xs text-gray-600">পেইড: ৳ {order.paymentAmountPaid}</p>
       <p className="text-xs font-bold text-red-600">বাকি: ৳ {order.finalCodAmount - order.paymentAmountPaid}</p>
       <div className="border-t border-dashed border-gray-400 my-2" />
@@ -151,6 +152,8 @@ function StickerInvoice({ order }: { order: Order }) {
       <div className="border-t border-dashed border-gray-400 my-2" />
       <p className="text-sm font-bold text-gray-800">{order.customer.name}</p>
       <p className="text-sm text-gray-700">{order.customer.phone}</p>
+      <p className="text-xs text-gray-600 mt-1">COD: ৳ {order.finalCodAmount}</p>
+      <p className="text-xs text-gray-600">Delivery: ৳ {order.deliveryCharge}</p>
       <p className="text-sm font-extrabold text-red-600 mt-1">কালেক্ট করুন: ৳ {dueAmount}</p>
       <div className="mt-2 flex justify-center">
         <Barcode value={customId} width={1.2} height={35} fontSize={9} />
