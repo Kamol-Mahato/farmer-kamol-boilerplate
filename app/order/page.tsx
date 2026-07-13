@@ -109,6 +109,7 @@ function OrderForm() {
     dhakaExtraPerUnit: 20,
     outsideBaseCharge: 120,
     outsideExtraPerUnit: 30,
+    mode: "NORMAL", // ✅ নতুন মোড ট্র্যাকিং এর জন্য যুক্ত করা হলো
   })
   const [form, setForm] = useState({
     name: "",
@@ -134,14 +135,22 @@ function OrderForm() {
   const isDhaka = selectedDistrictId === 21;
   const base = isDhaka ? deliverySettings.dhakaBaseCharge : deliverySettings.outsideBaseCharge;
   const extra = isDhaka ? deliverySettings.dhakaExtraPerUnit : deliverySettings.outsideExtraPerUnit;
-  const deliveryCharge = selectedDistrictId === null
-  ? deliverySettings.dhakaBaseCharge
-  : form.quantity > 1 ? base + ((Number(form.quantity) - 1) * extra) : base;
+  // আপনার আগের মূল হিসাবের লজিক হুবহু রাখা হয়েছে
+const regularDeliveryCharge = selectedDistrictId === null
+? deliverySettings.dhakaBaseCharge
+: form.quantity > 1 ? base + ((Number(form.quantity) - 1) * extra) : base;
+
+// ✅ নতুন মোড (FREE/HALF/NORMAL) অনুযায়ী ফাইনাল চার্জ ক্যালকুলেশন
+const deliveryCharge = deliverySettings.mode === "FREE" 
+? 0 
+: deliverySettings.mode === "HALF" 
+  ? Math.round(regularDeliveryCharge / 2) 
+  : regularDeliveryCharge;
   useEffect(() => {
     fetch("/api/settings/delivery")
       .then(res => res.json())
-      .then(data => setDeliverySettings(data))
-      .catch(() => {}) // ফেইল হলে উপরের ডিফল্ট ভ্যালুই থেকে যাবে
+      .then(data => setDeliverySettings(prev => ({ ...prev, ...data }))) // ✅ এভাবে দিলে কোনো ফিল্ড মিস হবে না
+      .catch(() => {})
   }, [])
 
   useEffect(() => {

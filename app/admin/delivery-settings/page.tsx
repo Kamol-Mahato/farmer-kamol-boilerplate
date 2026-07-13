@@ -8,6 +8,16 @@ type DeliverySettings = {
   outsideExtraPerUnit: string
 }
 
+// ✅ TypeScript-এর জন্য এপিআই রেসপন্স টাইপ ডিফাইন করা হলো
+type ApiResponse = DeliverySettings & {
+  deliveryChargeMode?: "NORMAL" | "FREE" | "HALF"
+  normalDhakaBaseCharge?: number
+  normalDhakaExtraPerUnit?: number
+  normalOutsideBaseCharge?: number
+  normalOutsideExtraPerUnit?: number
+  error?: string
+}
+
 export default function AdminDeliverySettingsPage() {
   const [form, setForm] = useState<DeliverySettings>({
     dhakaBaseCharge: "0",
@@ -22,16 +32,17 @@ export default function AdminDeliverySettingsPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
 
+  // ✅ পেজ লোড হওয়ার সময় আসল বা স্বাভাবিক মানগুলো ফর্মে ধরে রাখার জন্য
   async function fetchSettings() {
     try {
       const res = await fetch("/api/admin/settings/delivery")
-      const data = await res.json()
+      const data: ApiResponse = await res.json()
       if (res.ok) {
         setForm({
-          dhakaBaseCharge: String(data.dhakaBaseCharge),
-          dhakaExtraPerUnit: String(data.dhakaExtraPerUnit),
-          outsideBaseCharge: String(data.outsideBaseCharge),
-          outsideExtraPerUnit: String(data.outsideExtraPerUnit),
+          dhakaBaseCharge: String(data.normalDhakaBaseCharge ?? data.dhakaBaseCharge),
+          dhakaExtraPerUnit: String(data.normalDhakaExtraPerUnit ?? data.dhakaExtraPerUnit),
+          outsideBaseCharge: String(data.normalOutsideBaseCharge ?? data.outsideBaseCharge),
+          outsideExtraPerUnit: String(data.normalOutsideExtraPerUnit ?? data.outsideExtraPerUnit),
         })
         setMode(data.deliveryChargeMode || "NORMAL")
       } else {
@@ -46,6 +57,7 @@ export default function AdminDeliverySettingsPage() {
 
   useEffect(() => { fetchSettings() }, [])
 
+  // ✅ ম্যানুয়াল নতুন সংখ্যা লিখে সেভ করলে তা নতুন "স্বাভাবিক" দাম হিসেবে আপডেট হবে
   async function handleSubmit() {
     setSaving(true)
     setError("")
@@ -56,11 +68,17 @@ export default function AdminDeliverySettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })
-      const data = await res.json()
+      const data: ApiResponse = await res.json()
       if (!res.ok) {
         setError(data.error || "সমস্যা হয়েছে")
         return
       }
+      setForm({
+        dhakaBaseCharge: String(data.normalDhakaBaseCharge ?? data.dhakaBaseCharge),
+        dhakaExtraPerUnit: String(data.normalDhakaExtraPerUnit ?? data.dhakaExtraPerUnit),
+        outsideBaseCharge: String(data.normalOutsideBaseCharge ?? data.outsideBaseCharge),
+        outsideExtraPerUnit: String(data.normalOutsideExtraPerUnit ?? data.outsideExtraPerUnit),
+      })
       setMode(data.deliveryChargeMode || "NORMAL")
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
@@ -71,6 +89,7 @@ export default function AdminDeliverySettingsPage() {
     }
   }
 
+  // ✅ ফ্রি বা অর্ধেক বাটন প্রেস করলে ডাটাবেজে আপডেট হবে, কিন্তু ফর্মের মেইন প্রাইস ঠিক থাকবে
   async function handlePreset(presetMode: "NORMAL" | "FREE" | "HALF") {
     setPresetLoading(true)
     setError("")
@@ -81,16 +100,16 @@ export default function AdminDeliverySettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ presetMode }),
       })
-      const data = await res.json()
+      const data: ApiResponse = await res.json()
       if (!res.ok) {
         setError(data.error || "সমস্যা হয়েছে")
         return
       }
       setForm({
-        dhakaBaseCharge: String(data.dhakaBaseCharge),
-        dhakaExtraPerUnit: String(data.dhakaExtraPerUnit),
-        outsideBaseCharge: String(data.outsideBaseCharge),
-        outsideExtraPerUnit: String(data.outsideExtraPerUnit),
+        dhakaBaseCharge: String(data.normalDhakaBaseCharge ?? data.dhakaBaseCharge),
+        dhakaExtraPerUnit: String(data.normalDhakaExtraPerUnit ?? data.dhakaExtraPerUnit),
+        outsideBaseCharge: String(data.normalOutsideBaseCharge ?? data.outsideBaseCharge),
+        outsideExtraPerUnit: String(data.normalOutsideExtraPerUnit ?? data.outsideExtraPerUnit),
       })
       setMode(data.deliveryChargeMode || "NORMAL")
       setSuccess(true)
@@ -106,49 +125,49 @@ export default function AdminDeliverySettingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-green-800 mb-8">ডেলিভারি চার্জ সেটিংস</h1>
+      <h1 className="text-3xl font-bold text-green-800 mb-8">ডেলিভারি充电 সেটিংস</h1>
 
-<div className="bg-white rounded-xl shadow p-6 mb-8">
-  <h2 className="text-lg font-bold text-gray-700 mb-3">দ্রুত মোড পরিবর্তন</h2>
-  <p className="text-xs text-gray-400 mb-4">
-    বর্তমান অবস্থা:{" "}
-    <span className="font-bold">
-      {mode === "FREE" ? "🟢 ফ্রি ডেলিভারি" : mode === "HALF" ? "🟡 অর্ধেক ডেলিভারি চার্জ" : "⚪ স্বাভাবিক"}
-    </span>
-  </p>
-  <div className="flex flex-wrap gap-3 mb-2">
-    <button
-      onClick={() => handlePreset("NORMAL")}
-      disabled={presetLoading}
-      className={`px-4 py-2 rounded-lg font-bold text-sm border-2 transition disabled:opacity-50 ${
-        mode === "NORMAL" ? "bg-gray-700 text-white border-gray-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"
-      }`}
-    >
-      স্বাভাবিক
-    </button>
-    <button
-      onClick={() => handlePreset("FREE")}
-      disabled={presetLoading}
-      className={`px-4 py-2 rounded-lg font-bold text-sm border-2 transition disabled:opacity-50 ${
-        mode === "FREE" ? "bg-green-600 text-white border-green-600" : "border-green-500 text-green-700 hover:bg-green-50"
-      }`}
-    >
-      🟢 ফ্রি করুন
-    </button>
-    <button
-      onClick={() => handlePreset("HALF")}
-      disabled={presetLoading}
-      className={`px-4 py-2 rounded-lg font-bold text-sm border-2 transition disabled:opacity-50 ${
-        mode === "HALF" ? "bg-yellow-500 text-white border-yellow-500" : "border-yellow-500 text-yellow-700 hover:bg-yellow-50"
-      }`}
-    >
-      🟡 অর্ধেক করুন
-    </button>
-  </div>
-</div>
+      <div className="bg-white rounded-xl shadow p-6 mb-8">
+        <h2 className="text-lg font-bold text-gray-700 mb-3">দ্রুত মোড পরিবর্তন</h2>
+        <p className="text-xs text-gray-400 mb-4">
+          বর্তমান অবস্থা:{" "}
+          <span className="font-bold">
+            {mode === "FREE" ? "🟢 ফ্রি ডেলিভারি" : mode === "HALF" ? "🟡 অর্ধেক ডেলিভারি চার্জ" : "⚪ স্বাভাবিক"}
+          </span>
+        </p>
+        <div className="flex flex-wrap gap-3 mb-2">
+          <button
+            onClick={() => handlePreset("NORMAL")}
+            disabled={presetLoading}
+            className={`px-4 py-2 rounded-lg font-bold text-sm border-2 transition disabled:opacity-50 ${
+              mode === "NORMAL" ? "bg-gray-700 text-white border-gray-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            স্বাভাবিক
+          </button>
+          <button
+            onClick={() => handlePreset("FREE")}
+            disabled={presetLoading}
+            className={`px-4 py-2 rounded-lg font-bold text-sm border-2 transition disabled:opacity-50 ${
+              mode === "FREE" ? "bg-green-600 text-white border-green-600" : "border-green-500 text-green-700 hover:bg-green-50"
+            }`}
+          >
+            🟢 ফ্রি করুন
+          </button>
+          <button
+            onClick={() => handlePreset("HALF")}
+            disabled={presetLoading}
+            className={`px-4 py-2 rounded-lg font-bold text-sm border-2 transition disabled:opacity-50 ${
+              mode === "HALF" ? "bg-yellow-500 text-white border-yellow-500" : "border-yellow-500 text-yellow-700 hover:bg-yellow-50"
+            }`}
+          >
+            🟡 অর্ধেক করুন
+          </button>
+        </div>
+      </div>
 
-<div className="bg-white rounded-xl shadow p-6 mb-8">
-  <h2 className="text-lg font-bold text-green-700 mb-4">ঢাকার ভেতরে</h2>
+      <div className="bg-white rounded-xl shadow p-6 mb-8">
+        <h2 className="text-lg font-bold text-green-700 mb-4">ঢাকার ভেতরে</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1">বেস চার্জ (প্রথম ইউনিট)</label>
