@@ -29,6 +29,11 @@ model SystemControlCenter {
   dhakaExtraPerUnit     Int     @default(20)
   outsideBaseCharge     Int     @default(120)
   outsideExtraPerUnit   Int     @default(30)
+  deliveryChargeMode        String  @default("NORMAL")
+  normalDhakaBaseCharge     Int     @default(75)
+  normalDhakaExtraPerUnit   Int     @default(20)
+  normalOutsideBaseCharge   Int     @default(120)
+  normalOutsideExtraPerUnit Int     @default(30)
 }
 
 model User {
@@ -94,6 +99,7 @@ model Product {
   stockQty            Float
   isOutOfStockVisible Boolean                  @default(true)
   isFeatured          Boolean                  @default(false)
+  isTopSeller         Boolean                  @default(false)
   priceType           PriceType                @default(FIXED)
   isActive            Boolean                  @default(true)
   createdAt           DateTime                 @default(now())

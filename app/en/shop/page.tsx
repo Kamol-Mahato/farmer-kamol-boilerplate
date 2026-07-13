@@ -22,6 +22,8 @@ export default async function ShopPage() {
     include: { images: true, category: true },
     orderBy: { createdAt: "desc" },
   })
+  const systemSettings = await prisma.systemControlCenter.findUnique({ where: { id: 1 } })
+  const deliveryMode = (systemSettings?.deliveryChargeMode ?? "NORMAL") as "NORMAL" | "FREE" | "HALF"
   return (
     <div>
       <Breadcrumb items={[
@@ -41,7 +43,7 @@ export default async function ShopPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} deliveryMode={deliveryMode} />
           ))}
         </div>
       )}

@@ -18,6 +18,8 @@ type Product = {
   category: { name: string; nameEn?: string | null } | null
 }
 
+type DeliveryChargeMode = "NORMAL" | "FREE" | "HALF"
+
 // ✅ Global Toast — once defined, works everywhere
 function showCartToast(name: string) {
   const existing = document.getElementById("cart-toast")
@@ -71,7 +73,7 @@ function buildWhatsAppLink(productName: string) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, deliveryMode = "NORMAL" }: { product: Product; deliveryMode?: DeliveryChargeMode }) {
   const btnRef = useRef<HTMLAnchorElement>(null)
   const [bounced, setBounced] = useState(false)
   const [added, setAdded] = useState(false)
@@ -149,6 +151,15 @@ export default function ProductCard({ product }: { product: Product }) {
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                   Out of Stock
+                  {deliveryMode !== "NORMAL" && (
+              <span
+                className={`absolute top-1.5 left-1.5 z-10 text-[9px] md:text-xs font-bold px-2 py-0.5 rounded-full text-white shadow ${
+                  deliveryMode === "FREE" ? "bg-green-600" : "bg-yellow-500"
+                }`}
+              >
+                {deliveryMode === "FREE" ? "🟢 Free Delivery" : "🟡 Half Delivery Charge"}
+              </span>
+            )}
                 </span>
               </div>
             )}

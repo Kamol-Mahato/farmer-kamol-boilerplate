@@ -34,6 +34,7 @@ export default function NewProductPage() {
     imageUrl: "", 
     imageUrls: [] as string[],
     isFeatured: false,
+    isTopSeller: false,
     isActive: true,
     isOutOfStockVisible: true,
   })
@@ -375,6 +376,16 @@ export default function NewProductPage() {
               className="w-4 h-4 accent-green-600"
             />
             <span className="text-sm text-gray-700">হোমপেজে ফিচার্ড দেখাবে</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              name="isTopSeller"
+              checked={form.isTopSeller}
+              onChange={handleChange}
+              className="w-4 h-4 accent-green-600"
+            />
+            <span className="text-sm text-gray-700">জনপ্রিয় পণ্য সেকশনে দেখাবে</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input

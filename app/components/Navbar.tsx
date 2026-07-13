@@ -24,6 +24,7 @@ const uiDict = {
     login: "লগইন করুন",
     register: "নতুন অ্যাকাউন্ট খুলুন",
     langSwitch: "English",
+    tagline: "খামার থেকে আপনার দরজায়",
   },
   en: {
     search: "Search...",
@@ -32,6 +33,7 @@ const uiDict = {
     login: "Login",
     register: "Create Account",
     langSwitch: "বাংলা",
+    tagline: "From Our Farm To Your Door",
   },
 }
 
@@ -142,10 +144,14 @@ export default function Navbar() {
       )}
       <div className={`fixed top-0 left-0 h-auto max-h-[85vh] overflow-y-auto w-56 bg-green-800 rounded-br-2xl z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
       <div className="flex items-center justify-between p-3 border-b border-green-700">
-          <Link href={href("/")} className="flex items-center" onClick={() => closeSidebarForNav()}>
-            <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={44} height={44} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400" />
+      <Link href={href("/")} className="flex items-center gap-2" onClick={() => closeSidebarForNav()}>
+            <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={44} height={44} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400 shrink-0" />
+            <div className="flex flex-col leading-tight">
+              <span className="text-white font-bold text-sm whitespace-nowrap">Farmer Kamol</span>
+              <span className="text-yellow-300 text-[9px] font-bold whitespace-nowrap">{t.tagline}</span>
+            </div>
           </Link>
-          <button onClick={() => { closeSidebar(); setOpenMobileMenu(null) }} className="text-white text-2xl">✕</button>
+          <button onClick={() => { closeSidebar(); setOpenMobileMenu(null) }} className="text-white text-2xl shrink-0">✕</button>
         </div>
         <div className="p-2 flex flex-col gap-2">
           {menus.map(menu => (
@@ -191,7 +197,7 @@ export default function Navbar() {
               <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={36} height={36} priority className="w-9 h-9 rounded-full object-cover border-2 border-white-400" />
               <div className="flex flex-col leading-tight">
                 <span className="text-xs font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
-                <span className="text-[9px] text-yellow-300 font-bold whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
+                <span className="text-[9px] text-yellow-300 font-bold whitespace-nowrap">{t.tagline}</span>
               </div>
             </Link>
           </div>

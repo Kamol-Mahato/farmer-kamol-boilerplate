@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { sanitizeHtml } from "@/lib/sanitize"
-
+                                                                                                                              
 export async function GET() {
   const isAuthorized = await verifyAdminOrAgent()
   if (!isAuthorized) {
@@ -45,6 +45,7 @@ export async function POST(request: Request) {
       imageUrl, // ফ্রন্টএন্ড ফর্ম থেকে পাঠানো ছবির লিংকটি রিসিভ করা হলো (backward compatibility)
       imageUrls, // একাধিক ছবির লিংক (নতুন)
       isFeatured,
+      isTopSeller,
       isActive,
       isOutOfStockVisible,
     } = body
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
         unit,
         stockQty,
         isFeatured,
+        isTopSeller,
         isActive,
         isOutOfStockVisible,
         // ✅ একাধিক ছবি থাকলে সবগুলো সেভ হবে, প্রথমটা isPrimary হিসেবে মার্ক হবে

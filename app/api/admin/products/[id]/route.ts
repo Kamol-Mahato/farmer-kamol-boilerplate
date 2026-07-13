@@ -37,6 +37,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         unit: body.unit,
         stockQty: body.stockQty,
         isFeatured: body.isFeatured,
+        isTopSeller: body.isTopSeller,
         isActive: body.isActive,
         isOutOfStockVisible: body.isOutOfStockVisible,
         // ✅ একাধিক ছবি থাকলে পুরনো সব ছবি মুছে নতুন সবগুলো সেভ হবে, প্রথমটা isPrimary

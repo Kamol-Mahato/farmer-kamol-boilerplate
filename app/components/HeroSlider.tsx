@@ -130,17 +130,18 @@ export default function HeroSlider({
       ? toYoutubeEmbedUrl(heroVideos[currentMobileItem.videoIdx]?.youtubeUrl || "")
       : null
 
-  function renderProductSlide(p: Product, key: number | string, extraClass: string) {
-    const imageUrl = p.images?.[0]?.imageUrl || "/uploads/1781611130414-modhu.jpg"
-    return (
-      <div key={key} className={`absolute inset-0 ${extraClass}`}>
-        <Image
-          src={imageUrl}
-          alt={p.name}
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover"
-        />
+      function renderProductSlide(p: Product, key: number | string, extraClass: string, isPriority: boolean = false) {
+        const imageUrl = p.images?.[0]?.imageUrl || "/uploads/1781611130414-modhu.jpg"
+        return (
+          <div key={key} className={`absolute inset-0 ${extraClass}`}>
+            <Image
+              src={imageUrl}
+              alt={p.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
+              priority={isPriority}
+            />
         <div className="absolute bottom-0 right-0 bg-white/60 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-1 rounded-tl-2xl flex flex-col items-end gap-0.5 md:gap-1 text-right">
           <h3 className="text-xs md:text-base font-bold text-green-900">{p.name}</h3>
           <p className="text-black text-[10px] md:text-xs font-semibold">{p.unit}</p>
@@ -198,7 +199,7 @@ export default function HeroSlider({
             </div>
           ) : (
             featuredProducts.map((p, i) =>
-              renderProductSlide(p, p.id, `transition-opacity duration-700 ${pcProductIndex === i ? "opacity-100" : "opacity-0"}`)
+              renderProductSlide(p, p.id, `transition-opacity duration-700 ${pcProductIndex === i ? "opacity-100" : "opacity-0"}`, i === 0)
             )
           )}
           {featuredProducts.length > 1 && (
@@ -225,7 +226,7 @@ export default function HeroSlider({
               onLoad={(e) => startListening(e.currentTarget)}
             />
           ) : currentMobileItem?.kind === "product" && featuredProducts[currentMobileItem.productIdx] ? (
-            renderProductSlide(featuredProducts[currentMobileItem.productIdx], `m-${safeMobileIndex}`, "opacity-100")
+            renderProductSlide(featuredProducts[currentMobileItem.productIdx], `m-${safeMobileIndex}`, "opacity-100", safeMobileIndex === 0)
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-green-800">
               <p className="text-green-300 text-sm">কোনো কনটেন্ট নেই</p>

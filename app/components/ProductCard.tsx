@@ -18,6 +18,8 @@ type Product = {
   category: { name: string } | null
 }
 
+type DeliveryChargeMode = "NORMAL" | "FREE" | "HALF"
+
 // ✅ Global Toast — একবার define, সব জায়গায় কাজ করবে
 function showCartToast(name: string) {
   const existing = document.getElementById("cart-toast")
@@ -71,7 +73,7 @@ function buildWhatsAppLink(productName: string) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, deliveryMode = "NORMAL" }: { product: Product; deliveryMode?: DeliveryChargeMode }) {
   const pathname = usePathname()
   const locale = getLocaleFromPath(pathname)
   const btnRef = useRef<HTMLAnchorElement>(null)
@@ -150,6 +152,15 @@ export default function ProductCard({ product }: { product: Product }) {
                   স্টক নেই
                 </span>
               </div>
+            )}
+            {deliveryMode !== "NORMAL" && (
+              <span
+                className={`absolute top-1.5 left-1.5 z-10 text-[9px] md:text-xs font-bold px-2 py-0.5 rounded-full text-white shadow ${
+                  deliveryMode === "FREE" ? "bg-green-600" : "bg-yellow-500"
+                }`}
+              >
+                {deliveryMode === "FREE" ? "🟢 ডেলিভারি চার্জ ফ্রি" : "🟡 ডেলিভারি চার্জ অর্ধেক"}
+              </span>
             )}
             {images.length > 1 && (
               <>

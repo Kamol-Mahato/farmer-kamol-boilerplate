@@ -27,6 +27,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     imageUrl: "",
     imageUrls: [] as string[],
     isFeatured: false,
+    isTopSeller: false,
     isActive: true,
     isOutOfStockVisible: true,
   })
@@ -57,6 +58,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           imageUrl: data.images?.[0]?.imageUrl || "",
           imageUrls: data.images?.map((img: { imageUrl: string }) => img.imageUrl) || [],
           isFeatured: data.isFeatured || false,
+          isTopSeller: data.isTopSeller || false,
           isActive: data.isActive ?? true,
           isOutOfStockVisible: data.isOutOfStockVisible ?? true,
         })
@@ -230,8 +232,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="flex gap-6 mb-8">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={handleChange} className="w-4 h-4 accent-green-600" />
+          <input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={handleChange} className="w-4 h-4 accent-green-600" />
             <span className="text-sm text-gray-700">ফিচার্ড</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="isTopSeller" checked={form.isTopSeller} onChange={handleChange} className="w-4 h-4 accent-green-600" />
+            <span className="text-sm text-gray-700">জনপ্রিয় পণ্য</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" name="isActive" checked={form.isActive} onChange={handleChange} className="w-4 h-4 accent-green-600" />

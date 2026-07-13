@@ -6,6 +6,7 @@ import BlogSection from "./components/BlogSection"
 import type { Metadata } from "next"
 import NoticeModal from "./components/NoticeModal" // এটি যোগ করুন
 import VideoSection from "./components/VideoSection"
+import TopSellerSection from "./components/TopSellerSection"
 
 export const metadata: Metadata = {
   title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
@@ -27,6 +28,8 @@ export default async function HomePage() {
     orderBy: { createdAt: "desc" },
     take: 6,
   })
+  const systemSettings = await prisma.systemControlCenter.findUnique({ where: { id: 1 } })
+  const deliveryMode = (systemSettings?.deliveryChargeMode ?? "NORMAL") as "NORMAL" | "FREE" | "HALF"
   const featuredProducts = await prisma.product.findMany({
     where: { isActive: true, isFeatured: true },
     include: {
@@ -38,6 +41,18 @@ export default async function HomePage() {
     },
     orderBy: { createdAt: "desc" },
     take: 4,
+  })
+  const topSellerProducts = await prisma.product.findMany({
+    where: { isActive: true, isTopSeller: true },
+    include: {
+      images: {
+        orderBy: { isPrimary: "desc" },
+        take: 1,
+      },
+      category: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 2,
   })
   const blogs = await prisma.blog.findMany({
     where: { isPublished: true },
@@ -62,6 +77,9 @@ export default async function HomePage() {
       {/* Hero Slider */}
       <HeroSlider featuredProducts={featuredProducts} heroVideos={heroVideos} />
 
+      {/* Top Seller Section */}
+      <TopSellerSection products={topSellerProducts} />
+
       {/* Featured Products */}
       <div className="bg-green-50 py-3 px-4">
         <div className="max-w-7xl mx-auto">
@@ -75,9 +93,9 @@ export default async function HomePage() {
               আমাদের পণ্য সমূহ
             </h2>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-2">
+          {products.map((product) => (
+              <ProductCard key={product.id} product={product} deliveryMode={deliveryMode} />
             ))}
           </div>
           <div className="text-center mt-4">
