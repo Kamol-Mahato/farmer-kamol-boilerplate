@@ -153,7 +153,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
                   Out of Stock
                   {deliveryMode !== "NORMAL" && (
               <span
-                className={`absolute top-1.5 left-1.5 z-10 text-[9px] md:text-xs font-bold px-2 py-0.5 rounded-full text-white shadow ${
+              className={`absolute bottom-1.5 right-1.5 z-10 text-[9px] md:text-xs font-bold px-2 py-0.5 rounded-full text-white shadow ${
                   deliveryMode === "FREE" ? "bg-green-600" : "bg-yellow-500"
                 }`}
               >
@@ -236,7 +236,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
                   : "border-green-600 bg-white text-green-700 hover:bg-green-50"
               }`}
             >
-              {added ? "✓ Added" : "🛒 Add to Cart"}
+              {added ? "✓ Added" : " Add to Cart"}
             </button>
             <Link
               ref={btnRef}
