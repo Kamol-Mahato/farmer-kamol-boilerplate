@@ -3,10 +3,15 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { safeJsonLd } from "@/lib/jsonLd"
+import { cache } from "react"
+
+const getBlogEn = cache(async (slug: string) => {
+  return prisma.blog.findUnique({ where: { slugEn: slug } })
+})
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const blog = await prisma.blog.findUnique({ where: { slugEn: slug } })
+  const blog = await getBlogEn(slug)
   if (!blog || !blog.titleEn) {
     return { title: "Blog Not Found - Farmer Kamol" }
   }
@@ -25,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogDetailPageEn({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const blog = await prisma.blog.findUnique({ where: { slugEn: slug } })
+  const blog = await getBlogEn(slug)
 
   // ✅ ইংরেজি কনটেন্ট এখনো লেখা না থাকলে পেজটাই দেখাবে না (বাংলা fallback না দিয়ে)
   if (!blog || !blog.isPublished || !blog.titleEn || !blog.contentEn) {

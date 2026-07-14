@@ -5,10 +5,26 @@ import Image from "next/image"
 import ProductCard from "@/app/en/components/ProductCard"
 import ProductActions from "./ProductActions"
 import { safeJsonLd } from "@/lib/jsonLd"
+import { cache } from "react"
+
+const getProduct = cache((slug: string) =>
+  prisma.product.findUnique({
+    where: { slug },
+    include: {
+      images: true,
+      category: true,
+      reviews: {
+        where: { isApproved: true },
+        include: { user: true },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  })
+)
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const product = await prisma.product.findUnique({ where: { slug } })
+  const product = await getProduct(slug)
   if (!product) {
     return { title: "Product Not Found - Farmer Kamol" }
   }
@@ -31,18 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    include: {
-      images: true,
-      category: true,
-      reviews: {
-        where: { isApproved: true },
-        include: { user: true },
-        orderBy: { createdAt: "desc" },
-      },
-    },
-  })
+  const product = await getProduct(slug)
   if (!product || !product.isActive) {
     notFound()
   }

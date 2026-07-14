@@ -13,12 +13,14 @@ export const metadata: Metadata = {
 }
 
 export default async function ShopPage() {
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    include: { images: true, category: true },
-    orderBy: { createdAt: "desc" },
-  })
-  const systemSettings = await prisma.systemControlCenter.findUnique({ where: { id: 1 } })
+  const [products, systemSettings] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true },
+      include: { images: true, category: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.systemControlCenter.findUnique({ where: { id: 1 } }),
+  ])
   const deliveryMode = (systemSettings?.deliveryChargeMode ?? "NORMAL") as "NORMAL" | "FREE" | "HALF"
   return (
     <div>

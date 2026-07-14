@@ -22,53 +22,64 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    include: { images: true, category: true },
-    orderBy: { createdAt: "desc" },
-    take: 6,
-  })
-  const systemSettings = await prisma.systemControlCenter.findUnique({ where: { id: 1 } })
+  const [
+    products,
+    systemSettings,
+    featuredProducts,
+    topSellerProducts,
+    blogs,
+    videos,
+    heroVideos,
+  ] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true },
+      include: { images: true, category: true },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
+    prisma.systemControlCenter.findUnique({ where: { id: 1 } }),
+    prisma.product.findMany({
+      where: { isActive: true, isFeatured: true },
+      include: {
+        images: {
+          orderBy: { isPrimary: "desc" },
+          where: { isPrimary: true },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+    }),
+    prisma.product.findMany({
+      where: { isActive: true, isTopSeller: true },
+      include: {
+        images: {
+          orderBy: { isPrimary: "desc" },
+          take: 1,
+        },
+        category: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 2,
+    }),
+    prisma.blog.findMany({
+      where: { isPublished: true },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    }),
+    prisma.youtubeVideo.findMany({
+      where: { isActive: true },
+      orderBy: { displayOrder: "asc" },
+      take: 3,
+    }),
+    prisma.youtubeVideo.findMany({
+      where: { heroOrder: { not: null } },
+      orderBy: { heroOrder: "asc" },
+      select: { id: true, youtubeUrl: true },
+    }),
+  ])
+
   const deliveryMode = (systemSettings?.deliveryChargeMode ?? "NORMAL") as "NORMAL" | "FREE" | "HALF"
-  const featuredProducts = await prisma.product.findMany({
-    where: { isActive: true, isFeatured: true },
-    include: {
-      images: {
-        orderBy: { isPrimary: "desc" },
-        where: { isPrimary: true },
-        take: 1,
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 4,
-  })
-  const topSellerProducts = await prisma.product.findMany({
-    where: { isActive: true, isTopSeller: true },
-    include: {
-      images: {
-        orderBy: { isPrimary: "desc" },
-        take: 1,
-      },
-      category: true,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 2,
-  })
-  const blogs = await prisma.blog.findMany({
-    where: { isPublished: true },
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  })
-  const videos = await prisma.youtubeVideo.findMany({
-    where: { isActive: true },
-    orderBy: { displayOrder: "asc" },
-    take: 3,
-  })
-  const heroVideos = await prisma.youtubeVideo.findMany({
-    where: { heroOrder: { not: null } },
-    orderBy: { heroOrder: "asc" },
-    select: { id: true, youtubeUrl: true },
-  })
 
   return (
     <div className="font-[family-name:var(--font-hind-siliguri)]">

@@ -3,10 +3,15 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { safeJsonLd } from "@/lib/jsonLd"
+import { cache } from "react"
+
+const getBlog = cache(async (slug: string) => {
+  return prisma.blog.findUnique({ where: { slug } })
+})
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const blog = await prisma.blog.findUnique({ where: { slug } })
+  const blog = await getBlog(slug)
   if (!blog) {
     return { title: "ব্লগ পাওয়া যায়নি - Farmer Kamol" }
   }
@@ -25,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const blog = await prisma.blog.findUnique({ where: { slug } })
+  const blog = await getBlog(slug)
 
   if (!blog || !blog.isPublished) {
     notFound()
