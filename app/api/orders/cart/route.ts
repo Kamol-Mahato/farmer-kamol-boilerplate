@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { getBangladeshDayBoundaries, calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
 import { sendTelegramAlert } from "@/lib/telegram"
+import { sendPushToAdmin } from "@/lib/webpush"
 
 export async function POST(request: Request) {
   try {
@@ -139,6 +140,13 @@ export async function POST(request: Request) {
         `অর্ডার #${result.id} — পেমেন্ট কনফার্ম করতে অ্যাডমিন প্যানেলে যান।`
       )
     }
+    // ✅ Admin-এর ফোনে push notification
+    await sendPushToAdmin(
+      "🛒 নতুন অর্ডার এসেছে!",
+      `${name} — ৳ ${finalCodAmount} (COD)`,
+      "/admin/orders"
+    )
+
     return NextResponse.json({ success: true, orderId: result.id })
   } catch (error: any) {
     if (error?.code === "P2002" && error?.meta?.target?.includes("gatewayTxnId")) {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import PanelNavbar from "../components/PanelNavbar"
 import NewOrderNotifier from "./components/NewOrderNotifier"
+import EnablePushButton from "./components/EnablePushButton"
 import AdminLogoutButton from "./components/AdminLogoutButton"
 import AdminSidebar from "./components/AdminSidebar"
 import AdminSidebarToggleButton from "./components/AdminSidebarToggleButton"
@@ -25,6 +26,7 @@ export default function AdminLayout({
         rightSlot={
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
             <NewOrderNotifier />
+            <EnablePushButton />
             <AdminLogoutButton />
           </div>
         }

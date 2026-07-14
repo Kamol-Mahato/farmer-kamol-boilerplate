@@ -392,3 +392,10 @@ model BlogCategory {
   name   String  @unique
   nameEn String?
 }
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
