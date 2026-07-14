@@ -79,3 +79,17 @@ label {
 .animate-attention-shake {
   animation: attention-shake 3s ease-in-out infinite;
 }
+/* ✅ Global mobile tap feedback — নতুন কোনো বাটনেও আলাদা কোড লাগবে না */
+button:not(:disabled),
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+button:not(:disabled):active,
+a:active,
+[role="button"]:active {
+  transform: scale(0.94);
+  opacity: 0.8;
+}
