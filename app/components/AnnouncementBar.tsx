@@ -70,7 +70,7 @@ export default function AnnouncementBar() {
             <span key={i}>
               {locale === "en" ? (
                 <>
-                  Nomoskar / Assalamu Alaikum to &nbsp;
+                  Nomoskar / Assalamu Alaikum Pure Honey, Ghee, Mustard oil & Duck Chicks — straight from our farm to your door. Wellcome &nbsp;
                   <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">Farmer Kamol</a>
                   &nbsp;Family. For our products or any inquiry, WhatsApp or call us at:&nbsp;
                   <a href="tel:+8801737939688" className="text-yellow-400 font-bold hover:underline">
@@ -80,7 +80,7 @@ export default function AnnouncementBar() {
                 </>
               ) : (
                 <>
-                  নমস্কার / আসসালামুআলাইকুম।&nbsp;
+                  নমস্কার / আসসালামুআলাইকুম, Farmer Kamol এ পেয়ে যাচ্ছেন খাঁটিমধু - ঘি - সরিষার তেল ও হাঁসের বাচ্চা — সরাসরি খামার থেকে আপনার দরজায়।&nbsp;
                   <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">Farmer Kamol</a>
                   &nbsp;পরিবারে স্বাগতম। আমাদের পণ্য ও যেকোনো প্রয়োজনে WhatsApp অথবা কল করুন:&nbsp;
                   <a href="tel:+8801737939688" className="text-yellow-400 font-bold hover:underline">

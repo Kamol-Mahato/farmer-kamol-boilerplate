@@ -18,7 +18,7 @@ body {
 
 .animate-marquee {
   display: inline-block;
-  animation: marquee 150s linear infinite;
+  animation: marquee 280s linear infinite;
   will-change: transform;
 }
 
@@ -29,6 +29,15 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+}
+
+.animate-logoPulse {
+  animation: logoPulse 1.8s ease-in-out infinite;
 }
 
 input, textarea, select {
