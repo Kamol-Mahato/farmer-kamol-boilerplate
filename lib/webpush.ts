@@ -1,16 +1,26 @@
 import webpush from "web-push"
 import { prisma } from "@/lib/prisma"
 
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT as string,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as string,
-  process.env.VAPID_PRIVATE_KEY as string
-)
+// ✅ VAPID key মিসিং থাকলেও যেন পুরো সাইটের build ভেঙে না যায়
+const vapidReady =
+  !!process.env.VAPID_SUBJECT &&
+  !!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
+  !!process.env.VAPID_PRIVATE_KEY
+
+if (vapidReady) {
+  webpush.setVapidDetails(
+    process.env.VAPID_SUBJECT as string,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY as string,
+    process.env.VAPID_PRIVATE_KEY as string
+  )
+}
 
 // ✅ যত ডিভাইস subscribe করা আছে, সবগুলোতে notification পাঠায়
 // (আপনার ক্ষেত্রে সাধারণত ১টা ফোন — কিন্তু ভবিষ্যতে একাধিক ডিভাইস হলেও কাজ করবে)
 export async function sendPushToAdmin(title: string, body: string, url: string = "/admin/orders") {
-  const subscriptions = await prisma.pushSubscription.findMany()
+    if (!vapidReady) return // ✅ key সেট না থাকলে চুপচাপ স্কিপ করবে, error ছুড়বে না
+  
+    const subscriptions = await prisma.pushSubscription.findMany()
 
   const payload = JSON.stringify({ title, body, url })
 
