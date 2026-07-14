@@ -192,6 +192,7 @@ function TopSellerCard({ product }: { product: Product }) {
 export default function TopSellerSection({ products }: { products: Product[] }) {
   const sectionRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const [mobileIndex, setMobileIndex] = useState(0)
 
   useEffect(() => {
     const el = sectionRef.current
@@ -211,6 +212,15 @@ export default function TopSellerSection({ products }: { products: Product[] }) 
     return () => observer.disconnect()
   }, [])
 
+  // ✅ মোবাইলে Hero Slider-এর মতো অটো-স্লাইড, প্রতি ৪ সেকেন্ডে
+  useEffect(() => {
+    if (!products || products.length <= 1) return
+    const timer = setInterval(() => {
+      setMobileIndex((i) => (i === products.length - 1 ? 0 : i + 1))
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [products])
+
   if (!products || products.length === 0) return null
 
   return (
@@ -226,10 +236,38 @@ export default function TopSellerSection({ products }: { products: Product[] }) 
           Top Selling
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+
+        {/* ✅ PC — আগের মতোই পাশাপাশি গ্রিড */}
+        <div className="hidden md:grid md:grid-cols-2 gap-6">
           {products.map((product) => (
             <TopSellerCard key={product.id} product={product} />
           ))}
+        </div>
+
+        {/* ✅ Mobile — Hero Slider-এর মতো অটো-স্লাইড, একটার পর একটা */}
+        <div className="md:hidden relative overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${mobileIndex * 100}%)` }}
+          >
+            {products.map((product) => (
+              <div key={product.id} className="w-full shrink-0">
+                <TopSellerCard product={product} />
+              </div>
+            ))}
+          </div>
+          {products.length > 1 && (
+            <div className="flex justify-center gap-1.5 mt-3">
+              {products.map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === mobileIndex ? "w-5 bg-green-700" : "w-1.5 bg-green-300"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

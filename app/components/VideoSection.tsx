@@ -66,7 +66,7 @@ export default function VideoSection({ videos }: { videos: Video[] }) {
         <div className="text-center mt-8">
           <Link
             href="/media/video"
-            className="bg-green-700 text-white px-6 py-2 rounded-full font-bold hover:bg-green-800 transition inline-block"
+            className="inline-flex items-center gap-2 border-2 border-green-700 text-green-700 px-6 py-2 rounded-full font-bold hover:bg-green-700 hover:text-white transition"
           >
             সব ভিডিও দেখুন →
           </Link>

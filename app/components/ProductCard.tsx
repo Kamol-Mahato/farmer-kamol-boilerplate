@@ -187,7 +187,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             )}
           </div>
         </Link>
-        <div className="pl-2 pr-6 md:px-4">
+        <div className="px-2 md:px-4">
         {product.category && (
           <span className="text-xs text-green-700 font-semibold bg-green-100 px-2.5 py-1 rounded-full">
             {product.category.name}
@@ -204,14 +204,14 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-[10px] md:text-xs text-gray-400 font-medium">মূল্য</span>
-            <span className="text-base md:text-xl font-extrabold text-black">
+            <span className="text-lg md:text-xl font-extrabold text-black">
               ৳ {product.pricePerUnit}
             </span>
           </div>
         </div>
         </div>
       </div>
-      <div className="mt-3 pt-3 border-t border-gray-100 px-4 pb-4">
+      <div className="mt-3 pt-3 border-t border-gray-100 px-1 pb-4">
         {product.priceType === "NEGOTIABLE" ? (
           // ✅ Negotiable price পণ্যের জন্য সরাসরি WhatsApp বাটন
           <a
@@ -223,11 +223,11 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             💬 WhatsApp এ যোগাযোগ করুন
           </a>
         ) : (
-          <div className="flex flex-col md:flex-row gap-2">
+          <div className="flex flex-row gap-3 md:gap-4">
             <button
               onClick={handleAddToCart}
               disabled={isOutOfStock}
-              className={`flex-1 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm transition border-2 ${
+              className={`flex-1 py-1.5 md:py-2 rounded-xl font-bold text-[10px] md:text-sm whitespace-nowrap transition border-2 ${
                 isOutOfStock
                   ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
                   : added
@@ -240,7 +240,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             <Link
               ref={btnRef}
               href={isOutOfStock ? "#" : localizeHref(`/order?productId=${product.id}`, locale)}
-              className={`flex-1 py-2 md:py-2.5 rounded-2xl font-bold text-xs md:text-sm flex items-center justify-center text-center transition ${
+              className={`flex-1 py-2 md:py-2.5 rounded-xl font-bold text-[10px] md:text-sm whitespace-nowrap flex items-center justify-center text-center transition ${
                 isOutOfStock
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
                   : `bg-green-700 text-white hover:bg-green-600 active:scale-95 ${

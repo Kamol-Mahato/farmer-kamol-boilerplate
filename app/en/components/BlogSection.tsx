@@ -48,7 +48,7 @@ export default function BlogSection({ blogs, categories }: { blogs: Blog[]; cate
           ))}
         </div>
         <div className="text-center mt-8">
-          <Link href="/en/blog" className="inline-block bg-green-700 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-green-600 transition">
+        <Link href="/en/blog" className="inline-flex items-center gap-2 border-2 border-green-700 text-green-700 px-6 py-2.5 rounded-full font-semibold hover:bg-green-700 hover:text-white transition">
             View All Blogs →
           </Link>
         </div>

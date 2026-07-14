@@ -212,7 +212,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
         </div>
         </div>
       </div>
-      <div className="mt-3 pt-3 border-t border-gray-100 px-4 pb-4">
+      <div className="mt-3 pt-3 border-t border-gray-100 px-1 pb-4">
         {product.priceType === "NEGOTIABLE" ? (
           // ✅ Direct WhatsApp button for negotiable-price products
           <a
@@ -224,11 +224,11 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             💬 Contact via WhatsApp
           </a>
         ) : (
-          <div className="flex flex-col md:flex-row gap-2">
+          <div className="flex flex-row gap-3 md:gap-4">
             <button
               onClick={handleAddToCart}
               disabled={isOutOfStock}
-              className={`flex-1 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm transition border-2 ${
+              className={`flex-1 py-1 md:py-2 rounded-xl font-bold text-[10px] md:text-sm whitespace-nowrap transition border-2 ${
                 isOutOfStock
                   ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed"
                   : added
@@ -241,7 +241,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             <Link
               ref={btnRef}
               href={isOutOfStock ? "#" : `/en/order?productId=${product.id}`}
-              className={`flex-1 py-2 md:py-2.5 rounded-2xl font-bold text-xs md:text-sm flex items-center justify-center text-center transition ${
+              className={`flex-1 py-1.5 md:py-2 rounded-full font-bold text-[10px] md:text-sm whitespace-nowrap flex items-center justify-center text-center transition ${
                 isOutOfStock
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
                   : `bg-green-700 text-white hover:bg-green-600 active:scale-95 ${
