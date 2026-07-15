@@ -331,7 +331,7 @@ export default function Navbar() {
                   >
                     🔑 {t.login}
                   </Link>
-                  <Link href={href("/register")}
+                  <Link href={href("/register")} aria-label="register"
                     onClick={() => setAuthMenuOpen(false)}
                     className="block px-4 py-2 text-sm hover:bg-green-700 hover:text-yellow-400 transition"
                   >
