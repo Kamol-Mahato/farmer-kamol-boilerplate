@@ -137,7 +137,7 @@ function TopSellerCard({ product }: { product: Product }) {
             </h3>
           </Link>
           <div className="flex items-baseline gap-1 flex-wrap">
-            <span className="text-[9px] md:text-xs text-gray-400 font-medium">মূল্য</span>
+          <span className="text-xs text-black font-bold">মূল্য</span>
             <span className="text-sm md:text-xl font-extrabold text-black">
               ৳ {product.pricePerUnit}
             </span>

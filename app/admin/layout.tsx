@@ -5,8 +5,9 @@ import EnablePushButton from "./components/EnablePushButton"
 import AdminLogoutButton from "./components/AdminLogoutButton"
 import AdminSidebar from "./components/AdminSidebar"
 import AdminSidebarToggleButton from "./components/AdminSidebarToggleButton"
+import AdminBottomNav from "./components/AdminBottomNav"
 import { AdminSidebarProvider } from "./components/AdminSidebarContext"
-
+  
 export const metadata: Metadata = {
   robots: {
     index: false,
@@ -33,8 +34,9 @@ export default function AdminLayout({
       />
       <div className="flex">
         <AdminSidebar />
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0 pb-16 md:pb-0">{children}</main>
       </div>
+      <AdminBottomNav />
     </AdminSidebarProvider>
   )
 }

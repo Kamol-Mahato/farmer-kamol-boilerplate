@@ -203,7 +203,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             প্রতি {product.unit}
           </span>
           <div className="flex items-baseline gap-1">
-            <span className="text-xs text-gray-600 font-medium">মূল্য</span>
+          <span className="text-xs text-black font-bold">মূল্য</span>
             <span className="text-lg md:text-xl font-extrabold text-black">
               ৳ {product.pricePerUnit}
             </span>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { districts, upazilasEn } from "@/lib/bd-locations"
+import { translateUnit } from "@/lib/unitTranslate"
 interface ProductData {
   name: string
   nameEn?: string | null
@@ -349,7 +350,7 @@ function OrderForm() {
           </div>
           <div className="flex-1">
             <p className="font-bold text-gray-800 text-sm">{product?.nameEn || product?.name}</p>
-            <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit}</span></p>
+            <p className="text-black font-bold text-base">৳ {product?.pricePerUnit} <span className="text-gray-400 text-xs font-normal">/ {product?.unit ? translateUnit(product.unit) : ""}</span></p>
           </div>
         </div>
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
