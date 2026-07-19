@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 
 type Eligibility = {
   eligible: boolean
-  reason?: "NOT_LOGGED_IN" | "NOT_DELIVERED" | "ALREADY_REVIEWED"
+  reason?: "NOT_LOGGED_IN" | "ALREADY_REVIEWED"
 }
 
 export default function ReviewForm({ productId }: { productId: number }) {
@@ -69,7 +69,7 @@ export default function ReviewForm({ productId }: { productId: number }) {
 
   return (
     <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-      <p className="font-bold text-gray-800 text-sm mb-2">You ordered this product — leave a review</p>
+      <p className="font-bold text-gray-800 text-sm mb-2">Share your experience — leave a review</p>
       <div className="flex gap-1 mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
           <button

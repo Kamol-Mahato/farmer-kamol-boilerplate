@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 
 type Eligibility = {
   eligible: boolean
-  reason?: "NOT_LOGGED_IN" | "NOT_DELIVERED" | "ALREADY_REVIEWED"
+  reason?: "NOT_LOGGED_IN" | "ALREADY_REVIEWED"
 }
 
 export default function ReviewForm({ productId }: { productId: number }) {
@@ -66,14 +66,14 @@ export default function ReviewForm({ productId }: { productId: number }) {
   if (submitted) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-sm text-green-800 font-medium">
-        ✅ আপনার রিভিউ জমা হয়েছে! যাচাই করার পর এটা এখানে প্রদর্শিত হবে।
+        ✅ আপনার রিভিউ জমা হয়েছে! 
       </div>
     )
   }
 
   return (
     <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-      <p className="font-bold text-gray-800 text-sm mb-2">আপনি এই পণ্যটি অর্ডার করেছেন — একটা রিভিউ দিন</p>
+      <p className="font-bold text-gray-800 text-sm mb-2">আপনার অভিজ্ঞতা জানিয়ে একটা রিভিউ দিন</p>
       <div className="flex gap-1 mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
           <button

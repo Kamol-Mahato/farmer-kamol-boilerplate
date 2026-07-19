@@ -26,20 +26,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "productId প্রয়োজন" }, { status: 400 })
   }
 
-  // এই কাস্টমারের এই প্রোডাক্টের কোনো DELIVERED অর্ডার আছে কিনা
-  const deliveredOrderItem = await prisma.orderItem.findFirst({
+  /* 🔒 LOCKED — ভবিষ্যতে "শুধু অর্ডার করা কাস্টমার review দিতে পারবে" চালু করতে চাইলে
+     নিচের কমেন্ট সরিয়ে দাও:
+
+  const orderItem = await prisma.orderItem.findFirst({
     where: {
       productId,
-      order: {
-        customerId,
-        orderStatus: "DELIVERED",
-      },
+      order: { customerId },
     },
   })
 
-  if (!deliveredOrderItem) {
-    return NextResponse.json({ eligible: false, reason: "NOT_DELIVERED" })
+  if (!orderItem) {
+    return NextResponse.json({ eligible: false, reason: "NOT_ORDERED" })
   }
+
+  */
 
   // ইতিমধ্যে রিভিউ দিয়ে থাকলে আর দিতে পারবে না
   const existingReview = await prisma.productReview.findFirst({
@@ -67,19 +68,34 @@ export async function POST(request: Request) {
     const comment = typeof body.comment === "string" ? body.comment.trim().slice(0, 1000) : null
 
     if (!productId || !rating || rating < 1 || rating > 5) {
-      return NextResponse.json({ error: "সঠিক তথ্য দিন" }, { status: 400 })
-    }
+        return NextResponse.json({ error: "সঠিক তথ্য দিন" }, { status: 400 })
+      }
+  
+      /* 🔒 LOCKED — ভবিষ্যতে "শুধু অর্ডার করা কাস্টমার review দিতে পারবে" চালু করতে চাইলে
+         নিচের কমেন্ট সরিয়ে দাও:
+  
+      const orderItem = await prisma.orderItem.findFirst({
+        where: {
+          productId,
+          order: { customerId },
+        },
+      })
+      if (!orderItem) {
+        return NextResponse.json({ error: "শুধুমাত্র অর্ডার করা পণ্যেই রিভিউ দেওয়া যাবে" }, { status: 403 })
+      }
+  
+      */
 
-    // 🔒 সার্ভার-সাইড ফের যাচাই — শুধু delivered order থাকলেই রিভিউ নেওয়া হবে
-    const deliveredOrderItem = await prisma.orderItem.findFirst({
-      where: {
-        productId,
-        order: { customerId, orderStatus: "DELIVERED" },
-      },
-    })
-    if (!deliveredOrderItem) {
-      return NextResponse.json({ error: "শুধুমাত্র ডেলিভারি সম্পন্ন হওয়া পণ্যেই রিভিউ দেওয়া যাবে" }, { status: 403 })
-    }
+    // 🔒 সার্ভার-সাইড ফের যাচাই — কাস্টমার এই প্রোডাক্ট অন্তত একবার অর্ডার করেছে কিনা (যেকোনো status)
+    const orderItem = await prisma.orderItem.findFirst({
+        where: {
+          productId,
+          order: { customerId },
+        },
+      })
+      if (!orderItem) {
+        return NextResponse.json({ error: "শুধুমাত্র অর্ডার করা পণ্যেই রিভিউ দেওয়া যাবে" }, { status: 403 })
+      }
 
     const existingReview = await prisma.productReview.findFirst({
       where: { productId, userId: customerId },
