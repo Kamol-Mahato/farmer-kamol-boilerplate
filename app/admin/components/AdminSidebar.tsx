@@ -18,6 +18,7 @@ const navItems = [
   { label: "ব্লগ ক্যাটাগরি", href: "/admin/blog-categories" },
   { label: "ইনভয়েস", href: "/admin/invoice" },
   { label: "ডেলিভারি চার্জ সেটিংস", href: "/admin/delivery-settings" },
+  { label: "সিস্টেম কন্ট্রোল সেন্টার", href: "/admin/settings" },
 ]
 
 export default function AdminSidebar() {
