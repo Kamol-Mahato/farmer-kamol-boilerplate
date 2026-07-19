@@ -38,7 +38,7 @@ export default function NewOrderNotifier() {
 
   const checkNewOrders = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/notifications?afterId=${lastSeenId.current ?? 0}`)
+      const res = await fetch(`/api/admin/notifications?afterId=${lastSeenId.current ?? 0}`, { cache: "no-store" })
       const data = await res.json()
       if (!Array.isArray(data) || data.length === 0) return
 

@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma"
 import { NextRequest, NextResponse } from "next/server"
 
+// ✅ এই route কখনো cache হবে না — প্রতিবার সত্যিই ডাটাবেস থেকে fresh ডেটা আনবে
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)

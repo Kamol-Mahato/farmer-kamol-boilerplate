@@ -514,19 +514,20 @@ export default function AdminOrdersPage() {
                   </td>
 
                   {/* লকড কলামসমূহ (ক্লিক করা যাবে না) */}
-                  <td className="px-6 py-4 font-medium text-gray-800 select-none">{order.customer.name}</td>
-                  <td className="px-6 py-4 text-gray-600 select-none">{order.customer.phone}</td>
-                  <td className="px-6 py-4 select-none">
+                  <td className="px-6 py-4 font-medium text-gray-800">{order.customer.name}</td>
+                  <td className="px-6 py-4 text-gray-600">{order.customer.phone}</td>
+                  <td className="px-6 py-4 text-gray-600 ">{order.customer.phone}</td>
+                  <td className="px-6 py-4">
                     {renderPaymentBadge(order)}
                   </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 select-none">
+                  <td className="px-6 py-4 font-medium text-gray-900 ">
   ৳ {order.finalCodAmount}
 </td>
 
-<td className="px-6 py-4 font-medium text-gray-900 select-none">
+<td className="px-6 py-4 font-medium text-gray-900 ">
   {order.paymentMethod === "GATEWAY" ? `৳ ${order.paymentAmountPaid}` : "-"}
 </td>
-                  <td className={`px-6 py-4 font-bold select-none ${getDueAmount(order) === 0 ? "text-green-600" : "text-red-600"}`}>৳ {getDueAmount(order)}</td>
+                  <td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-green-600" : "text-red-600"}`}>৳ {getDueAmount(order)}</td>
                   {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
 
                   {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন */}
