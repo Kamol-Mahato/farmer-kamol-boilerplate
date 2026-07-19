@@ -516,7 +516,6 @@ export default function AdminOrdersPage() {
                   {/* লকড কলামসমূহ (ক্লিক করা যাবে না) */}
                   <td className="px-6 py-4 font-medium text-gray-800">{order.customer.name}</td>
                   <td className="px-6 py-4 text-gray-600">{order.customer.phone}</td>
-                  <td className="px-6 py-4 text-gray-600 ">{order.customer.phone}</td>
                   <td className="px-6 py-4">
                     {renderPaymentBadge(order)}
                   </td>
