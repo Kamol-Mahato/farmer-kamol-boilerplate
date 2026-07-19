@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import ProductCard from "@/app/components/ProductCard"
 import ProductActions from "./ProductActions"
+import ReviewForm from "@/app/components/ReviewForm"
 import { safeJsonLd } from "@/lib/jsonLd"
 import { cache } from "react"
 
@@ -204,9 +205,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
         {/* Reviews */}
-        {product.reviews.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">কাস্টমার রিভিউ</h2>
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">কাস্টমার রিভিউ</h2>
+          <ReviewForm productId={product.id} />
+          {product.reviews.length > 0 && (
             <div className="space-y-4">
               {product.reviews.map((review) => (
                 <div key={review.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
@@ -223,10 +225,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   {review.comment && <p className="text-gray-600 text-sm mt-1">{review.comment}</p>}
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
-        )}
-        {/* Related Products */}
+          {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
             <h2 className="text-xl font-bold text-gray-800 mb-4">সম্পর্কিত পণ্য</h2>

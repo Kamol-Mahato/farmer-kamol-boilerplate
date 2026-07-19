@@ -23,6 +23,7 @@ export default function AdminLayout({
   return (
     <AdminSidebarProvider>
       <PanelNavbar
+        homeHref="/admin"
         leftSlot={<AdminSidebarToggleButton />}
         rightSlot={
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">

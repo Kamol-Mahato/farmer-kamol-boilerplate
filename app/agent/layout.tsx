@@ -15,7 +15,7 @@ export default function AgentLayout({
 }) {
   return (
     <>
-      <PanelNavbar rightSlot={<AgentLogoutButton />} />
+      <PanelNavbar homeHref="/agent" rightSlot={<AgentLogoutButton />} />
       {children}
     </>
   )
