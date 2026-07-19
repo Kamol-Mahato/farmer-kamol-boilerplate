@@ -42,17 +42,23 @@ type MobileQueueItem =
   | { kind: "video"; videoIdx: number }
   | { kind: "product"; productIdx: number }
 
-export default function HeroSlider({
-  featuredProducts = [],
-  heroVideos = [],
-}: {
-  featuredProducts?: Product[]
-  heroVideos?: HeroVideo[]
-}) {
-  // ===== PC: ভিডিও ও প্রোডাক্ট আলাদা আলাদাভাবে চলবে =====
-  const [pcVideoIndex, setPcVideoIndex] = useState(0)
-  const [pcProductIndex, setPcProductIndex] = useState(0)
-  const pcIframeRef = useRef<HTMLIFrameElement>(null)
+  export default function HeroSlider({
+    featuredProducts = [],
+    heroVideos = [],
+  }: {
+    featuredProducts?: Product[]
+    heroVideos?: HeroVideo[]
+  }) {
+    // ===== ভিডিও লোড একটু দেরি করে শুরু হবে, যাতে প্রথমে ছবি/টেক্সট দ্রুত দেখা যায় (Speed Index ফিক্স) =====
+    const [videoReady, setVideoReady] = useState(false)
+    useEffect(() => {
+      const t = setTimeout(() => setVideoReady(true), 500)
+      return () => clearTimeout(t)
+    }, [])
+    // ===== PC: ভিডিও ও প্রোডাক্ট আলাদা আলাদাভাবে চলবে =====
+    const [pcVideoIndex, setPcVideoIndex] = useState(0)
+    const [pcProductIndex, setPcProductIndex] = useState(0)
+    const pcIframeRef = useRef<HTMLIFrameElement>(null)
 
   // ===== Mobile: ভিডিও + প্রোডাক্ট মিলিয়ে একটাই queue =====
   const [mobileQueueIndex, setMobileQueueIndex] = useState(0)
@@ -167,7 +173,7 @@ export default function HeroSlider({
       <div className="hidden md:grid md:grid-cols-2 h-[280px]">
         {/* বাম — ভিডিও (৩-৪টা ক্রমানুসারে চলবে) */}
         <div className="relative overflow-hidden">
-          {pcEmbedUrl ? (
+          {pcEmbedUrl && videoReady ? (
             <iframe
               key={pcVideoIndex}
               ref={pcIframeRef}
@@ -214,7 +220,7 @@ export default function HeroSlider({
       {/* ── MOBILE LAYOUT — ভিডিও ও প্রোডাক্ট একই queue-তে, ‹ › দিয়ে পুরো queue-তে ঘোরা যাবে ── */}
       <div className="md:hidden">
         <div className="relative" style={{ paddingTop: "56.25%" }}>
-          {currentMobileItem?.kind === "video" && mobileEmbedUrl ? (
+        {currentMobileItem?.kind === "video" && mobileEmbedUrl && videoReady ? (
             <iframe
               key={`m-${safeMobileIndex}`}
               ref={mobileIframeRef}

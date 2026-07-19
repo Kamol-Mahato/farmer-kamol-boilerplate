@@ -155,7 +155,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             )}
             {deliveryMode !== "NORMAL" && (
               <span
-              className={`absolute bottom-1.5 right-1.5 z-10 text-[9px] md:text-xs font-bold px-2 py-0.5 rounded-full text-white shadow ${
+              className={`absolute bottom-1.5 right-1.5 z-10 text-[11px] md:text-xs font-bold px-2 py-0.5 rounded-full text-white shadow ${
                   deliveryMode === "FREE" ? "bg-green-600" : "bg-yellow-500"
                 }`}
               >
@@ -203,7 +203,7 @@ export default function ProductCard({ product, deliveryMode = "NORMAL" }: { prod
             প্রতি {product.unit}
           </span>
           <div className="flex items-baseline gap-1">
-            <span className="text-[10px] md:text-xs text-gray-400 font-medium">মূল্য</span>
+            <span className="text-xs text-gray-600 font-medium">মূল্য</span>
             <span className="text-lg md:text-xl font-extrabold text-black">
               ৳ {product.pricePerUnit}
             </span>
