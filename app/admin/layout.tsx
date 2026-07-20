@@ -1,8 +1,7 @@
 import type { Metadata } from "next"
 import PanelNavbar from "../components/PanelNavbar"
 //import NewOrderNotifier from "./components/NewOrderNotifier"
-import EnablePushButton from "./components/EnablePushButton"
-import AdminLogoutButton from "./components/AdminLogoutButton"
+import AdminAccountMenu from "./components/AdminAccountMenu"
 import AdminMoreMenu from "./components/AdminMoreMenu"
 import AdminSidebar from "./components/AdminSidebar"
 import AdminSidebarToggleButton from "./components/AdminSidebarToggleButton"
@@ -27,13 +26,12 @@ export default function AdminLayout({
         homeHref="/admin"
         leftSlot={<AdminSidebarToggleButton />}
         rightSlot={
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+          <div className="flex items-center">
             {/* 🔒 LOCKED — Bell icon notification আপাতত বন্ধ, শুধু Web Push ব্যবহার হচ্ছে।
                 ভবিষ্যতে paid notification service নেওয়া হলে নিচের কমেন্ট সরিয়ে আবার চালু করা যাবে:
             <NewOrderNotifier />
             */}
-            <EnablePushButton />
-            <AdminLogoutButton />
+            <AdminAccountMenu />
           </div>
         }
       />
