@@ -11,7 +11,7 @@ export default function PanelNavbar({
   homeHref?: string
 }) {
   return (
-    <nav className="sticky top-0 z-40 bg-green-800 text-white py-1.5 px-3 md:px-6 shadow-md">
+    <nav className="sticky top-0 z-[60] bg-green-800 text-white py-1.5 px-3 md:px-6 shadow-md">
       <div className="max-w-7xl mx-auto flex items-center flex-wrap gap-2 md:gap-3">
       {leftSlot}
       <Link href={homeHref} className="flex items-center gap-2 md:gap-3 shrink-0">
