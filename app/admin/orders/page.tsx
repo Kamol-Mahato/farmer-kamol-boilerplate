@@ -50,6 +50,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([])
   const [bulkStatus, setBulkStatus] = useState("")
+  const [bulkCourierLoading, setBulkCourierLoading] = useState(false)
   const [courierName, setCourierName] = useState("")
   const [showInvoiceMenu, setShowInvoiceMenu] = useState(false)
   const [pendingShipment, setPendingShipment] = useState<{ orderId: number; courier: string } | null>(null)
@@ -162,6 +163,40 @@ export default function AdminOrdersPage() {
   }, [orders, searchId, searchPhone, searchName, statusFilter, startDate, endDate, showingLimit])
 
   // একক বা বাল্ক স্ট্যাটাস ও কুরিয়ার আপডেট করার মেথড
+  async function handleBulkPathaoBooking(ids: number[]) {
+    if (ids.length === 0) return
+    if (!confirm(`${ids.length} টা অর্ডার Pathao-তে বুক করতে চাও?`)) return
+
+    setBulkCourierLoading(true)
+    let successCount = 0
+    let failCount = 0
+    const failedOrders: string[] = []
+
+    // ✅ একটার পর একটা (sequential) বুক করা হচ্ছে — একসাথে অনেকগুলো পাঠালে Pathao API rate-limit করতে পারে
+    for (const id of ids) {
+      try {
+        const res = await fetch(`/api/admin/orders/${id}/courier`, { method: "POST" })
+        if (res.ok) {
+          successCount++
+        } else {
+          const data = await res.json()
+          failCount++
+          failedOrders.push(`#${id}: ${data.error || "ব্যর্থ"}`)
+        }
+      } catch {
+        failCount++
+        failedOrders.push(`#${id}: নেটওয়ার্ক সমস্যা`)
+      }
+    }
+
+    setBulkCourierLoading(false)
+    alert(
+      `✅ সফল: ${successCount} টা\n❌ ব্যর্থ: ${failCount} টা${failedOrders.length > 0 ? "\n\n" + failedOrders.join("\n") : ""}`
+    )
+    fetchOrders()
+    setSelectedOrderIds([])
+  }
+
   async function handleStatusUpdate(ids: number[], status: string, courier?: string) {
     try {
       const res = await fetch("/api/admin/orders", {
@@ -452,11 +487,18 @@ export default function AdminOrdersPage() {
               </select>
             )}
 
-            <button
+<button
               onClick={() => handleStatusUpdate(selectedOrderIds, bulkStatus, courierName)}
               className="w-full sm:w-auto bg-green-700 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition"
             >
               পরিবর্তন নিশ্চিত করুন
+            </button>
+            <button
+              onClick={() => handleBulkPathaoBooking(selectedOrderIds)}
+              disabled={bulkCourierLoading}
+              className="w-full sm:w-auto bg-red-600 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-red-500 transition disabled:opacity-50"
+            >
+              {bulkCourierLoading ? "বুক হচ্ছে..." : "📦 Pathao-তে বাল্ক বুক করুন"}
             </button>
           </div>
         </div>
