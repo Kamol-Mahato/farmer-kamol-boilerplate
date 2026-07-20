@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import OrderStatusUpdate from "./OrderStatusUpdate"
 import PaymentConfirm from "./PaymentConfirm"
 import { generateCustomId } from "@/lib/orderUtils"
+import CourierBookButton from "./CourierBookButton"
 
 export default async function OrderDetailPage({
   params,
@@ -75,7 +76,15 @@ export default async function OrderDetailPage({
             customerPhone={order.customer.phone}
             customOrderId={generateCustomId(order.createdAt, order.dailySeq)}
           />
-          
+
+          <div className="mt-4">
+            <CourierBookButton
+              orderId={order.id}
+              alreadyBooked={!!order.courierTrackingId}
+              trackingId={order.courierTrackingId}
+            />
+          </div>
+
           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
             <div className="flex justify-between">
               <span className="text-gray-600">পণ্যের দাম</span>

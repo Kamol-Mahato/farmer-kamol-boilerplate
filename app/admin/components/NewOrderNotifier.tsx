@@ -36,6 +36,28 @@ export default function NewOrderNotifier() {
     }
   }, [])
 
+  // ✅ একই অর্ডার (id) দুইবার (push + polling দুই জায়গা থেকে) না দেখানোর জন্য dedup সহ shared ফাংশন
+  const addAlert = useCallback((alert: NewOrderAlert) => {
+    let isDuplicate = false
+    setHistory(prev => {
+      if (prev.some(h => h.id === alert.id)) {
+        isDuplicate = true
+        return prev
+      }
+      return [alert, ...prev].slice(0, 30)
+    })
+    if (isDuplicate) return
+
+    setToasts(prev => [...prev, alert])
+    setUnseenCount(prev => prev + 1)
+    playDing()
+
+    // ৬ সেকেন্ড পরে toast নিজেই মিলিয়ে যাবে
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== alert.id))
+    }, 6000)
+  }, [playDing])
+
   const checkNewOrders = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/notifications?afterId=${lastSeenId.current ?? 0}`, { cache: "no-store" })
@@ -50,34 +72,49 @@ export default function NewOrderNotifier() {
         return
       }
 
-      const newAlerts: NewOrderAlert[] = data.map((o: any) => ({
-        id: o.id,
-        name: o.customer?.name || "কাস্টমার",
-        amount: o.finalCodAmount,
-        time: new Date().toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" }),
-      }))
-
-      setToasts(prev => [...prev, ...newAlerts])
-      setHistory(prev => [...newAlerts, ...prev].slice(0, 30))
-      setUnseenCount(prev => prev + newAlerts.length)
-      playDing()
-
-      // ৬ সেকেন্ড পরে toast নিজেই মিলিয়ে যাবে
-      newAlerts.forEach(alert => {
-        setTimeout(() => {
-          setToasts(prev => prev.filter(t => t.id !== alert.id))
-        }, 6000)
+      data.forEach((o: any) => {
+        addAlert({
+          id: o.id,
+          name: o.customer?.name || "কাস্টমার",
+          amount: o.finalCodAmount,
+          time: new Date().toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" }),
+        })
       })
     } catch (error) {
       console.error("নতুন অর্ডার চেক ব্যর্থ হয়েছে", error)
     }
-  }, [playDing])
+  }, [addAlert])
 
   useEffect(() => {
     checkNewOrders()
+    // ✅ push কাজ না করলেও (পারমিশন বন্ধ, ব্রাউজার সাপোর্ট না করলে) polling ব্যাকআপ হিসেবে থাকছে
     const interval = setInterval(checkNewOrders, 15000)
     return () => clearInterval(interval)
   }, [checkNewOrders])
+
+  // ✅ Service Worker push event থেকে সরাসরি real-time আপডেট
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return
+
+    function handleMessage(event: MessageEvent) {
+      const data = event.data
+      if (data?.type !== "NEW_ORDER" || !data.orderId) return
+
+      addAlert({
+        id: data.orderId,
+        name: data.name || "কাস্টমার",
+        amount: data.amount || 0,
+        time: new Date().toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" }),
+      })
+
+      if (lastSeenId.current === null || data.orderId > lastSeenId.current) {
+        lastSeenId.current = data.orderId
+      }
+    }
+
+    navigator.serviceWorker.addEventListener("message", handleMessage)
+    return () => navigator.serviceWorker.removeEventListener("message", handleMessage)
+  }, [addAlert])
 
   function dismissToast(id: number) {
     setToasts(prev => prev.filter(t => t.id !== id))

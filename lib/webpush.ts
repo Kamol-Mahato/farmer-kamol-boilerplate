@@ -17,12 +17,18 @@ if (vapidReady) {
 
 // ✅ যত ডিভাইস subscribe করা আছে, সবগুলোতে notification পাঠায়
 // (আপনার ক্ষেত্রে সাধারণত ১টা ফোন — কিন্তু ভবিষ্যতে একাধিক ডিভাইস হলেও কাজ করবে)
-export async function sendPushToAdmin(title: string, body: string, url: string = "/admin/orders") {
+export async function sendPushToAdmin(
+  title: string,
+  body: string,
+  url: string = "/admin/orders",
+  extra?: { orderId?: number; name?: string; amount?: number }
+) {
     if (!vapidReady) return // ✅ key সেট না থাকলে চুপচাপ স্কিপ করবে, error ছুড়বে না
   
     const subscriptions = await prisma.pushSubscription.findMany()
 
-  const payload = JSON.stringify({ title, body, url })
+  // ✅ orderId/name/amount payload-এ থাকলে bell dropdown সেটা সরাসরি ব্যবহার করতে পারবে
+  const payload = JSON.stringify({ title, body, url, ...extra })
 
   await Promise.all(
     subscriptions.map(async (sub) => {

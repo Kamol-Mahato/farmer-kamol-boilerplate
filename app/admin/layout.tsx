@@ -3,6 +3,7 @@ import PanelNavbar from "../components/PanelNavbar"
 import NewOrderNotifier from "./components/NewOrderNotifier"
 import EnablePushButton from "./components/EnablePushButton"
 import AdminLogoutButton from "./components/AdminLogoutButton"
+import AdminMoreMenu from "./components/AdminMoreMenu"
 import AdminSidebar from "./components/AdminSidebar"
 import AdminSidebarToggleButton from "./components/AdminSidebarToggleButton"
 import AdminBottomNav from "./components/AdminBottomNav"
@@ -26,10 +27,13 @@ export default function AdminLayout({
         homeHref="/admin"
         leftSlot={<AdminSidebarToggleButton />}
         rightSlot={
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+          <div className="flex items-center gap-1 md:gap-4">
             <NewOrderNotifier />
-            <EnablePushButton />
-            <AdminLogoutButton />
+            <div className="hidden md:flex items-center gap-3">
+              <EnablePushButton />
+              <AdminLogoutButton />
+            </div>
+            <AdminMoreMenu />
           </div>
         }
       />

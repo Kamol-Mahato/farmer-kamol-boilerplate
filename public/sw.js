@@ -23,7 +23,22 @@ self.addEventListener("push", function (event) {
       renotify: true,
     }
   
-    event.waitUntil(self.registration.showNotification(data.title, options))
+    event.waitUntil(
+      Promise.all([
+        self.registration.showNotification(data.title, options),
+        // ✅ খোলা ট্যাব থাকলে সরাসরি সেখানে ডেটা পাঠাও — bell icon সাথে সাথে আপডেট হবে
+        clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+          clientList.forEach((client) => {
+            client.postMessage({
+              type: "NEW_ORDER",
+              orderId: data.orderId,
+              name: data.name,
+              amount: data.amount,
+            })
+          })
+        }),
+      ])
+    )
   })
   
   // ✅ Notification-এ ট্যাপ করলে Admin Orders পেজ খুলবে

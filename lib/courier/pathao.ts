@@ -134,4 +134,52 @@ export async function createPathaoStore(params: {
   return data.data
 }
 
+// ✅ একটা অর্ডার Pathao-তে বুক করা — সফল হলে consignment_id রিটার্ন করবে
+export async function createPathaoOrder(params: {
+  storeId: number
+  merchantOrderId: string
+  recipientName: string
+  recipientPhone: string
+  recipientAddress: string
+  amountToCollect: number
+  itemDescription: string
+  itemQuantity: number
+}) {
+  const enabled = await isCourierApiEnabled()
+  if (!enabled) throw new Error("Courier API এখন বন্ধ আছে (System Control Center থেকে চালু করো)")
+
+  const config = getConfig()
+  const token = await getAccessToken()
+
+  const res = await fetch(`${config.baseUrl}/aladdin/api/v1/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      store_id: params.storeId,
+      merchant_order_id: params.merchantOrderId,
+      recipient_name: params.recipientName,
+      recipient_phone: params.recipientPhone,
+      recipient_address: params.recipientAddress,
+      delivery_type: 48, // ✅ 48 = সাধারণ ডেলিভারি (Normal, ২৪-৭২ ঘণ্টা)
+      item_type: 2, // ✅ 2 = Parcel
+      special_instruction: "খাদ্যপণ্য — সাবধানে হ্যান্ডেল করুন",
+      item_quantity: params.itemQuantity,
+      item_weight: "0.5", // ⚠️ আপাতত ডিফল্ট 0.5kg, পরে চাইলে প্রোডাক্ট-ভিত্তিক real weight যোগ করা যাবে
+      item_description: params.itemDescription,
+      amount_to_collect: params.amountToCollect,
+    }),
+  })
+
+  const data = await res.json()
+
+  if (!res.ok || data.code !== 200) {
+    throw new Error(`Pathao order বুক করা যায়নি: ${data.message || res.status}`)
+  }
+
+  return {
+    consignmentId: data.data.consignment_id as string,
+    trackingCode: data.data.merchant_order_id as string,
+  }
+}
+
 export { getAccessToken, getConfig, PATHAO_MODE }
