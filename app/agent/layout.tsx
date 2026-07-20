@@ -15,7 +15,15 @@ export default function AgentLayout({
 }) {
   return (
     <>
-      <PanelNavbar homeHref="/agent" rightSlot={<AgentLogoutButton />} />
+      <PanelNavbar
+        homeHref="/agent"
+        rightSlot={<AgentLogoutButton />}
+        navLinks={[
+          { label: "Orders", href: "/agent/orders" },
+          { label: "Customer", href: "/agent/customers" },
+          { label: "farmerkamol.com", href: "/" },
+        ]}
+      />
       {children}
     </>
   )

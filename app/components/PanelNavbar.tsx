@@ -5,10 +5,15 @@ export default function PanelNavbar({
   rightSlot,
   leftSlot,
   homeHref = "/",
+  navLinks = [
+    { label: "Admin", href: "/admin/orders" },
+    { label: "Admin Products", href: "/admin/products" },
+  ],
 }: {
   rightSlot: React.ReactNode
   leftSlot?: React.ReactNode
   homeHref?: string
+  navLinks?: { label: string; href: string }[]
 }) {
   return (
     <nav className="sticky top-0 z-[60] bg-green-800 text-white py-1.5 px-3 md:px-6 shadow-md">
@@ -28,8 +33,11 @@ export default function PanelNavbar({
           </div>
         </Link>
         <div className="hidden md:flex flex-1 items-center justify-evenly text-sm font-medium px-2">
-          <Link href="/admin/orders" className="hover:text-yellow-400 transition">Admin</Link>
-          <Link href="/admin/products" className="hover:text-yellow-400 transition">Admin Products</Link>
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="hover:text-yellow-400 transition">
+              {link.label}
+            </Link>
+          ))}
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-auto md:ml-0">
           {rightSlot}
