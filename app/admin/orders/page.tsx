@@ -60,6 +60,7 @@ export default function AdminOrdersPage() {
   const [searchPhone, setSearchPhone] = useState("")
   const [searchName, setSearchName] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+  const [courierFilter, setCourierFilter] = useState("")
   const [showingLimit, setShowingLimit] = useState(10)
 
   const [startDate, setStartDate] = useState(() => {
@@ -150,6 +151,9 @@ export default function AdminOrdersPage() {
       if (statusFilter && order.orderStatus !== statusFilter) {
         return false
       }
+      if (courierFilter && order.courierSummary?.courierStatus !== courierFilter) {
+        return false
+      }
 
       const orderTime = new Date(order.createdAt).getTime()
       const start = new Date(startDate).getTime()
@@ -160,7 +164,7 @@ export default function AdminOrdersPage() {
 
       return true
     }).slice(0, showingLimit === -1 ? undefined : showingLimit)
-  }, [orders, searchId, searchPhone, searchName, statusFilter, startDate, endDate, showingLimit])
+  }, [orders, searchId, searchPhone, searchName, statusFilter, courierFilter, startDate, endDate, showingLimit])
 
   // একক বা বাল্ক স্ট্যাটাস ও কুরিয়ার আপডেট করার মেথড
   async function handleBulkPathaoBooking(ids: number[]) {
@@ -197,12 +201,43 @@ export default function AdminOrdersPage() {
     setSelectedOrderIds([])
   }
 
+  // একক বা বাল্ক স্ট্যাটাস ও কুরিয়ার আপডেট করার মেথড
   async function handleStatusUpdate(ids: number[], status: string, courier?: string) {
+    let idsToUpdate = ids
+    const bookingFailures: string[] = []
+
+    // ✅ Pathao সিলেক্ট করা হলে — আগে real API booking, তারপরই status update
+    // যেসব অর্ডার booking-এ ব্যর্থ হবে, সেগুলোর status আপডেট হবে না (শুধু successfully booked গুলোই "পাঠানো হয়েছে" দেখাবে)
+    if (status === "DELIVERY_ONGOING" && courier === "Pathao") {
+      setBulkCourierLoading(true)
+      const successfulIds: number[] = []
+      for (const id of ids) {
+        try {
+          const res = await fetch(`/api/admin/orders/${id}/courier`, { method: "POST" })
+          if (res.ok) {
+            successfulIds.push(id)
+          } else {
+            const data = await res.json().catch(() => ({}))
+            bookingFailures.push(`অর্ডার #${id}: ${data.error || "বুকিং ব্যর্থ"}`)
+          }
+        } catch {
+          bookingFailures.push(`অর্ডার #${id}: নেটওয়ার্ক সমস্যা`)
+        }
+      }
+      setBulkCourierLoading(false)
+      idsToUpdate = successfulIds
+
+      if (idsToUpdate.length === 0) {
+        alert(`❌ কোনো অর্ডারই Pathao-তে বুক করা যায়নি:\n\n${bookingFailures.join("\n")}`)
+        return
+      }
+    }
+
     try {
       const res = await fetch("/api/admin/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderIds: ids, status, courierName: courier }),
+        body: JSON.stringify({ orderIds: idsToUpdate, status, courierName: courier }),
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok) {
@@ -222,9 +257,9 @@ export default function AdminOrdersPage() {
           setCourierName("")
         }
 
-        if (skipped.length > 0) {
-          const reasons = skipped.map((s) => `অর্ডার #${s.orderId}: ${s.reason}`).join("\n")
-          alert(`কিছু অর্ডার আপডেট হয়নি:\n${reasons}`)
+        const allFailures = [...bookingFailures, ...skipped.map((s) => `অর্ডার #${s.orderId}: ${s.reason}`)]
+        if (allFailures.length > 0) {
+          alert(`কিছু অর্ডার আপডেট হয়নি:\n${allFailures.join("\n")}`)
         } else if (ids.length > 1) {
           alert("নির্বাচিত সব অর্ডারের কুরিয়ার ও স্ট্যাটাস আপডেট হয়েছে!")
         }
@@ -404,6 +439,21 @@ export default function AdminOrdersPage() {
           </select>
         </div>
 
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 mb-1">কুরিয়ার</label>
+          <select
+            value={courierFilter}
+            onChange={(e) => setCourierFilter(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-green-500"
+          >
+            <option value="">সব কুরিয়ার</option>
+            <option value="Pathao">Pathao</option>
+            <option value="Steadfast">Steadfast</option>
+            <option value="RedX">RedX</option>
+            <option value="eCourier">eCourier</option>
+          </select>
+        </div>
+
         {/* 🕒 ডেট-টাইম রেঞ্জ ফিল্টার (৭ দিন পিছানো) */}
         <div>
           <label className="block text-xs font-semibold text-gray-500 mb-1">শুরুর তারিখ (Order Date)</label>
@@ -492,13 +542,6 @@ export default function AdminOrdersPage() {
               className="w-full sm:w-auto bg-green-700 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition"
             >
               পরিবর্তন নিশ্চিত করুন
-            </button>
-            <button
-              onClick={() => handleBulkPathaoBooking(selectedOrderIds)}
-              disabled={bulkCourierLoading}
-              className="w-full sm:w-auto bg-red-600 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-red-500 transition disabled:opacity-50"
-            >
-              {bulkCourierLoading ? "বুক হচ্ছে..." : "📦 Pathao-তে বাল্ক বুক করুন"}
             </button>
           </div>
         </div>
