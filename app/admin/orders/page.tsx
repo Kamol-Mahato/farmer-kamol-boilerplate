@@ -395,32 +395,32 @@ export default function AdminOrdersPage() {
       {/* 🎛️ ফিল্টার এবং সার্চ বার সেকশন */}
       <div className="bg-white rounded-xl shadow p-6 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">অর্ডার ID (শেষ ৪ সংখ্যা)</label>
+          <label className="block text-xs font-semibold text-gray-500 mb-1">অর্ডার ID</label>
           <input
             type="text"
             value={searchId}
             onChange={(e) => setSearchId(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
+            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-green-500"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">মোবাইল (শেষ ৪ সংখ্যা)</label>
+          <label className="block text-xs font-semibold text-gray-500 mb-1">মোবাইল</label>
           <input
             type="text"
             value={searchPhone}
             onChange={(e) => setSearchPhone(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
+            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-green-500"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">কাস্টমার নাম (৪ অক্ষর)</label>
+          <label className="block text-xs font-semibold text-gray-500 mb-1">কাস্টমার নাম</label>
           <input
             type="text"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500"
+            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-green-500"
           />
         </div>
 
@@ -429,7 +429,7 @@ export default function AdminOrdersPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-green-500"
+            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:border-green-500"
           >
             <option value="">সব স্ট্যাটাস</option>
             <option value="PENDING">পেন্ডিং</option>
@@ -444,7 +444,7 @@ export default function AdminOrdersPage() {
           <select
             value={courierFilter}
             onChange={(e) => setCourierFilter(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-green-500"
+            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:border-green-500"
           >
             <option value="">সব কুরিয়ার</option>
             <option value="Pathao">Pathao</option>
@@ -456,7 +456,7 @@ export default function AdminOrdersPage() {
 
         {/* 🕒 ডেট-টাইম রেঞ্জ ফিল্টার (৭ দিন পিছানো) */}
         <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">শুরুর তারিখ (Order Date)</label>
+          <label className="block text-xs font-semibold text-gray-500 mb-1">Order Date</label>
           <input
             type="datetime-local"
             value={startDate}
@@ -470,7 +470,7 @@ export default function AdminOrdersPage() {
             onClick={handlePresentDateClick}
             className="block text-xs font-semibold text-blue-600 mb-1 cursor-pointer hover:underline"
           >
-            শেষের তারিখ (Present) 🔄
+            Present Date 🔄
           </label>
           <input
             type="datetime-local"
