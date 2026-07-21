@@ -26,7 +26,8 @@ export default async function AdminEditOrderPage({ params }: { params: Promise<{
         district: order.district,
         upazila: order.upazila,
         customerNote: order.customerNote,
-        items: order.orderItems.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        deliveryCharge: order.deliveryCharge,
+        items: order.orderItems.map((i) => ({ productId: i.productId, quantity: i.quantity, price: i.finalPrice })),
       }}
       products={products}
     />

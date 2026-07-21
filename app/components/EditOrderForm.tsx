@@ -22,7 +22,8 @@ interface Props {
     district: string | null
     upazila: string | null
     customerNote: string | null
-    items: { productId: number; quantity: number }[]
+    deliveryCharge: number
+    items: { productId: number; quantity: number; price: number }[]
   }
   products: Product[]
 }
@@ -36,26 +37,43 @@ export default function EditOrderForm({ orderId, backHref, initialData, products
   const [district, setDistrict] = useState(initialData.district || "")
   const [upazila, setUpazila] = useState(initialData.upazila || "")
   const [customerNote, setCustomerNote] = useState(initialData.customerNote || "")
-  const [items, setItems] = useState(initialData.items.length > 0 ? initialData.items : [{ productId: products[0]?.id || 0, quantity: 1 }])
+  const [shipping, setShipping] = useState(String(initialData.deliveryCharge))
+  const [items, setItems] = useState(
+    initialData.items.length > 0
+      ? initialData.items
+      : [{ productId: products[0]?.id || 0, quantity: 1, price: products[0]?.pricePerUnit || 0 }]
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
   const upazilaOptions = districtId ? upazilas[districtId] || [] : []
 
-  function updateItem(index: number, field: "productId" | "quantity", value: number) {
-    setItems((prev) => prev.map((it, i) => (i === index ? { ...it, [field]: value } : it)))
+  // ✅ প্রোডাক্ট বা quantity বদলালে দাম শপ-প্রাইস দিয়ে রিফ্রেশ হবে (ডিফল্ট), কিন্তু এরপর হাতে বদলানো যাবে
+  function updateProduct(index: number, productId: number) {
+    const p = products.find((pr) => pr.id === productId)
+    setItems((prev) => prev.map((it, i) => (i === index ? { ...it, productId, price: (p?.pricePerUnit || 0) * it.quantity } : it)))
+  }
+  function updateQuantity(index: number, quantity: number) {
+    setItems((prev) => prev.map((it, i) => {
+      if (i !== index) return it
+      const p = products.find((pr) => pr.id === it.productId)
+      return { ...it, quantity, price: (p?.pricePerUnit || 0) * quantity }
+    }))
+  }
+  function updatePrice(index: number, price: number) {
+    setItems((prev) => prev.map((it, i) => (i === index ? { ...it, price } : it)))
   }
   function addItem() {
-    setItems((prev) => [...prev, { productId: products[0]?.id || 0, quantity: 1 }])
+    const p = products[0]
+    setItems((prev) => [...prev, { productId: p?.id || 0, quantity: 1, price: p?.pricePerUnit || 0 }])
   }
   function removeItem(index: number) {
     setItems((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const estimatedTotal = items.reduce((sum, it) => {
-    const p = products.find((pr) => pr.id === it.productId)
-    return sum + (p ? p.pricePerUnit * it.quantity : 0)
-  }, 0)
+  const totalProductPrice = items.reduce((sum, it) => sum + it.price, 0)
+  const shippingNum = parseFloat(shipping) || 0
+  const grandTotal = totalProductPrice + shippingNum
 
   async function handleSubmit() {
     setError("")
@@ -68,7 +86,11 @@ export default function EditOrderForm({ orderId, backHref, initialData, products
       const res = await fetch(`/api/orders/${orderId}/edit`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, address, districtId, district, upazila, customerNote, items }),
+        body: JSON.stringify({
+          name, phone, address, districtId, district, upazila, customerNote,
+          shipping: shippingNum,
+          items: items.map((it) => ({ productId: it.productId, quantity: it.quantity, price: it.price })),
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -129,11 +151,11 @@ export default function EditOrderForm({ orderId, backHref, initialData, products
       <div className="bg-white border border-black rounded-xl p-6 space-y-3">
         <h2 className="font-bold text-gray-800">প্রোডাক্ট / আইটেম</h2>
         {items.map((item, i) => (
-          <div key={i} className="flex gap-2 items-center">
+          <div key={i} className="flex flex-wrap gap-2 items-center">
             <select
               value={item.productId}
-              onChange={(e) => updateItem(i, "productId", parseInt(e.target.value))}
-              className="flex-1 border border-gray-400 rounded-lg px-2 py-2 text-sm"
+              onChange={(e) => updateProduct(i, parseInt(e.target.value))}
+              className="flex-1 min-w-[140px] border border-gray-400 rounded-lg px-2 py-2 text-sm"
             >
               {products.map((p) => (
                 <option key={p.id} value={p.id}>{p.name} — ৳{p.pricePerUnit}/{p.unit}</option>
@@ -142,14 +164,43 @@ export default function EditOrderForm({ orderId, backHref, initialData, products
             <input
               type="number"
               value={item.quantity}
-              onChange={(e) => updateItem(i, "quantity", parseFloat(e.target.value) || 0)}
-              className="w-24 border border-gray-400 rounded-lg px-2 py-2 text-sm"
+              onChange={(e) => updateQuantity(i, parseFloat(e.target.value) || 0)}
+              placeholder="পরিমাণ"
+              className="w-20 border border-gray-400 rounded-lg px-2 py-2 text-sm"
             />
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-500">৳</span>
+              <input
+                type="number"
+                value={item.price}
+                onChange={(e) => updatePrice(i, parseFloat(e.target.value) || 0)}
+                placeholder="দাম (কাস্টম)"
+                className="w-24 border border-blue-400 rounded-lg px-2 py-2 text-sm font-bold"
+              />
+            </div>
             <button onClick={() => removeItem(i)} className="text-red-600 font-bold px-2">✕</button>
           </div>
         ))}
         <button onClick={addItem} className="text-sm font-bold underline text-black">+ আইটেম যোগ করুন</button>
-        <p className="text-sm font-bold text-gray-700 pt-2 border-t">আনুমানিক পণ্যমূল্য: ৳ {estimatedTotal} (ডেলিভারি চার্জ সার্ভারে যোগ হবে)</p>
+        <p className="text-xs text-gray-400">দামের ঘরে শপ-প্রাইস ডিফল্ট বসানো থাকবে, চাইলে বদলে নিতে পারবেন</p>
+      </div>
+
+      <div className="bg-white border border-black rounded-xl p-6 space-y-3">
+        <h2 className="font-bold text-gray-800">শিপিং / ডেলিভারি চার্জ (কাস্টম)</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600">৳</span>
+          <input
+            type="number"
+            value={shipping}
+            onChange={(e) => setShipping(e.target.value)}
+            className="w-32 border border-blue-400 rounded-lg px-3 py-2 text-sm font-bold"
+          />
+        </div>
+        <div className="pt-2 border-t space-y-1 text-sm font-bold text-gray-700">
+          <p>পণ্যমূল্য: ৳ {totalProductPrice}</p>
+          <p>শিপিং: ৳ {shippingNum}</p>
+          <p className="text-black">সর্বমোট: ৳ {grandTotal}</p>
+        </div>
       </div>
 
       {error && <p className="text-red-600 font-medium text-sm">{error}</p>}

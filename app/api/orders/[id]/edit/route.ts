@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
-import { calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
+import { getUnitToKgMultiplier } from "@/lib/orderUtils"
 
 const TERMINAL_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
 
@@ -15,10 +15,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     const body = await request.json()
-    const { name, phone, address, districtId, district, upazila, customerNote, items } = body
+    const { name, phone, address, districtId, district, upazila, customerNote, shipping, items } = body
 
     if (!name || !phone || !address || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "সব তথ্য সঠিকভাবে দিন" }, { status: 400 })
+    }
+    if (shipping === undefined || shipping === null || isNaN(Number(shipping)) || Number(shipping) < 0) {
+      return NextResponse.json({ error: "শিপিং চার্জ সঠিকভাবে দিন" }, { status: 400 })
     }
 
     const existingOrder = await prisma.order.findUnique({
@@ -43,21 +46,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "এক বা একাধিক পণ্য খুঁজে পাওয়া যায়নি" }, { status: 404 })
     }
 
-    // ✅ স্টক ঠিক রাখা — আগের আইটেমের স্টক ফেরত দিয়ে, নতুন আইটেমের স্টক বাদ দিয়ে হিসাব করা হচ্ছে
-    const stockDelta: Record<number, number> = {} // productId -> কেজি পরিবর্তন (ধনাত্মক = আরও কমাতে হবে)
+    // ✅ স্টক ঠিক রাখা — শুধু quantity বদলালে, price/shipping-এ স্টক টাচ হবে না
+    const stockDelta: Record<number, number> = {}
 
     for (const oldItem of existingOrder.orderItems) {
       const oldProduct = await prisma.product.findUnique({ where: { id: oldItem.productId } })
       const kg = oldItem.quantity * getUnitToKgMultiplier(oldProduct?.unit || "কেজি")
-      stockDelta[oldItem.productId] = (stockDelta[oldItem.productId] || 0) - kg // ফেরত
+      stockDelta[oldItem.productId] = (stockDelta[oldItem.productId] || 0) - kg
     }
     for (const newItem of items as { productId: number; quantity: number }[]) {
       const product = products.find((p) => p.id === newItem.productId)!
       const kg = newItem.quantity * getUnitToKgMultiplier(product.unit)
-      stockDelta[newItem.productId] = (stockDelta[newItem.productId] || 0) + kg // নতুন করে বাদ
+      stockDelta[newItem.productId] = (stockDelta[newItem.productId] || 0) + kg
     }
 
-    // স্টক পর্যাপ্ত আছে কিনা চেক
     for (const [productIdStr, delta] of Object.entries(stockDelta)) {
       if (delta <= 0) continue
       const product = await prisma.product.findUnique({ where: { id: parseInt(productIdStr) } })
@@ -69,31 +71,25 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
 
-    const totalProductPrice = (items as { productId: number; quantity: number }[]).reduce((sum, item) => {
-      const product = products.find((p) => p.id === item.productId)!
-      return sum + product.pricePerUnit * item.quantity
-    }, 0)
-    const totalQuantity = (items as { quantity: number }[]).reduce((sum, item) => sum + item.quantity, 0)
-    const deliveryCharge = await calculateDeliveryCharge(districtId ?? null, totalQuantity)
+    // ✅ কাস্টম দাম — client থেকে যা আসবে সেটাই সরাসরি ব্যবহার হবে (শপ-প্রাইস থেকে রিক্যালকুলেট হবে না)
+    const totalProductPrice = (items as { price: number }[]).reduce((sum, item) => sum + Number(item.price || 0), 0)
+    const deliveryCharge = Number(shipping)
     const finalCodAmount = totalProductPrice + deliveryCharge - (existingOrder.discountAmount || 0)
 
     await prisma.$transaction(async (tx) => {
-      // স্টক আপডেট
       for (const [productIdStr, delta] of Object.entries(stockDelta)) {
         if (delta === 0) continue
         await tx.product.update({
           where: { id: parseInt(productIdStr) },
-          data: { stockQty: { decrement: delta } }, // delta ঋণাত্মক হলে stockQty বাড়বে (ফেরত)
+          data: { stockQty: { decrement: delta } },
         })
       }
 
-      // কাস্টমার প্রোফাইল আপডেট (নাম/ফোন সংশোধন)
       await tx.user.update({
         where: { id: existingOrder.customerId },
         data: { name, phone },
       })
 
-      // পুরনো আইটেম মুছে নতুন আইটেম বসানো
       await tx.orderItem.deleteMany({ where: { orderId } })
       await tx.order.update({
         where: { id: orderId },
@@ -110,10 +106,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
             ? `${existingOrder.internalNote}\n[Edited by ${authUser.role} #${authUser.id} at ${new Date().toISOString()}]`
             : `[Edited by ${authUser.role} #${authUser.id} at ${new Date().toISOString()}]`,
           orderItems: {
-            create: (items as { productId: number; quantity: number }[]).map((item) => {
-              const product = products.find((p) => p.id === item.productId)!
-              return { productId: item.productId, quantity: item.quantity, finalPrice: product.pricePerUnit * item.quantity }
-            }),
+            create: (items as { productId: number; quantity: number; price: number }[]).map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              finalPrice: Number(item.price),
+            })),
           },
         },
       })
