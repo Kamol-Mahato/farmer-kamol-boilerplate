@@ -183,6 +183,9 @@ model Order {
   orderSource       OrderSource     @default(WEBSITE)
   createdById       Int
   deliveryAddress   String
+  districtId        Int?
+  district          String?
+  upazila           String?
   customerNote      String?
   internalNote      String?
   totalProductPrice Float

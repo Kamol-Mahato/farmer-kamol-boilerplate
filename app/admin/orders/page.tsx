@@ -579,6 +579,7 @@ export default function AdminOrdersPage() {
                 />
               </th>
               <th className="px-6 py-4 font-medium">অর্ডার ID</th>
+              <th className="px-6 py-4 font-medium">বিস্তারিত/এডিট</th>
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
               <th className="px-6 py-4 font-medium">পেমেন্ট</th>
@@ -595,7 +596,7 @@ export default function AdminOrdersPage() {
           <tbody className="border-t border-gray-200">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={13} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={14} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
@@ -615,6 +616,10 @@ export default function AdminOrdersPage() {
                   <td className="px-6 py-4 font-bold text-blue-600 tracking-wider hover:underline">
                     <Link href={`/admin/orders/${order.id}`}>
                       {generateCustomId(order.createdAt, order.dailySeq)}
+                      <td className="px-6 py-4">
+                    <a href={`/admin/orders/${order.id}`} className="text-xs font-bold underline text-black mr-2">বিস্তারিত</a>
+                    <a href={`/admin/orders/${order.id}/edit`} className="text-xs font-bold underline text-blue-700">এডিট</a>
+                  </td>
                     </Link>
                   </td>
 
