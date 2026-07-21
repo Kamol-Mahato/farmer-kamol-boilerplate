@@ -1,14 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
-
-// অর্ডার স্ট্যাটাস ট্রানজিশন ম্যাপ — কোন স্ট্যাটাস থেকে কোন স্ট্যাটাসে যাওয়া যাবে
-const ORDER_STATUS_TRANSITIONS: Record<string, string[]> = {
-  PENDING: ["DELIVERY_ONGOING", "CANCELLED"],
-  DELIVERY_ONGOING: ["DELIVERED", "CANCELLED"],
-  DELIVERED: [], // ফাইনাল স্টেট — কোথাও যাওয়া যাবে না
-  CANCELLED: ["PENDING"], // ভুলে cancel হয়ে গেলে রিভার্ট করার সুযোগ
-}
+import { getAllowedNextStatuses, requiresCollectedAmount, isOverrideTransition, UserRole } from "@/lib/orderStatusRules"
 
 export async function GET() {
   const authUser = await verifyAdminOrAgent()
@@ -35,15 +28,28 @@ export async function POST(request: Request) {
   if (!authUser) {
     return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
   }
+  const role = authUser.role as UserRole
+
   try {
     const body = await request.json()
-    const { orderIds, status, courierName } = body
+    const { orderIds, status, courierName, collectedAmount } = body
 
     if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0 || !status) {
       return NextResponse.json({ error: "সঠিক তথ্য দিন" }, { status: 400 })
     }
-    if (!Object.prototype.hasOwnProperty.call(ORDER_STATUS_TRANSITIONS, status)) {
-      return NextResponse.json({ error: "ভুল স্ট্যাটাস" }, { status: 400 })
+
+    // ✅ Delivered-এ bulk (একসাথে একাধিক) মার্ক করা যাবে না — প্রতিটার আলাদা Collected Amount দরকার
+    // একাধিক অর্ডার একসাথে Delivered করতে হলে Bulk CSV Update ব্যবহার করতে হবে
+    if (status === "DELIVERED" && orderIds.length > 1) {
+      return NextResponse.json(
+        { error: "একসাথে একাধিক অর্ডার Delivered করা যাবে না। প্রতিটার Collected Amount আলাদাভাবে বসাতে Bulk CSV Update ব্যবহার করুন।" },
+        { status: 400 }
+      )
+    }
+
+    // ✅ Delivered করতে চাইলে Collected Amount বাধ্যতামূলক
+    if (requiresCollectedAmount(status) && (collectedAmount === undefined || collectedAmount === null || isNaN(Number(collectedAmount)))) {
+      return NextResponse.json({ error: "Delivered মার্ক করার আগে Collected Amount দিন" }, { status: 400 })
     }
 
     const skipped: { orderId: number; reason: string }[] = []
@@ -51,7 +57,6 @@ export async function POST(request: Request) {
     for (const id of orderIds) {
       const orderIdInt = parseInt(id)
 
-      // ✅ বর্তমান স্ট্যাটাস চেক করা — transition valid কিনা
       const currentOrder = await prisma.order.findUnique({
         where: { id: orderIdInt },
         select: { orderStatus: true },
@@ -65,10 +70,11 @@ export async function POST(request: Request) {
       const currentStatus = currentOrder.orderStatus
 
       if (currentStatus === status) {
-        continue // আগে থেকেই এই স্ট্যাটাসে আছে
+        continue
       }
 
-      const allowedNextStatuses = ORDER_STATUS_TRANSITIONS[currentStatus] || []
+      // ✅ role-ভিত্তিক transition rule (lib/orderStatusRules.ts)
+      const allowedNextStatuses = getAllowedNextStatuses(currentStatus, role)
       if (!allowedNextStatuses.includes(status)) {
         skipped.push({
           orderId: orderIdInt,
@@ -77,7 +83,6 @@ export async function POST(request: Request) {
         continue
       }
 
-      // ✅ কুরিয়ার তথ্য শুধু তখনই সেভ হবে যখন status DELIVERY_ONGOING এবং courier নাম দেওয়া আছে
       if (status === "DELIVERY_ONGOING" && courierName) {
         const existingSummary = await prisma.courierSummary.findUnique({
           where: { orderId: orderIdInt }
@@ -102,11 +107,27 @@ export async function POST(request: Request) {
         }
       }
 
-      // মূল অর্ডারের স্ট্যাটাস আপডেট করা
-      await prisma.order.update({
-        where: { id: orderIdInt },
-        data: { orderStatus: status }
-      })
+      const overrideFlag = isOverrideTransition(currentStatus, status, role)
+
+      await prisma.$transaction([
+        prisma.order.update({
+          where: { id: orderIdInt },
+          data: {
+            orderStatus: status,
+            ...(requiresCollectedAmount(status) ? { collectedAmount: Number(collectedAmount) } : {}),
+          },
+        }),
+        prisma.orderStatusLog.create({
+          data: {
+            orderId: orderIdInt,
+            fromStatus: currentStatus,
+            toStatus: status,
+            changedById: authUser.id,
+            changedByRole: role,
+            isOverride: overrideFlag,
+          },
+        }),
+      ])
     }
 
     if (skipped.length > 0) {

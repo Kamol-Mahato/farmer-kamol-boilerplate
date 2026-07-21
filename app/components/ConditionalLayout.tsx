@@ -8,6 +8,7 @@ import FloatingCartButton from "./FloatingCartButton"
 import { MobileMenuProvider } from "./MobileMenuContext"
 import MobileBottomNav from "./MobileBottomNav"
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton"
+import AgentModeBanner from "./AgentModeBanner"
 
 export default function ConditionalLayout({
   children,
@@ -33,6 +34,7 @@ export default function ConditionalLayout({
 
     return (
       <MobileMenuProvider>
+        <AgentModeBanner />
         <Navbar />
         {!hideFloatingCart && <FloatingCartButton />}
         {!hideFloatingCart && <FloatingWhatsAppButton />}

@@ -1,0 +1,101 @@
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
+import { resolveOrderIdFromCustomId } from "@/lib/orderUtils"
+import { getAllowedNextStatuses, requiresCollectedAmount, isOverrideTransition, UserRole } from "@/lib/orderStatusRules"
+import { OrderStatus } from "@prisma/client"
+
+interface BulkRow {
+  orderIdRaw: string
+  amount?: string
+  status: string
+}
+
+export async function POST(request: Request) {
+  const authUser = await verifyAdminOrAgent()
+  if (!authUser) {
+    return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
+  }
+  const role = authUser.role as UserRole
+
+  try {
+    const body = await request.json()
+    const rows: BulkRow[] = body.rows
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return NextResponse.json({ error: "কোনো ডেটা পাওয়া যায়নি" }, { status: 400 })
+    }
+    if (rows.length > 500) {
+      return NextResponse.json({ error: "একসাথে সর্বোচ্চ ৫০০টি সারি আপডেট করা যাবে" }, { status: 400 })
+    }
+
+    const results: { orderIdRaw: string; success: boolean; reason?: string }[] = []
+
+    for (const row of rows) {
+      const status = (row.status || "").trim().toUpperCase()
+      if (!status) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "Status খালি" })
+        continue
+      }
+
+      const orderId = await resolveOrderIdFromCustomId(row.orderIdRaw)
+      if (!orderId) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "Order ID খুঁজে পাওয়া যায়নি" })
+        continue
+      }
+
+      const currentOrder = await prisma.order.findUnique({ where: { id: orderId }, select: { orderStatus: true } })
+      if (!currentOrder) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "অর্ডার নেই" })
+        continue
+      }
+      const currentStatus = currentOrder.orderStatus
+
+      if (currentStatus === status) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: true, reason: "আগে থেকেই এই স্ট্যাটাসে" })
+        continue
+      }
+
+      const allowed = getAllowedNextStatuses(currentStatus, role)
+      if (!allowed.includes(status)) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: `${currentStatus} থেকে ${status}-এ যাওয়া সম্ভব নয়` })
+        continue
+      }
+
+      const needsAmount = requiresCollectedAmount(status)
+      if (needsAmount && (row.amount === undefined || row.amount === "" || isNaN(Number(row.amount)))) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "Delivered-এর জন্য Amount দরকার" })
+        continue
+      }
+
+      const overrideFlag = isOverrideTransition(currentStatus, status, role)
+
+      await prisma.$transaction([
+        prisma.order.update({
+          where: { id: orderId },
+          data: {
+            orderStatus: status as OrderStatus,
+            ...(needsAmount ? { collectedAmount: Number(row.amount) } : {}),
+          },
+        }),
+        prisma.orderStatusLog.create({
+          data: {
+            orderId,
+            fromStatus: currentStatus,
+            toStatus: status,
+            changedById: authUser.id,
+            changedByRole: role,
+            isOverride: overrideFlag,
+          },
+        }),
+      ])
+
+      results.push({ orderIdRaw: row.orderIdRaw, success: true })
+    }
+
+    return NextResponse.json({ success: true, results })
+  } catch (error) {
+    console.error("Bulk update error:", error)
+    return NextResponse.json({ error: "অভ্যন্তরীণ সমস্যা হয়েছে" }, { status: 500 })
+  }
+}

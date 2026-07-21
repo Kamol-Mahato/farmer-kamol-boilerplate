@@ -13,7 +13,7 @@ export default function PanelNavbar({
   rightSlot: React.ReactNode
   leftSlot?: React.ReactNode
   homeHref?: string
-  navLinks?: { label: string; href: string }[]
+  navLinks?: { label: React.ReactNode; href: string }[]
 }) {
   return (
     <nav className="sticky top-0 z-[60] bg-green-800 text-white py-1.5 px-3 md:px-6 shadow-md">

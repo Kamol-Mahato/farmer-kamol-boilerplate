@@ -134,7 +134,12 @@ export default async function OrderDetailPage({
       {/* Status Update */}
       <div className="bg-white rounded-xl shadow p-6">
         <h2 className="font-bold text-gray-800 mb-4">স্ট্যাটাস আপডেট</h2>
-        <OrderStatusUpdate orderId={order.id} currentStatus={order.orderStatus} />
+        <OrderStatusUpdate
+          orderId={order.id}
+          currentStatus={order.orderStatus}
+          finalCodAmount={order.finalCodAmount}
+          collectedAmount={order.collectedAmount}
+        />
       </div>
 
     </div>

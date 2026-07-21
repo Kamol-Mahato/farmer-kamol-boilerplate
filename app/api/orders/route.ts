@@ -1,8 +1,23 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
+import { verifySession } from "@/lib/session"
 import { sendTelegramAlert } from "@/lib/telegram"
 import { sendPushToAdmin } from "@/lib/webpush"
 import { getBangladeshDayBoundaries, calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
+
+// ✅ agent_session কুকি থাকলে (এবং valid AGENT হলে) সেই agent-এর ID রিটার্ন করে
+async function resolveAgentId(): Promise<number | null> {
+  const cookieStore = await cookies()
+  const agentCookie = cookieStore.get("agent_session")
+  if (!agentCookie) return null
+  const data = await verifySession(agentCookie.value)
+  const uid = (data?.id as number) ?? null
+  if (!uid) return null
+  const agentUser = await prisma.user.findUnique({ where: { id: uid } })
+  if (!agentUser || !agentUser.isActive || agentUser.role !== "AGENT") return null
+  return agentUser.id
+}
 
 export async function POST(request: Request) {
   try {
@@ -76,6 +91,8 @@ export async function POST(request: Request) {
     const deliveryCharge = await calculateDeliveryCharge(districtId, quantity)
     const finalCodAmount = totalProductPrice + deliveryCharge
 
+    const agentId = await resolveAgentId()
+
     const result = await prisma.$transaction(async (tx) => {
       let customer = await tx.user.findUnique({
         where: { phone },
@@ -100,7 +117,8 @@ export async function POST(request: Request) {
       const order = await tx.order.create({
         data: {
           customerId: customer.id,
-          createdById: customer.id,
+          createdById: agentId ?? customer.id,
+          orderSource: agentId ? "AGENT_MANUAL" : "WEBSITE",
           deliveryAddress: address,
           customerNote,
           totalProductPrice,

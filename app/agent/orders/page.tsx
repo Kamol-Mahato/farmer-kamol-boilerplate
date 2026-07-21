@@ -21,6 +21,7 @@ interface Order {
   paymentMethod: string
   paymentStatus: string
   paymentAmountPaid: number
+  collectedAmount: number | null
   courierSummary: CourierSummary | null
   customer: { name: string; phone: string }
   orderItems: OrderItem[]
@@ -34,6 +35,7 @@ export default function AgentOrdersPage() {
   const [courierName, setCourierName] = useState("")
   const [showInvoiceMenu, setShowInvoiceMenu] = useState(false)
   const [pendingShipment, setPendingShipment] = useState<{ orderId: number; courier: string } | null>(null)
+  const [pendingDelivery, setPendingDelivery] = useState<{ orderId: number; amount: string } | null>(null)
 
   const [searchId, setSearchId] = useState("")
   const [searchPhone, setSearchPhone] = useState("")
@@ -94,6 +96,11 @@ export default function AgentOrdersPage() {
     return order.finalCodAmount
   }
 
+  function getCollectionDue(order: Order): number | null {
+    if (order.collectedAmount === null || order.collectedAmount === undefined) return null
+    return order.collectedAmount - order.finalCodAmount
+  }
+
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const customId = generateCustomId(order.createdAt, order.dailySeq)
@@ -113,17 +120,23 @@ export default function AgentOrdersPage() {
     }).slice(0, showingLimit === -1 ? undefined : showingLimit)
   }, [orders, searchId, searchPhone, searchName, statusFilter, showingLimit])
 
-  async function handleStatusUpdate(ids: number[], status: string, courier?: string) {
+  async function handleStatusUpdate(ids: number[], status: string, courier?: string, collectedAmount?: string) {
     try {
       const res = await fetch("/api/agent/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderIds: ids, status, courierName: courier }),
+        body: JSON.stringify({
+          orderIds: ids,
+          status,
+          courierName: courier,
+          ...(collectedAmount !== undefined ? { collectedAmount: Number(collectedAmount) } : {}),
+        }),
       })
       if (res.ok) {
         setOrders(prev => prev.map(o => ids.includes(o.id) ? {
           ...o,
           orderStatus: status,
+          collectedAmount: status === "DELIVERED" && collectedAmount !== undefined ? Number(collectedAmount) : o.collectedAmount,
           courierSummary: status === "DELIVERY_ONGOING" && courier ? { courierStatus: courier } : o.courierSummary
         } : o))
         if (ids.length > 1) {
@@ -292,6 +305,7 @@ export default function AgentOrdersPage() {
             <option value={50}>৫০টি</option>
             <option value={-1}>সবগুলো (All)</option>
           </select>
+          <Link href="/agent/orders/bulk-update" className="text-sm font-bold underline">Bulk Update</Link>
         </div>
       </div>
 
@@ -312,7 +326,6 @@ export default function AgentOrdersPage() {
               <option value="">বাল্ক স্ট্যাটাস পরিবর্তন</option>
               <option value="PENDING">পেন্ডিং (Pending)</option>
               <option value="DELIVERY_ONGOING">পাঠানো হয়েছে (Shipped)</option>
-              <option value="DELIVERED">ডেলিভার্ড (Delivered)</option>
               <option value="CANCELLED">বাতিল (Cancelled)</option>
             </select>
             {bulkStatus === "DELIVERY_ONGOING" && (
@@ -357,6 +370,7 @@ export default function AgentOrdersPage() {
               <th className="px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
               <th className="px-6 py-4 font-medium">বাকি (Due)</th>
+              <th className="px-6 py-4 font-medium">কালেকশন (Due)</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
@@ -365,16 +379,14 @@ export default function AgentOrdersPage() {
           <tbody className="divide-y divide-gray-100 border-t border-gray-100">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={10} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={11} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
-                <tr key={order.id} className={`transition ${
-                  selectedOrderIds.includes(order.id) ? "bg-green-50/40" :
+                <tr key={order.id} className={`transition border-b border-gray-100 ${
+                  selectedOrderIds.includes(order.id) ? "bg-gray-100" :
                   order.orderStatus === "DELIVERED" ? "bg-green-50" :
-                  order.orderStatus === "DELIVERY_ONGOING" ? "bg-yellow-50" :
-                  order.orderStatus === "CANCELLED" ? "bg-red-50" :
-                  "hover:bg-gray-50/50"
+                  "bg-white hover:bg-gray-50/60"
                 }`}>
                   <td className="px-4 py-4 text-center">
                     <input
@@ -394,40 +406,55 @@ export default function AgentOrdersPage() {
                   </td>
                   <td className="px-6 py-4 font-bold text-green-700 select-none">৳ {order.finalCodAmount}</td>
                   <td className={`px-6 py-4 font-bold select-none ${getDueAmount(order) === 0 ? "text-green-600" : "text-red-600"}`}>৳ {getDueAmount(order)}</td>
+                  <td className="px-6 py-4 font-bold">
+                    {(() => {
+                      const collectionDue = getCollectionDue(order)
+                      if (collectionDue === null) return <span className="text-gray-400">-</span>
+                      if (collectionDue === 0) return <span className="text-gray-700">৳ ০ (ঠিক আছে)</span>
+                      if (collectionDue > 0) return <span className="text-green-700">+৳ {collectionDue}</span>
+                      return <span className="text-red-600">৳ {Math.abs(collectionDue)}</span>
+                    })()}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="relative inline-block">
+                      {/* ✅ Agent forward-only — বর্তমান স্ট্যাটাসের আগের কোনো অপশন দেখানো হবে না, সার্ভারও একই নিয়ম চেক করে */}
                       <select
                         value={order.orderStatus}
+                        disabled={order.orderStatus === "DELIVERED" || order.orderStatus === "CANCELLED" || order.orderStatus === "RETURNED"}
                         onChange={(e) => {
                           const newStatus = e.target.value
+                          if (newStatus === order.orderStatus) return
                           if (newStatus === "DELIVERY_ONGOING") {
                             setPendingShipment({ orderId: order.id, courier: "" })
+                            setPendingDelivery(null)
+                          } else if (newStatus === "DELIVERED") {
+                            setPendingDelivery({ orderId: order.id, amount: String(order.finalCodAmount) })
+                            setPendingShipment(null)
                           } else {
                             setPendingShipment(null)
+                            setPendingDelivery(null)
                             handleStatusUpdate([order.id], newStatus)
                           }
                         }}
                         style={{
-                          backgroundColor:
-                            order.orderStatus === "PENDING" ? "#facc15" :
-                            order.orderStatus === "DELIVERY_ONGOING" ? "#f59e0b" :
-                            order.orderStatus === "DELIVERED" ? "#16a34a" :
-                            "#ef4444",
-                          color: order.orderStatus === "PENDING" ? "#713f12" : "white",
+                          backgroundColor: order.orderStatus === "DELIVERED" ? "#16a34a" : "#ffffff",
+                          color: order.orderStatus === "DELIVERED" ? "#ffffff" : "#111827",
+                          border: order.orderStatus === "DELIVERED" ? "none" : "1px solid #111827",
                           borderRadius: "9999px",
                           padding: "4px 12px",
                           fontSize: "12px",
                           fontWeight: "800",
-                          border: "none",
-                          cursor: "pointer",
+                          cursor: order.orderStatus === "DELIVERED" ? "not-allowed" : "pointer",
                           outline: "none",
                           appearance: "none",
                         }}
                       >
                         <option value="PENDING">পেন্ডিং</option>
+                        <option value="CONFIRMED">কনফার্মড</option>
                         <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
                         <option value="DELIVERED">ডেলিভার্ড</option>
                         <option value="CANCELLED">বাতিল</option>
+                        <option value="RETURNED">ফেরত</option>
                       </select>
                     </div>
                     {pendingShipment?.orderId === order.id && (
@@ -435,7 +462,7 @@ export default function AgentOrdersPage() {
                         <select
                           value={pendingShipment.courier}
                           onChange={(e) => setPendingShipment({ orderId: order.id, courier: e.target.value })}
-                          className="text-xs border border-orange-300 rounded px-1 py-0.5 focus:outline-none"
+                          className="text-xs border border-gray-400 rounded px-1 py-0.5 focus:outline-none"
                         >
                           <option value="">কুরিয়ার বাছুন</option>
                           <option value="Steadfast">Steadfast</option>
@@ -452,10 +479,35 @@ export default function AgentOrdersPage() {
                             handleStatusUpdate([order.id], "DELIVERY_ONGOING", pendingShipment.courier)
                             setPendingShipment(null)
                           }}
-                          className="text-xs bg-green-700 text-white px-2 py-0.5 rounded font-bold"
+                          className="text-xs bg-black text-white px-2 py-0.5 rounded font-bold"
                         >
                           ✓
                         </button>
+                      </div>
+                    )}
+                    {pendingDelivery?.orderId === order.id && (
+                      <div className="mt-2 flex items-center gap-1">
+                        <input
+                          type="number"
+                          value={pendingDelivery.amount}
+                          onChange={(e) => setPendingDelivery({ orderId: order.id, amount: e.target.value })}
+                          className="text-xs border border-black rounded px-2 py-1 w-24 focus:outline-none"
+                          placeholder="Collected"
+                        />
+                        <button
+                          onClick={() => {
+                            if (pendingDelivery.amount === "" || isNaN(Number(pendingDelivery.amount))) {
+                              alert("সঠিক Collected Amount দিন")
+                              return
+                            }
+                            handleStatusUpdate([order.id], "DELIVERED", undefined, pendingDelivery.amount)
+                            setPendingDelivery(null)
+                          }}
+                          className="text-xs bg-green-700 text-white px-2 py-1 rounded font-bold"
+                        >
+                          ✓
+                        </button>
+                        <button onClick={() => setPendingDelivery(null)} className="text-xs border border-gray-400 px-2 py-1 rounded">✕</button>
                       </div>
                     )}
                   </td>

@@ -45,6 +45,32 @@ export function generateCustomId(createdAt: string | Date, dailySeq: number) {
   return `FK${year}${month}${day}${String(dailySeq).padStart(1, "0")}`
 }
 
+// ✅ Bulk CSV Update-এ ব্যবহারকারীরা "FK20260721001" স্টাইলের কাস্টম ID দেবে —
+// এটা দিয়ে আসল ডাটাবেজ order.id খুঁজে বের করা হয় (সরাসরি সংখ্যা ID দিলেও কাজ করবে)
+export async function resolveOrderIdFromCustomId(rawId: string): Promise<number | null> {
+  const trimmed = rawId.trim()
+  if (!trimmed) return null
+
+  // সরাসরি সংখ্যা দিলে (রেয়ার কেস) তাই ব্যবহার করা
+  if (/^\d+$/.test(trimmed)) {
+    return parseInt(trimmed)
+  }
+
+  const match = trimmed.match(/^FK(\d{4})(\d{2})(\d{2})(\d+)$/i)
+  if (!match) return null
+
+  const [, year, month, day, seqStr] = match
+  const dailySeq = parseInt(seqStr)
+  const dateForDay = new Date(`${year}-${month}-${day}T00:00:00.000Z`)
+
+  const { start, end } = getBangladeshDayBoundaries(dateForDay)
+  const order = await prisma.order.findFirst({
+    where: { dailySeq, createdAt: { gte: start, lt: end } },
+    select: { id: true },
+  })
+  return order?.id ?? null
+}
+
 // ✅ পণ্যের একক (unit) অনুযায়ী কত KG-এর সমান, তা বের করার জন্য
 export function getUnitToKgMultiplier(unit: string): number {
   const map: Record<string, number> = {

@@ -200,6 +200,7 @@ model Order {
   gatewayRef        String?
   paymentAmountPaid Float           @default(0.0)
   dailySeq          Int             @default(0)
+  collectedAmount   Float?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   courierSummary    CourierSummary?
@@ -208,6 +209,19 @@ model Order {
   creator           User            @relation("AgentToOrder", fields: [createdById], references: [id])
   customer          User            @relation("CustomerToOrder", fields: [customerId], references: [id], onDelete: Cascade)
   orderItems        OrderItem[]
+  statusLogs        OrderStatusLog[]
+}
+
+model OrderStatusLog {
+  id            Int      @id @default(autoincrement())
+  orderId       Int
+  fromStatus    String
+  toStatus      String
+  changedById   Int
+  changedByRole String
+  isOverride    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model OrderItem {
@@ -323,6 +337,9 @@ enum OrderStatus {
   DELIVERED
   RETURNED
   CANCELLED
+  REFUNDED
+  LOST
+  DAMAGED
 }
 
 enum OrderSource {
@@ -330,6 +347,7 @@ enum OrderSource {
   MESSENGER
   WHATSAPP
   CALL
+  AGENT_MANUAL
 }
 
 enum PaymentMethod {
