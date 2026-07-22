@@ -631,13 +631,13 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">অর্ডার ID</th>
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
-              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
               <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">বাকি (Due)</th>
               <th className="px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
               <th className="px-6 py-4 font-medium">কালেকশন (Due)</th>
+              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
