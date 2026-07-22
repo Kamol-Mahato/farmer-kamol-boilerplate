@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import OrderStatusUpdate from "./OrderStatusUpdate"
 import PaymentConfirm from "./PaymentConfirm"
-import { generateCustomId } from "@/lib/orderUtils"
+import { generateCustomId, resolveOrderIdFromCustomId } from "@/lib/orderUtils"
 import CourierBookButton from "./CourierBookButton"
 
 export default async function OrderDetailPage({
@@ -10,9 +10,10 @@ export default async function OrderDetailPage({
   params: { id: string }
 }) {
   const resolvedParams = await params
-  const orderId = parseInt(resolvedParams.id)
+  // ✅ URL-এ এখন FK202607211-এর মতো কাস্টম ID আসে, সেটা থেকে আসল ডাটাবেজ ID বের করা হচ্ছে
+  const orderId = await resolveOrderIdFromCustomId(resolvedParams.id)
 
-  if (isNaN(orderId)) {
+  if (!orderId) {
     return (
       <div className="text-center py-20">
         <p className="text-red-500 font-medium">ভুল অর্ডার আইডি!</p>

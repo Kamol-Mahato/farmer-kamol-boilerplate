@@ -2,9 +2,12 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import EditOrderForm from "@/app/components/EditOrderForm"
 
+import { resolveOrderIdFromCustomId } from "@/lib/orderUtils"
+
 export default async function AgentEditOrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const orderId = parseInt(id)
+  const orderId = await resolveOrderIdFromCustomId(id)
+  if (!orderId) notFound()
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
