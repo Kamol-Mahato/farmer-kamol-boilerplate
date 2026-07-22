@@ -46,7 +46,7 @@ export default async function OrderDetailPage({
       <div className="flex justify-between items-center mb-8">
       <h1 className="text-3xl font-bold text-green-800">অর্ডার #{generateCustomId(order.createdAt, order.dailySeq)}</h1>
         <div className="flex items-center gap-4">
-          <a href={`/admin/orders/${order.id}/edit`} className="text-sm font-bold underline text-black">এডিট করুন</a>
+        <a href={`/admin/orders/${generateCustomId(order.createdAt, order.dailySeq)}/edit`} className="text-sm font-bold underline text-black">এডিট করুন</a>
           <a href="/admin/orders" className="text-blue-600 hover:underline">← ফিরে যান</a>
         </div>
       </div>

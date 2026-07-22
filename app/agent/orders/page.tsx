@@ -402,7 +402,7 @@ export default function AgentOrdersPage() {
                   </td>
                   <td className="px-6 py-4">
                     <a href={`/agent/orders/${order.id}`} className="text-xs font-bold underline text-black mr-2">বিস্তারিত</a>
-                    <a href={`/agent/orders/${order.id}/edit`} className="text-xs font-bold underline text-blue-700">এডিট</a>
+                    <a href={`/agent/orders/${generateCustomId(order.createdAt, order.dailySeq)}/edit`} className="text-xs font-bold underline text-blue-700">এডিট</a>
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-800 select-none">{order.customer.name}</td>
                   <td className="px-6 py-4 text-gray-600 select-none">{order.customer.phone}</td>

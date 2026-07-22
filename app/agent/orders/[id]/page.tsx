@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import AgentOrderStatusUpdate from "./AgentOrderStatusUpdate"
+import { generateCustomId } from "@/lib/orderUtils"
 
 const TERMINAL_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
 
@@ -25,7 +26,7 @@ export default async function AgentOrderDetailPage({ params }: { params: Promise
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-black">অর্ডার #{order.dailySeq}</h1>
         {canEdit ? (
-          <Link href={`/agent/orders/${order.id}/edit`} className="text-sm font-bold underline text-black">এডিট করুন</Link>
+          <Link href={`/agent/orders/${generateCustomId(order.createdAt, order.dailySeq)}/edit`} className="text-sm font-bold underline text-black">এডিট করুন</Link>
         ) : (
           <span className="text-xs text-gray-400">ফাইনাল স্ট্যাটাসে এডিট বন্ধ</span>
         )}

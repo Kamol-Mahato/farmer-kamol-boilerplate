@@ -422,92 +422,127 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* 🎛️ ফিল্টার এবং সার্চ বার সেকশন */}
-      <div className="bg-white rounded-xl shadow p-6 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">অর্ডার ID</label>
-          <input
-            type="text"
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-green-500"
-          />
-        </div>
+      {/* 🎛️ ফিল্টার এবং সার্চ বার সেকশন — eCourier স্টাইল, ২-কলাম, label পাশে field */}
+      <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
 
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">মোবাইল</label>
-          <input
-            type="text"
-            value={searchPhone}
-            onChange={(e) => setSearchPhone(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-green-500"
-          />
-        </div>
+          {/* --- বাম কলাম --- */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">অর্ডার ID</label>
+              <div className="relative flex-1">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                  placeholder="অর্ডার ID"
+                  className="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-black"
+                />
+              </div>
+            </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">কাস্টমার নাম</label>
-          <input
-            type="text"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-green-500"
-          />
-        </div>
+            <div className="flex items-center gap-4">
+              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">মোবাইল</label>
+              <div className="relative flex-1">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchPhone}
+                  onChange={(e) => setSearchPhone(e.target.value)}
+                  placeholder="মোবাইল নম্বর"
+                  className="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-black"
+                />
+              </div>
+            </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">পার্সেল স্ট্যাটাস</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:border-green-500"
-          >
-            <option value="">সব স্ট্যাটাস</option>
-            <option value="PENDING">পেন্ডিং</option>
-            <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
-            <option value="DELIVERED">ডেলিভার্ড</option>
-            <option value="CANCELLED">বাতিল</option>
-          </select>
-        </div>
+            <div className="flex items-center gap-4">
+              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">কাস্টমার নাম</label>
+              <div className="relative flex-1">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  placeholder="কাস্টমার নাম"
+                  className="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-black"
+                />
+              </div>
+            </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">কুরিয়ার</label>
-          <select
-            value={courierFilter}
-            onChange={(e) => setCourierFilter(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:border-green-500"
-          >
-            <option value="">সব কুরিয়ার</option>
-            <option value="Pathao">Pathao</option>
-            <option value="Steadfast">Steadfast</option>
-            <option value="RedX">RedX</option>
-            <option value="eCourier">eCourier</option>
-          </select>
-        </div>
+            <div className="flex items-center gap-4">
+              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">পার্সেল স্ট্যাটাস</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-black"
+              >
+                <option value="">সব স্ট্যাটাস</option>
+                <option value="PENDING">পেন্ডিং</option>
+                <option value="CONFIRMED">কনফার্মড</option>
+                <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
+                <option value="DELIVERED">ডেলিভার্ড</option>
+                <option value="RETURNED">ফেরত</option>
+                <option value="CANCELLED">বাতিল</option>
+                <option value="REFUNDED">রিফান্ড</option>
+                <option value="LOST">হারানো</option>
+                <option value="DAMAGED">নষ্ট</option>
+              </select>
+            </div>
+          </div>
 
-        {/* 🕒 ডেট-টাইম রেঞ্জ ফিল্টার (৭ দিন পিছানো) */}
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 mb-1">Order Date</label>
-          <input
-            type="datetime-local"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-green-500"
-          />
-        </div>
+          {/* --- ডান কলাম --- */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">কুরিয়ার</label>
+              <select
+                value={courierFilter}
+                onChange={(e) => setCourierFilter(e.target.value)}
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-black"
+              >
+                <option value="">সব কুরিয়ার</option>
+                <option value="Pathao">Pathao</option>
+                <option value="Steadfast">Steadfast</option>
+                <option value="RedX">RedX</option>
+                <option value="eCourier">eCourier</option>
+              </select>
+            </div>
 
-        <div>
-          <label 
-            onClick={handlePresentDateClick}
-            className="block text-xs font-semibold text-blue-600 mb-1 cursor-pointer hover:underline"
-          >
-            Present Date 🔄
-          </label>
-          <input
-            type="datetime-local"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-green-500"
-          />
+            {/* 🕒 ডেট-টাইম রেঞ্জ — এক লাইনে দুটো ফিল্ড, মাঝে ড্যাশ */}
+            <div className="flex items-center gap-4">
+              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">অর্ডার তারিখ</label>
+              <div className="flex items-center gap-2 flex-1">
+                <input
+                  type="datetime-local"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="flex-1 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
+                />
+                <span className="text-gray-400">-</span>
+                <input
+                  type="datetime-local"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="flex-1 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
+                />
+                <button
+                  type="button"
+                  onClick={handlePresentDateClick}
+                  title="Present Date-এ রিসেট করুন"
+                  className="shrink-0 border border-gray-300 rounded-lg p-2 text-blue-600 hover:bg-gray-50"
+                >
+                  🔄
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -796,7 +831,7 @@ export default function AdminOrdersPage() {
                       <Link href={`/admin/orders/${order.id}`} className="font-semibold text-blue-600 hover:underline whitespace-nowrap">
                         বিস্তারিত
                       </Link>
-                      <Link href={`/admin/orders/${order.id}/edit`} className="font-semibold text-green-700 hover:underline whitespace-nowrap">
+                      <Link href={`/admin/orders/${generateCustomId(order.createdAt, order.dailySeq)}/edit`} className="font-semibold text-green-700 hover:underline whitespace-nowrap">
                         এডিট
                       </Link>
                       <button
