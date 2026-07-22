@@ -213,6 +213,7 @@ model Order {
   customer          User            @relation("CustomerToOrder", fields: [customerId], references: [id], onDelete: Cascade)
   orderItems        OrderItem[]
   statusLogs        OrderStatusLog[]
+  editLogs          OrderEditLog[]
 }
 
 model OrderStatusLog {
@@ -225,6 +226,16 @@ model OrderStatusLog {
   isOverride    Boolean  @default(false)
   createdAt     DateTime @default(now())
   order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model OrderEditLog {
+  id             Int      @id @default(autoincrement())
+  orderId        Int
+  editedById     Int
+  editedByRole   String
+  changesSummary String   // যেমন: "Price: ৳৫০০ → ৳৬০০, Shipping: ৳১০০ → ৳১৫০"
+  createdAt      DateTime @default(now())
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 model OrderItem {

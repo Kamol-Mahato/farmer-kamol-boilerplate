@@ -28,6 +28,7 @@ export default async function OrderDetailPage({
         include: { product: true },
       },
       invoice: true,
+      editLogs: { orderBy: { createdAt: "desc" } },
     },
   })
 
@@ -43,7 +44,10 @@ export default async function OrderDetailPage({
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="flex justify-between items-center mb-8">
       <h1 className="text-3xl font-bold text-green-800">অর্ডার #{generateCustomId(order.createdAt, order.dailySeq)}</h1>
-        <a href="/admin/orders" className="text-blue-600 hover:underline">← ফিরে যান</a>
+        <div className="flex items-center gap-4">
+          <a href={`/admin/orders/${order.id}/edit`} className="text-sm font-bold underline text-black">এডিট করুন</a>
+          <a href="/admin/orders" className="text-blue-600 hover:underline">← ফিরে যান</a>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -141,6 +145,23 @@ export default async function OrderDetailPage({
           collectedAmount={order.collectedAmount}
         />
       </div>
+
+      {/* 📝 এডিট হিস্ট্রি */}
+      {order.editLogs.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-6 mt-6">
+          <h2 className="font-bold text-gray-800 mb-4">এডিট হিস্ট্রি</h2>
+          <div className="space-y-3">
+            {order.editLogs.map((log) => (
+              <div key={log.id} className="border-b last:border-0 pb-3 text-sm">
+                <p className="text-gray-500 text-xs">
+                  {new Date(log.createdAt).toLocaleString("bn-BD")} — {log.editedByRole} #{log.editedById}
+                </p>
+                <p className="text-gray-700 mt-1">{log.changesSummary}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   )

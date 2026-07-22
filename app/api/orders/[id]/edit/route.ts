@@ -60,25 +60,30 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       stockDelta[newItem.productId] = (stockDelta[newItem.productId] || 0) + kg
     }
 
-    for (const [productIdStr, delta] of Object.entries(stockDelta)) {
-      if (delta <= 0) continue
-      const product = await prisma.product.findUnique({ where: { id: parseInt(productIdStr) } })
-      if (!product || product.stockQty < delta) {
-        return NextResponse.json(
-          { error: `"${product?.name}" এর পর্যাপ্ত স্টক নেই। উপলব্ধ: ${product?.stockQty ?? 0}` },
-          { status: 400 }
-        )
-      }
-    }
-
     // ✅ কাস্টম দাম — client থেকে যা আসবে সেটাই সরাসরি ব্যবহার হবে (শপ-প্রাইস থেকে রিক্যালকুলেট হবে না)
     const totalProductPrice = (items as { price: number }[]).reduce((sum, item) => sum + Number(item.price || 0), 0)
     const deliveryCharge = Number(shipping)
     const finalCodAmount = totalProductPrice + deliveryCharge - (existingOrder.discountAmount || 0)
 
+    // 📝 কী কী বদলালো তার সংক্ষিপ্ত সারাংশ — OrderEditLog-এ সেভ হবে
+    const changes: string[] = []
+    if (existingOrder.deliveryAddress !== address) changes.push(`ঠিকানা: "${existingOrder.deliveryAddress}" → "${address}"`)
+    if (existingOrder.totalProductPrice !== totalProductPrice) changes.push(`পণ্যমূল্য: ৳${existingOrder.totalProductPrice} → ৳${totalProductPrice}`)
+    if (existingOrder.deliveryCharge !== deliveryCharge) changes.push(`শিপিং: ৳${existingOrder.deliveryCharge} → ৳${deliveryCharge}`)
+    if (existingOrder.finalCodAmount !== finalCodAmount) changes.push(`মোট COD: ৳${existingOrder.finalCodAmount} → ৳${finalCodAmount}`)
+    const oldItemsSummary = existingOrder.orderItems.map((i) => `${i.productId}x${i.quantity}`).sort().join(",")
+    const newItemsSummary = (items as { productId: number; quantity: number }[]).map((i) => `${i.productId}x${i.quantity}`).sort().join(",")
+    if (oldItemsSummary !== newItemsSummary) changes.push(`পণ্য/পরিমাণ পরিবর্তিত হয়েছে`)
+    const changesSummary = changes.length > 0 ? changes.join(" | ") : "কোনো মূল্য/ঠিকানা পরিবর্তন হয়নি (শুধু নাম/ফোন/নোট সংশোধন সম্ভব)"
+
     await prisma.$transaction(async (tx) => {
+      // ✅ স্টক চেক + আপডেট — এখন একই transaction-এর ভেতরে (atomic), দুইজন একসাথে এডিট করলেও স্টক নেগেটিভ হবে না
       for (const [productIdStr, delta] of Object.entries(stockDelta)) {
         if (delta === 0) continue
+        const freshProduct = await tx.product.findUnique({ where: { id: parseInt(productIdStr) } })
+        if (delta > 0 && (!freshProduct || freshProduct.stockQty < delta)) {
+          throw new Error(`STOCK_ERROR:"${freshProduct?.name}" এর পর্যাপ্ত স্টক নেই। উপলব্ধ: ${freshProduct?.stockQty ?? 0}`)
+        }
         await tx.product.update({
           where: { id: parseInt(productIdStr) },
           data: { stockQty: { decrement: delta } },
@@ -102,9 +107,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           totalProductPrice,
           deliveryCharge,
           finalCodAmount,
-          internalNote: existingOrder.internalNote
-            ? `${existingOrder.internalNote}\n[Edited by ${authUser.role} #${authUser.id} at ${new Date().toISOString()}]`
-            : `[Edited by ${authUser.role} #${authUser.id} at ${new Date().toISOString()}]`,
           orderItems: {
             create: (items as { productId: number; quantity: number; price: number }[]).map((item) => ({
               productId: item.productId,
@@ -114,11 +116,24 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           },
         },
       })
+
+      await tx.orderEditLog.create({
+        data: {
+          orderId,
+          editedById: authUser.id,
+          editedByRole: authUser.role,
+          changesSummary,
+        },
+      })
     })
 
     return NextResponse.json({ success: true, message: "অর্ডার সফলভাবে আপডেট হয়েছে" })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Order edit error:", error)
+    const msg = String(error?.message || "")
+    if (msg.startsWith("STOCK_ERROR:")) {
+      return NextResponse.json({ error: msg.replace("STOCK_ERROR:", "") }, { status: 400 })
+    }
     return NextResponse.json({ error: "অভ্যন্তরীণ সমস্যা হয়েছে" }, { status: 500 })
   }
 }
