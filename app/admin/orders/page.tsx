@@ -129,19 +129,24 @@ export default function AdminOrdersPage() {
     )
   }
 
-  // 💰 Due amount (courier কে যা collect করতে হবে) calculate করার helper
-  // ✅ কালেক্টেড অ্যামাউন্ট vs COD — Delivered না হওয়া পর্যন্ত null, Delivered হলে discrepancy দেখাবে
-  function getCollectionDue(order: Order): number | null {
-    if (order.collectedAmount === null || order.collectedAmount === undefined) return null
-    return order.collectedAmount - order.finalCodAmount
+  // ✅ status অনুযায়ী "প্রত্যাশিত ক্যাশ কালেকশন" — GATEWAY-তে আগে থেকে অনলাইনে পেইড অংশ বাদ দিয়ে
+  function getExpectedCashCollection(order: Order) {
+    return order.finalCodAmount - (order.paymentMethod === "GATEWAY" ? order.paymentAmountPaid : 0)
   }
 
-  // পুরনো "গেটওয়ে পেমেন্ট বাকি" হিসাব — payment badge-এর জন্য এখনও দরকার
+  const CLOSED_NO_DUE_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
+
+  // 💰 বাকি (Due) — শুধু সক্রিয় (এখনো ডেলিভারি চলমান) অর্ডারেই দেখাবে, ফাইনাল স্ট্যাটাসে ৳০
   function getDueAmount(order: Order) {
-    if (order.paymentMethod === "GATEWAY") {
-      return order.finalCodAmount - order.paymentAmountPaid
-    }
-    return order.finalCodAmount
+    if (CLOSED_NO_DUE_STATUSES.includes(order.orderStatus)) return 0
+    return getExpectedCashCollection(order)
+  }
+
+  // 💰 কালেকশন (Due) — শুধু Delivered status-এই অর্থবহ, অন্য status-এ override হয়ে গেলে আর দেখাবে না
+  function getCollectionDue(order: Order): number | null {
+    if (order.orderStatus !== "DELIVERED") return null
+    if (order.collectedAmount === null || order.collectedAmount === undefined) return null
+    return order.collectedAmount - getExpectedCashCollection(order)
   }
 
   // রিয়েল-টাইম ক্লায়েন্ট সাইড সার্চ ফিল্টারিং লজিক (৪ ডিজিট এবং টাইম-স্ট্যাম্প সহ)
