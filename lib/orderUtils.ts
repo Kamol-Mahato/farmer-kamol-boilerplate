@@ -47,6 +47,41 @@ export function generateCustomId(createdAt: string | Date, dailySeq: number) {
 
 // ✅ Bulk CSV Update-এ ব্যবহারকারীরা "FK20260721001" স্টাইলের কাস্টম ID দেবে —
 // এটা দিয়ে আসল ডাটাবেজ order.id খুঁজে বের করা হয় (সরাসরি সংখ্যা ID দিলেও কাজ করবে)
+// ✅ Cancelled/Returned-এ ঢুকলে স্টক গুদামে ফেরত আসবে, আবার সেখান থেকে বের হলে (Admin override) আবার বাদ যাবে
+export const STOCK_RESTORING_STATUSES = ["CANCELLED", "RETURNED"]
+
+export async function applyStockChangeForStatusTransition(
+  tx: any,
+  orderId: number,
+  currentStatus: string,
+  newStatus: string
+) {
+  const wasRestoring = STOCK_RESTORING_STATUSES.includes(currentStatus)
+  const willRestore = STOCK_RESTORING_STATUSES.includes(newStatus)
+
+  if (wasRestoring === willRestore) return // দুটোই একই "দলে" থাকলে স্টকে হাত দেওয়ার দরকার নেই
+
+  const orderItems = await tx.orderItem.findMany({
+    where: { orderId },
+    include: { product: true },
+  })
+
+  for (const item of orderItems) {
+    const kg = item.quantity * getUnitToKgMultiplier(item.product.unit)
+    if (willRestore) {
+      // Active status → Cancelled/Returned: স্টক গুদামে ফেরত
+      await tx.product.update({ where: { id: item.productId }, data: { stockQty: { increment: kg } } })
+    } else {
+      // Cancelled/Returned → আবার Active status-এ override: স্টক আবার বাদ (যদি পর্যাপ্ত থাকে)
+      const freshProduct = await tx.product.findUnique({ where: { id: item.productId } })
+      if (!freshProduct || freshProduct.stockQty < kg) {
+        throw new Error(`STOCK_ERROR:"${freshProduct?.name}" এর পর্যাপ্ত স্টক নেই এই অর্ডার আবার সক্রিয় করার জন্য। উপলব্ধ: ${freshProduct?.stockQty ?? 0}`)
+      }
+      await tx.product.update({ where: { id: item.productId }, data: { stockQty: { decrement: kg } } })
+    }
+  }
+}
+
 export async function resolveOrderIdFromCustomId(rawId: string): Promise<number | null> {
   const trimmed = rawId.trim()
   if (!trimmed) return null

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifySession } from "@/lib/session"
 import { getAllowedNextStatuses, requiresCollectedAmount, UserRole } from "@/lib/orderStatusRules"
+import { applyStockChangeForStatusTransition } from "@/lib/orderUtils"
 
 async function getAgent() {
   const cookieStore = await cookies()
@@ -99,25 +100,36 @@ export async function POST(request: Request) {
         }
       }
 
-      await prisma.$transaction([
-        prisma.order.update({
-          where: { id: orderIdInt },
-          data: {
-            orderStatus: status,
-            ...(requiresCollectedAmount(status) ? { collectedAmount: Number(collectedAmount) } : {}),
-          },
-        }),
-        prisma.orderStatusLog.create({
-          data: {
-            orderId: orderIdInt,
-            fromStatus: currentStatus,
-            toStatus: status,
-            changedById: agent.id,
-            changedByRole: role,
-            isOverride: false,
-          },
-        }),
-      ])
+      try {
+        await prisma.$transaction(async (tx) => {
+          await applyStockChangeForStatusTransition(tx, orderIdInt, currentStatus, status)
+
+          await tx.order.update({
+            where: { id: orderIdInt },
+            data: {
+              orderStatus: status,
+              ...(requiresCollectedAmount(status) ? { collectedAmount: Number(collectedAmount) } : {}),
+            },
+          })
+          await tx.orderStatusLog.create({
+            data: {
+              orderId: orderIdInt,
+              fromStatus: currentStatus,
+              toStatus: status,
+              changedById: agent.id,
+              changedByRole: role,
+              isOverride: false,
+            },
+          })
+        })
+      } catch (err: any) {
+        const msg = String(err?.message || "")
+        if (msg.startsWith("STOCK_ERROR:")) {
+          skipped.push({ orderId: orderIdInt, reason: msg.replace("STOCK_ERROR:", "") })
+          continue
+        }
+        throw err
+      }
     }
 
     if (skipped.length > 0) {

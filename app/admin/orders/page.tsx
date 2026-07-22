@@ -34,6 +34,8 @@ interface Order {
   id: number
   createdAt: string
   deliveryAddress: string
+  district: string | null
+  upazila: string | null
   finalCodAmount: number
   orderStatus: string
   dailySeq: number
@@ -321,21 +323,28 @@ export default function AdminOrdersPage() {
     }
 
     const selectedOrdersData = orders.filter(o => selectedOrderIds.includes(o.id))
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Customer Name,Phone,Full Address,Products,Total Amount,Online Payment Received,Due Amount (Collect),Payment Method,Payment Status,Status,Courier\n"
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Order Date,Customer Name,Phone,Full Address,District,Upazila,Customer Note,Products,Total Amount,Online Payment Received,Due Amount,Collected Amount,Collection Due,Payment Method,Payment Status,Status,Courier\n"
     selectedOrdersData.forEach((order) => {
       const orderIdText = `"${generateCustomId(order.createdAt, order.dailySeq)}"`
+      const orderDate = `"${new Date(order.createdAt).toLocaleDateString("bn-BD")}"`
       const name = `"${order.customer.name.replace(/"/g, '""')}"`
       const phone = `"${order.customer.phone}"`
       const address = `"${order.deliveryAddress.replace(/"/g, '""')}"`
+      const district = `"${(order.district || "-").replace(/"/g, '""')}"`
+      const upazila = `"${(order.upazila || "-").replace(/"/g, '""')}"`
+      const note = `"${(order.customerNote || "-").replace(/"/g, '""')}"`
       const products = `"${order.orderItems.map(i => `${i.product.name} x${i.quantity}`).join("; ").replace(/"/g, '""')}"`
       const cod = order.finalCodAmount
       const onlinePaid = order.paymentMethod === "GATEWAY" ? order.paymentAmountPaid : 0
       const dueAmount = getDueAmount(order)
+      const collected = order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : "-"
+      const collectionDue = getCollectionDue(order)
+      const collectionDueText = collectionDue === null ? "-" : collectionDue
       const paymentMethod = order.paymentMethod === "GATEWAY" ? "Online Payment" : "COD"
       const paymentStatus = order.paymentMethod === "GATEWAY" ? order.paymentStatus : "-"
       const status = `"${order.orderStatus}"`
       const courier = `"${order.courierSummary ? order.courierSummary.courierStatus : "-"}"`
-      csvContent += `${orderIdText},${name},${phone},${address},${products},${cod},${onlinePaid},${dueAmount},${paymentMethod},${paymentStatus},${status},${courier}\n`
+      csvContent += `${orderIdText},${orderDate},${name},${phone},${address},${district},${upazila},${note},${products},${cod},${onlinePaid},${dueAmount},${collected},${collectionDueText},${paymentMethod},${paymentStatus},${status},${courier}\n`
     })
 
     const encodedUri = encodeURI(csvContent)
@@ -543,6 +552,7 @@ export default function AdminOrdersPage() {
               <option value="PENDING">পেন্ডিং (Pending)</option>
               <option value="DELIVERY_ONGOING">পাঠানো হয়েছে (Shipped)</option>
               <option value="CANCELLED">বাতিল (Cancelled)</option>
+              <option value="RETURNED">ফেরত (Returned)</option>
               {/* Delivered ইচ্ছাকৃতভাবে বাদ — Bulk CSV Update পেজে Collected Amount সহ করতে হবে */}
             </select>
             {/* 📁 স্ট্যাটাস DELIVERY_ONGOING হলে এই ৩পিএল কুরিয়ার অপশনটি সচল হবে */}
@@ -590,6 +600,7 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">মোট COD</th>
               <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">বাকি (Due)</th>
+              <th className="px-6 py-4 font-medium">Collected Amount</th>
               <th className="px-6 py-4 font-medium">কালেকশন (Due)</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
@@ -600,7 +611,7 @@ export default function AdminOrdersPage() {
           <tbody className="border-t border-gray-200">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={13} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={14} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
@@ -638,6 +649,11 @@ export default function AdminOrdersPage() {
 </td>
 <td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>৳ {getDueAmount(order)}</td>
 
+{/* 💰 Collected Amount — Delivered মার্ক করার সময় যে টাকা ইনপুট দেওয়া হয়েছিল, সরাসরি সেটাই */}
+<td className="px-6 py-4 font-bold text-gray-800">
+  {order.collectedAmount !== null && order.collectedAmount !== undefined ? `৳ ${order.collectedAmount}` : <span className="text-gray-400 font-normal">-</span>}
+</td>
+
 {/* 💰 কালেকশন Due — Collected Amount vs COD */}
 <td className="px-6 py-4 font-bold">
   {(() => {
@@ -670,9 +686,14 @@ export default function AdminOrdersPage() {
         }
       }}
       style={{
-        backgroundColor: order.orderStatus === "DELIVERED" ? "#16a34a" : "#ffffff",
-        color: order.orderStatus === "DELIVERED" ? "#ffffff" : "#111827",
-        border: order.orderStatus === "DELIVERED" ? "none" : "1px solid #111827",
+        backgroundColor:
+          order.orderStatus === "DELIVERED" ? "#16a34a" :
+          (order.orderStatus === "CANCELLED" || order.orderStatus === "RETURNED") ? "#dc2626" :
+          "#ffffff",
+        color:
+          (order.orderStatus === "DELIVERED" || order.orderStatus === "CANCELLED" || order.orderStatus === "RETURNED") ? "#ffffff" : "#111827",
+        border:
+          (order.orderStatus === "DELIVERED" || order.orderStatus === "CANCELLED" || order.orderStatus === "RETURNED") ? "none" : "1px solid #111827",
         borderRadius: "9999px",
         padding: "6px 24px 6px 16px",
         fontSize: "12px",

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { getAllowedNextStatuses, requiresCollectedAmount, isOverrideTransition, UserRole } from "@/lib/orderStatusRules"
+import { applyStockChangeForStatusTransition } from "@/lib/orderUtils"
 
 export async function GET() {
   const authUser = await verifyAdminOrAgent()
@@ -109,25 +110,37 @@ export async function POST(request: Request) {
 
       const overrideFlag = isOverrideTransition(currentStatus, status, role)
 
-      await prisma.$transaction([
-        prisma.order.update({
-          where: { id: orderIdInt },
-          data: {
-            orderStatus: status,
-            ...(requiresCollectedAmount(status) ? { collectedAmount: Number(collectedAmount) } : {}),
-          },
-        }),
-        prisma.orderStatusLog.create({
-          data: {
-            orderId: orderIdInt,
-            fromStatus: currentStatus,
-            toStatus: status,
-            changedById: authUser.id,
-            changedByRole: role,
-            isOverride: overrideFlag,
-          },
-        }),
-      ])
+      try {
+        await prisma.$transaction(async (tx) => {
+          // ✅ Cancelled/Returned-এ ঢুকলে/থেকে বেরোলে স্টক ঠিক রাখা (আগে, বাকি সব হওয়ার আগে)
+          await applyStockChangeForStatusTransition(tx, orderIdInt, currentStatus, status)
+
+          await tx.order.update({
+            where: { id: orderIdInt },
+            data: {
+              orderStatus: status,
+              ...(requiresCollectedAmount(status) ? { collectedAmount: Number(collectedAmount) } : {}),
+            },
+          })
+          await tx.orderStatusLog.create({
+            data: {
+              orderId: orderIdInt,
+              fromStatus: currentStatus,
+              toStatus: status,
+              changedById: authUser.id,
+              changedByRole: role,
+              isOverride: overrideFlag,
+            },
+          })
+        })
+      } catch (err: any) {
+        const msg = String(err?.message || "")
+        if (msg.startsWith("STOCK_ERROR:")) {
+          skipped.push({ orderId: orderIdInt, reason: msg.replace("STOCK_ERROR:", "") })
+          continue
+        }
+        throw err
+      }
     }
 
     if (skipped.length > 0) {

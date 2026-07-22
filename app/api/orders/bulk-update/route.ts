@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
-import { resolveOrderIdFromCustomId } from "@/lib/orderUtils"
+import { resolveOrderIdFromCustomId, applyStockChangeForStatusTransition } from "@/lib/orderUtils"
 import { getAllowedNextStatuses, requiresCollectedAmount, isOverrideTransition, UserRole } from "@/lib/orderStatusRules"
 import { OrderStatus } from "@prisma/client"
 
@@ -70,27 +70,27 @@ export async function POST(request: Request) {
 
       const overrideFlag = isOverrideTransition(currentStatus, status, role)
 
-      await prisma.$transaction([
-        prisma.order.update({
-          where: { id: orderId },
-          data: {
-            orderStatus: status as OrderStatus,
-            ...(needsAmount ? { collectedAmount: Number(row.amount) } : {}),
-          },
-        }),
-        prisma.orderStatusLog.create({
-          data: {
-            orderId,
-            fromStatus: currentStatus,
-            toStatus: status,
-            changedById: authUser.id,
-            changedByRole: role,
-            isOverride: overrideFlag,
-          },
-        }),
-      ])
-
-      results.push({ orderIdRaw: row.orderIdRaw, success: true })
+      try {
+        await prisma.$transaction(async (tx) => {
+          await applyStockChangeForStatusTransition(tx, orderId, currentStatus, status)
+          await tx.order.update({
+            where: { id: orderId },
+            data: {
+              orderStatus: status as any, // ✅ status আগেই rule engine দিয়ে validate করা হয়েছে, তাই এখানে cast করা নিরাপদ
+              ...(needsAmount ? { collectedAmount: Number(row.amount) } : {}),
+            },
+          })
+          await tx.orderStatusLog.create({
+            data: {
+              orderId, fromStatus: currentStatus, toStatus: status, changedById: authUser.id, changedByRole: role, isOverride: overrideFlag,
+            },
+          })
+        })
+        results.push({ orderIdRaw: row.orderIdRaw, success: true })
+      } catch (err: any) {
+        const msg = String(err?.message || "")
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: msg.startsWith("STOCK_ERROR:") ? msg.replace("STOCK_ERROR:", "") : "সার্ভার সমস্যা" })
+      }
     }
 
     return NextResponse.json({ success: true, results })
