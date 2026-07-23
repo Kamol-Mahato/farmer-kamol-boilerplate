@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { sanitizeHtml } from "@/lib/sanitize"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const { id } = await params
     const item = await prisma.galleryItem.findUnique({
@@ -29,6 +35,11 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const { id } = await params
     const body = await request.json()
@@ -80,6 +91,11 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const { id } = await params
     await prisma.galleryItem.delete({

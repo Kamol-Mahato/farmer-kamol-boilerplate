@@ -6,6 +6,11 @@ import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
 
 export async function POST(request: Request) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
     const { title, titleEn, slug, slugEn, description, descriptionEn, imageUrls } = body
@@ -64,6 +69,11 @@ export async function POST(request: Request) {
   }
 }
 export async function GET() {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const items = await prisma.galleryItem.findMany({
       where: { isActive: true },
