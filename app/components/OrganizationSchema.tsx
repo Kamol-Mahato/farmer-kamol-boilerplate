@@ -7,8 +7,8 @@ export default function OrganizationSchema({ lang }: { lang: "bn" | "en" }) {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: "Farmer Kamol",
-    image: "https://www.farmerkamol.com/uploads/kamol.png",
-    url: isEn ? "https://www.farmerkamol.com/en" : "https://www.farmerkamol.com",
+    image: "https://farmerkamol.com/uploads/kamol.png",
+    url: isEn ? "https://farmerkamol.com/en" : "https://farmerkamol.com",
     telephone: "+8801737939688",
     priceRange: "৳50-৳3000",
     address: {

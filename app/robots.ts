@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = "https://www.farmerkamol.com";
+const BASE_URL = "https://farmerkamol.com";
 
 export default function robots(): MetadataRoute.Robots {
   return {
