@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sanitizeHtml } from "@/lib/sanitize"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { sendPushToCustomers } from "@/lib/webpush"
 
-
 export async function GET() {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   try {
     const videos = await prisma.youtubeVideo.findMany({
       orderBy: { displayOrder: "asc" },
@@ -17,6 +21,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
     const video = await prisma.youtubeVideo.create({
@@ -47,6 +56,11 @@ export async function POST(req: Request) {
   }
 }
 export async function PUT(req: Request) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
     const video = await prisma.youtubeVideo.update({
@@ -70,6 +84,11 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const isAuthorized = await verifyAdminOrAgent()
+  if (!isAuthorized) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   try {
     const { id } = await req.json()
     await prisma.youtubeVideo.delete({ where: { id } })
