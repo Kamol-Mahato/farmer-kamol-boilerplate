@@ -26,10 +26,8 @@ export async function sendPushToAdmin(
     if (!vapidReady) return // ✅ key সেট না থাকলে চুপচাপ স্কিপ করবে, error ছুড়বে না
   
     const subscriptions = await prisma.pushSubscription.findMany()
-
   // ✅ orderId/name/amount payload-এ থাকলে bell dropdown সেটা সরাসরি ব্যবহার করতে পারবে
   const payload = JSON.stringify({ title, body, url, ...extra })
-
   await Promise.all(
     subscriptions.map(async (sub) => {
       try {
@@ -46,6 +44,39 @@ export async function sendPushToAdmin(
           await prisma.pushSubscription.deleteMany({ where: { endpoint: sub.endpoint } })
         } else {
           console.error("Push send error:", err?.message || err)
+        }
+      }
+    })
+  )
+}
+
+// ✅ নতুন পণ্য/ব্লগ/ভিডিও/গ্যালারি অ্যাড হলে সব subscribed customer-কে পাঠাবে
+// (Admin push-এর মতোই লজিক, শুধু আলাদা টেবিল থেকে subscriber নেয়)
+export async function sendPushToCustomers(
+  title: string,
+  body: string,
+  url: string
+) {
+  if (!vapidReady) return
+
+  const subscriptions = await prisma.customerPushSubscription.findMany()
+  const payload = JSON.stringify({ title, body, url, tag: "farmer-kamol-update" })
+
+  await Promise.all(
+    subscriptions.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          {
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
+          },
+          payload
+        )
+      } catch (err: any) {
+        if (err?.statusCode === 410 || err?.statusCode === 404) {
+          await prisma.customerPushSubscription.deleteMany({ where: { endpoint: sub.endpoint } })
+        } else {
+          console.error("Customer push send error:", err?.message || err)
         }
       }
     })

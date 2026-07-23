@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { sanitizeHtml } from "@/lib/sanitize"
+import { sendPushToCustomers } from "@/lib/webpush"
 
 export async function POST(request: Request) {
   try {
@@ -44,7 +45,13 @@ export async function POST(request: Request) {
         },
       },
     })
-    
+
+    sendPushToCustomers(
+      "নতুন গ্যালারি ছবি! 📸",
+      galleryItem.title,
+      `/media/image`
+    ).catch((err) => console.error("Push notify error:", err))
+
     return NextResponse.json({ success: true, id: galleryItem.id })
   } catch (error: any) {
     console.error("GALLERY CREATE ERROR ->", error)

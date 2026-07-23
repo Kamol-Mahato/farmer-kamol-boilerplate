@@ -19,7 +19,7 @@ self.addEventListener("push", function (event) {
       badge: "/uploads/kamol.png",
       vibrate: [200, 100, 200],
       data: { url: data.url || "/admin/orders" },
-      tag: "farmer-kamol-order",
+      tag: data.tag || "farmer-kamol-order",
       renotify: true,
     }
   

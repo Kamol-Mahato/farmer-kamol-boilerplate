@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyAdminOnly } from "@/lib/adminAuth"
 import { sanitizeHtml } from "@/lib/sanitize"
+import { sendPushToCustomers } from "@/lib/webpush"
 
 export async function GET() {
   const blogs = await prisma.blog.findMany({
@@ -31,5 +32,15 @@ export async function POST(req: Request) {
       isPublished: body.isPublished,
     }
   })
+
+  // ✅ ব্লগ Published থাকলেই customer-দের জানানো হবে (Draft হলে না)
+  if (blog.isPublished) {
+    sendPushToCustomers(
+      "নতুন ব্লগ পোস্ট! 📝",
+      blog.title,
+      `/blog/${blog.slug}`
+    ).catch((err) => console.error("Push notify error:", err))
+  }
+
   return NextResponse.json(blog)
 }

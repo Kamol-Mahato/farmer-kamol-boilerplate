@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { sanitizeHtml } from "@/lib/sanitize"
+import { sendPushToCustomers } from "@/lib/webpush"
                                                                                                                               
 export async function GET() {
   const isAuthorized = await verifyAdminOrAgent()
@@ -94,7 +95,14 @@ export async function POST(request: Request) {
           : undefined,
       },
     })
-
+    // ✅ প্রোডাক্ট Active থাকলেই customer-দের জানানো হবে (Draft/inactive হলে না)
+    if (product.isActive) {
+      sendPushToCustomers(
+        "নতুন পণ্য এসেছে! 🌾",
+        product.name,
+        `/shop/${product.slug}`
+      ).catch((err) => console.error("Push notify error:", err))
+    }
     return NextResponse.json(product)
   } catch (error: any) {
     if (error.code === "P2002") {

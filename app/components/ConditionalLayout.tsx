@@ -9,6 +9,7 @@ import { MobileMenuProvider } from "./MobileMenuContext"
 import MobileBottomNav from "./MobileBottomNav"
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton"
 import AgentModeBanner from "./AgentModeBanner"
+import NotificationPermissionBanner from "./NotificationPermissionBanner"
 
 export default function ConditionalLayout({
   children,
@@ -36,6 +37,7 @@ export default function ConditionalLayout({
       <MobileMenuProvider>
         <AgentModeBanner />
         <Navbar />
+        <NotificationPermissionBanner />
         {!hideFloatingCart && <FloatingCartButton />}
         {!hideFloatingCart && <FloatingWhatsAppButton />}
       <div className="h-[76px]" />

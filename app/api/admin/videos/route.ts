@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sanitizeHtml } from "@/lib/sanitize"
+import { sendPushToCustomers } from "@/lib/webpush"
 
 
 export async function GET() {
@@ -30,6 +31,15 @@ export async function POST(req: Request) {
         isActive: body.isActive ?? true,
       },
     })
+
+    if (video.isActive) {
+      sendPushToCustomers(
+        "নতুন ভিডিও এসেছে! 🎬",
+        video.title,
+        `/media/video`
+      ).catch((err) => console.error("Push notify error:", err))
+    }
+
     return NextResponse.json(video)
   } catch (error) {
     console.error(error)
