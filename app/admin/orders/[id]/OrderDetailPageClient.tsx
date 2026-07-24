@@ -4,12 +4,14 @@ import { useEffect, useState } from "react"
 import OrderDetailContent, { OrderDetailData } from "../OrderDetailContent"
 
 interface Props {
-  orderId: number
-}
-
-// 📄 পপ-আপের মতোই OrderDetailContent ব্যবহার করে ফুল-পেজে অর্ডার দেখানো হয়
-// (onClose পাস করা হয় না, তাই OrderDetailContent নিজে থেকেই "ফিরে যান" লিংক দেখায়)
-export default function OrderDetailPageClient({ orderId }: Props) {
+    orderId: number
+    role?: "ADMIN" | "SUPER_ADMIN" | "AGENT"
+    basePath?: string
+  }
+  
+  // 📄 পপ-আপের মতোই OrderDetailContent ব্যবহার করে ফুল-পেজে অর্ডার দেখানো হয়
+  // (onClose পাস করা হয় না, তাই OrderDetailContent নিজে থেকেই "ফিরে যান" লিংক দেখায়)
+  export default function OrderDetailPageClient({ orderId, role = "ADMIN", basePath = "/admin/orders" }: Props) {
   const [order, setOrder] = useState<OrderDetailData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -40,7 +42,7 @@ export default function OrderDetailPageClient({ orderId }: Props) {
     return (
       <div className="text-center py-20">
         <p className="text-red-500 font-medium mb-4">{error}</p>
-        <a href="/admin/orders" className="text-sm border border-gray-300 px-4 py-2 rounded-lg">← ফিরে যান</a>
+        <a href={basePath} className="text-sm border border-gray-300 px-4 py-2 rounded-lg">← ফিরে যান</a>
       </div>
     )
   }
@@ -49,7 +51,7 @@ export default function OrderDetailPageClient({ orderId }: Props) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <OrderDetailContent key={order.id} order={order} onOrderUpdated={loadOrder} />
+      <OrderDetailContent key={order.id} order={order} onOrderUpdated={loadOrder} role={role} basePath={basePath} />
     </div>
   )
 }

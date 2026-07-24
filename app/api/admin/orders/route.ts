@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-import { verifyAdminOrAgent } from "@/lib/adminAuth"
+import { verifyAdminOrAgent, verifyAdminOnly } from "@/lib/adminAuth"
 import { getAllowedNextStatuses, requiresCollectedAmount, isOverrideTransition, UserRole } from "@/lib/orderStatusRules"
 import { applyStockChangeForStatusTransition } from "@/lib/orderUtils"
 
@@ -159,8 +159,9 @@ export async function POST(request: Request) {
 }
 
 // 🗑️ ভুল TrxID / fake order ডিলিট করার API — Stock ফিরিয়ে দেবে
+// 🔒 শুধু Admin — Agent কখনোই ডিলিট করতে পারবে না
 export async function DELETE(request: Request) {
-  const authUser = await verifyAdminOrAgent()
+  const authUser = await verifyAdminOnly()
   if (!authUser) {
     return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
   }

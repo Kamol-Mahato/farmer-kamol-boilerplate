@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { generateCustomId } from "@/lib/orderUtils"
 import { updateOrderStatus } from "@/lib/orderStatusClient"
+import { getAllowedNextStatuses, UserRole } from "@/lib/orderStatusRules"
 import PaymentConfirm from "./[id]/PaymentConfirm"
 import CourierBookButton from "./[id]/CourierBookButton"
 
@@ -108,13 +109,15 @@ function buildStepperPath(order: OrderDetailData) {
 }
 
 interface Props {
-  order: OrderDetailData
-  onClose?: () => void
-  onOrderUpdated?: () => void
-  onDeleted?: () => void
-}
-
-export default function OrderDetailContent({ order: initialOrder, onClose, onOrderUpdated, onDeleted }: Props) {
+    order: OrderDetailData
+    onClose?: () => void
+    onOrderUpdated?: () => void
+    onDeleted?: () => void
+    role?: UserRole
+    basePath?: string
+  }
+  
+  export default function OrderDetailContent({ order: initialOrder, onClose, onOrderUpdated, onDeleted, role = "ADMIN", basePath = "/admin/orders" }: Props) {
   const router = useRouter()
   const [order, setOrder] = useState(initialOrder)
   const [activeTab, setActiveTab] = useState<"status" | "details" | "history">("details")
@@ -183,7 +186,7 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
         return
       }
       if (onDeleted) onDeleted()
-      else router.push("/admin/orders")
+        else router.push(basePath)
     } catch {
       alert("সার্ভার সমস্যা, আবার চেষ্টা করুন")
       setDeleteLoading(false)
@@ -193,6 +196,9 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
   const paymentBadge = getPaymentBadge(order)
   const { path: stepperPath, hints: stepperHints } = buildStepperPath(order)
   const due = order.collectedAmount !== null ? order.collectedAmount - order.finalCodAmount : null
+  const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN"
+  // 🔒 Agent টার্মিনাল status-এ এডিট করতে পারবে না; Admin সবসময় পারবে
+  const canEdit = isAdmin || !TERMINAL_STATUSES.includes(order.orderStatus)
 
   // 📄 পপ-আপে (onClose থাকলে) ফিক্সড উচ্চতায় ভেতরে স্ক্রল হয়; ফুল-পেজে (onClose না থাকলে) স্বাভাবিক পেজ স্ক্রল ব্যবহার হয়
   const isModal = !!onClose
@@ -208,7 +214,7 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
         {onClose ? (
           <button onClick={onClose} className="absolute right-4 text-3xl leading-none text-green-200 hover:text-white font-bold px-2">×</button>
         ) : (
-          <a href="/admin/orders" className="absolute right-4 text-green-100 hover:text-white hover:underline text-sm font-medium">← ফিরে যান</a>
+          <a href={basePath} className="absolute right-4 text-green-100 hover:text-white hover:underline text-sm font-medium">← ফিরে যান</a>
         )}
       </div>
 
@@ -254,7 +260,7 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
             className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-bold bg-white disabled:opacity-50"
           >
             <option value={order.orderStatus}>{STATUS_LABELS[order.orderStatus]}</option>
-            {ALL_STATUSES.filter((s) => s !== order.orderStatus).map((s) => (
+            {getAllowedNextStatuses(order.orderStatus, role).map((s) => (
               <option key={s} value={s}>{STATUS_LABELS[s]}</option>
             ))}
           </select>
@@ -325,12 +331,16 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
               </div>
             )}
           </div>
-          <a href={`/admin/orders/${customId}/edit`} className="text-sm font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">✏️ এডিট</a>
-          <button
-            onClick={handleDelete}
-            disabled={deleteLoading}
-            className="text-sm font-bold bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 disabled:opacity-50"
-          >🗑️ ডিলিট</button>
+          {canEdit && (
+            <a href={`${basePath}/${customId}/edit`} className="text-sm font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">✏️ এডিট</a>
+          )}
+          {isAdmin && (
+            <button
+              onClick={handleDelete}
+              disabled={deleteLoading}
+              className="text-sm font-bold bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 disabled:opacity-50"
+            >🗑️ ডিলিট</button>
+          )}
           <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${paymentBadge.cls}`}>{paymentBadge.text}</span>
         </div>
 

@@ -4,13 +4,15 @@ import { useEffect, useState } from "react"
 import OrderDetailContent, { OrderDetailData } from "./OrderDetailContent"
 
 interface Props {
-  orderId: number | null
-  onClose: () => void
-  onOrderUpdated?: () => void
-}
-
-// 🪟 পপ-আপ র‍্যাপার — ওভারলে/ব্যাকড্রপ দেখায়, ডেটা fetch করে OrderDetailContent-কে দেয়
-export default function OrderDetailModal({ orderId, onClose, onOrderUpdated }: Props) {
+    orderId: number | null
+    onClose: () => void
+    onOrderUpdated?: () => void
+    role?: "ADMIN" | "SUPER_ADMIN" | "AGENT"
+    basePath?: string
+  }
+  
+  // 🪟 পপ-আপ র‍্যাপার — ওভারলে/ব্যাকড্রপ দেখায়, ডেটা fetch করে OrderDetailContent-কে দেয়
+  export default function OrderDetailModal({ orderId, onClose, onOrderUpdated, role = "ADMIN", basePath = "/admin/orders" }: Props) {
   const [order, setOrder] = useState<OrderDetailData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -53,6 +55,8 @@ export default function OrderDetailModal({ orderId, onClose, onOrderUpdated }: P
           onClose={onClose}
           onOrderUpdated={onOrderUpdated}
           onDeleted={() => { onClose(); onOrderUpdated?.() }}
+          role={role}
+          basePath={basePath}
         />
       )}
     </div>
