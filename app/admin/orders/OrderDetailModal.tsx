@@ -34,7 +34,7 @@ export default function OrderDetailModal({ orderId, onClose, onOrderUpdated }: P
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 overflow-y-auto p-4 pt-10 sm:pt-20 sm:pb-16"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       {loading && (

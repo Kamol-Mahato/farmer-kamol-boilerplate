@@ -194,24 +194,27 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
   const { path: stepperPath, hints: stepperHints } = buildStepperPath(order)
   const due = order.collectedAmount !== null ? order.collectedAmount - order.finalCodAmount : null
 
+  // 📄 পপ-আপে (onClose থাকলে) ফিক্সড উচ্চতায় ভেতরে স্ক্রল হয়; ফুল-পেজে (onClose না থাকলে) স্বাভাবিক পেজ স্ক্রল ব্যবহার হয়
+  const isModal = !!onClose
+
   return (
-    <div className="bg-white rounded-2xl w-full max-w-2xl mx-auto shadow-xl flex flex-col max-h-[90vh]">
+    <div className={`bg-white rounded-2xl w-full max-w-2xl mx-auto shadow-2xl ring-1 ring-black/5 flex flex-col ${isModal ? "max-h-[90vh]" : ""}`}>
       {/* হেডার — ফিক্সড */}
-      <div className="flex items-center justify-between px-6 py-4 border-b">
-        <div>
-          <h2 className="text-lg font-bold text-green-800">আইডি: {customId}</h2>
-          <p className="text-xs text-gray-500 mt-0.5">{order.customer.name}</p>
+      <div className="relative flex items-center justify-center px-6 py-4 bg-green-800 rounded-t-2xl">
+        <div className="text-center">
+          <h2 className="text-lg font-bold text-white">আইডি: {customId}</h2>
+          <p className="text-xs text-green-100 mt-0.5">{order.customer.name}</p>
         </div>
         {onClose ? (
-          <button onClick={onClose} className="text-3xl leading-none text-gray-400 hover:text-gray-700 font-bold px-2">×</button>
+          <button onClick={onClose} className="absolute right-4 text-3xl leading-none text-green-200 hover:text-white font-bold px-2">×</button>
         ) : (
-          <a href="/admin/orders" className="text-blue-600 hover:underline text-sm font-medium">← ফিরে যান</a>
+          <a href="/admin/orders" className="absolute right-4 text-green-100 hover:text-white hover:underline text-sm font-medium">← ফিরে যান</a>
         )}
       </div>
 
       {/* স্ক্রলযোগ্য বডি */}
-      <div className="overflow-y-auto px-6 py-4 flex-1">
-        <div className="text-sm text-gray-600 space-y-1 mb-4">
+      <div className={`px-6 py-4 flex-1 ${isModal ? "overflow-y-auto" : ""}`}>
+      <div className="text-sm text-black space-y-1 mb-4">
           <p><span className="font-medium">অর্ডার ডেট:</span> {formatBD(order.createdAt)}</p>
           <p><span className="font-medium">লাস্ট আপডেট:</span> {formatBD(order.updatedAt)}</p>
         </div>
@@ -236,14 +239,14 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
           {stepperHints.map((h, i) => (
             <div key={"hint-" + i} className="flex items-center gap-2">
               <span className="text-gray-300">⎯⎯</span>
-              <span className="text-xs font-medium px-3 py-1.5 rounded-full border border-dashed border-gray-200 text-gray-400">{h}</span>
+              <span className="text-xs font-medium px-3 py-1.5 rounded-full border border-dashed border-gray-200 text-black">{h}</span>
             </div>
           ))}
         </div>
 
         {/* বর্তমান স্ট্যাটাস + ড্রপডাউন */}
         <div className="flex flex-wrap items-center gap-3 mb-3">
-          <span className="text-sm font-medium text-gray-700">বর্তমান স্ট্যাটাস:</span>
+        <span className="text-sm font-medium text-black">বর্তমান স্ট্যাটাস:</span>
           <select
             value={order.orderStatus}
             onChange={handleStatusSelect}
@@ -304,11 +307,11 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
         )}
 
         {/* অ্যাকশন বাটন সারি */}
-        <div className="flex flex-wrap items-center gap-2 mb-5 pb-5 border-b">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-5 pb-5 border-b">
           <div className="relative">
             <button
               onClick={() => setShowPrintMenu((p) => !p)}
-              className="text-sm font-bold border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50"
+              className="text-sm font-bold bg-gray-800 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700"
             >🖨️ প্রিন্ট ▾</button>
             {showPrintMenu && (
               <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[150px] py-1">
@@ -322,34 +325,37 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
               </div>
             )}
           </div>
-          <a href={`/admin/orders/${customId}/edit`} className="text-sm font-bold border border-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-50">✏️ এডিট</a>
+          <a href={`/admin/orders/${customId}/edit`} className="text-sm font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">✏️ এডিট</a>
           <button
             onClick={handleDelete}
             disabled={deleteLoading}
-            className="text-sm font-bold border border-red-300 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50"
+            className="text-sm font-bold bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 disabled:opacity-50"
           >🗑️ ডিলিট</button>
           <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${paymentBadge.cls}`}>{paymentBadge.text}</span>
         </div>
 
         {/* ট্যাব বার */}
-        <div className="flex border-b mb-4">
+        <div className="flex gap-2 mb-4 bg-gray-100 rounded-xl p-1">
           {([["status", "স্ট্যাটাস"], ["details", "ডিটেইলস"], ["history", "হিস্টোরি"]] as const).map(([key, label]) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`px-4 py-2 text-sm font-bold border-b-2 -mb-px transition ${
-                activeTab === key ? "border-green-700 text-green-800" : "border-transparent text-gray-400 hover:text-gray-600"
+              className={`flex-1 px-4 py-2 text-sm font-bold rounded-lg transition ${
+                activeTab === key ? "bg-green-800 text-white shadow" : "text-gray-500 hover:text-gray-700"
               }`}
             >{label}</button>
           ))}
         </div>
 
+        {/* ট্যাব কন্টেন্ট — min-height দেওয়া আছে যাতে ট্যাব বদলালে পপ-আপের সাইজ ছোট-বড় না হয় */}
+        <div className="min-h-[420px]">
+
         {/* ডিটেইলস ট্যাব */}
         {activeTab === "details" && (
           <div className="space-y-5">
             <div>
-              <h3 className="font-bold text-gray-800 mb-2 text-sm">কাস্টমার তথ্য</h3>
-              <div className="text-sm text-gray-600 space-y-1 bg-gray-50 rounded-lg p-3">
+            <h3 className="font-bold text-green-800 mb-2 text-sm text-center">কাস্টমার তথ্য</h3>
+            <div className="text-sm text-black space-y-1 bg-gray-50 rounded-lg p-3">
                 <p><span className="font-medium">নাম:</span> {order.customer.name}</p>
                 <p><span className="font-medium">ফোন:</span> {order.customer.phone}</p>
                 <p><span className="font-medium">ঠিকানা:</span> {order.deliveryAddress}</p>
@@ -358,7 +364,7 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
             </div>
 
             <div>
-              <h3 className="font-bold text-gray-800 mb-2 text-sm">পণ্য সমূহ</h3>
+            <h3 className="font-bold text-green-800 mb-2 text-sm text-center">পণ্য সমূহ</h3>
               <div className="bg-gray-50 rounded-lg p-3 text-sm">
                 {order.orderItems.map((item) => (
                   <div key={item.id} className="flex justify-between items-center py-1.5 border-b last:border-0 border-gray-200">
@@ -367,10 +373,10 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
                   </div>
                 ))}
                 <div className="flex justify-between pt-2 mt-1 border-t border-gray-200">
-                  <span className="text-gray-600">পণ্যমূল্য</span><span>৳ {order.totalProductPrice}</span>
+                <span className="text-black">পণ্যমূল্য</span><span>৳ {order.totalProductPrice}</span>
                 </div>
                 <div className="flex justify-between mt-1">
-                  <span className="text-gray-600">ডেলিভারি চার্জ</span><span>৳ {order.deliveryCharge}</span>
+                  <span className="text-black">ডেলিভারি চার্জ</span><span>৳ {order.deliveryCharge}</span>
                 </div>
                 <div className="flex justify-between mt-1 pt-1 border-t border-gray-200 font-bold">
                   <span>মোট COD</span><span className="text-green-700">৳ {order.finalCodAmount}</span>
@@ -384,7 +390,7 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
             </div>
 
             <div>
-              <h3 className="font-bold text-gray-800 mb-2 text-sm">পেমেন্ট</h3>
+              <h3 className="font-bold text-green-800 mb-2 text-sm">পেমেন্ট</h3>
               <PaymentConfirm
                 orderId={order.id}
                 paymentMethod={order.paymentMethod}
@@ -400,7 +406,7 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
             </div>
 
             <div>
-              <h3 className="font-bold text-gray-800 mb-2 text-sm">কুরিয়ার</h3>
+              <h3 className="font-bold text-green-800 mb-2 text-sm">কুরিয়ার</h3>
               <CourierBookButton
                 orderId={order.id}
                 alreadyBooked={!!order.courierTrackingId}
@@ -446,6 +452,7 @@ export default function OrderDetailContent({ order: initialOrder, onClose, onOrd
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   )
