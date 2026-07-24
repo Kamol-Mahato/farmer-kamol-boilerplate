@@ -5,7 +5,7 @@ import { verifyAdminOrAgent } from "@/lib/adminAuth"
 // 🔎 পপ-আপে দেখানোর জন্য একটা অর্ডারের সব ডেটা (কাস্টমার, পণ্য, এডিট হিস্ট্রি, স্ট্যাটাস হিস্ট্রি) একসাথে
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authUser = await verifyAdminOrAgent()
   if (!authUser) {
