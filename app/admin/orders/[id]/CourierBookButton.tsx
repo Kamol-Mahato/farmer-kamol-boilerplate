@@ -6,10 +6,12 @@ export default function CourierBookButton({
   orderId,
   alreadyBooked,
   trackingId,
+  onSuccess,
 }: {
   orderId: number
   alreadyBooked: boolean
   trackingId: string | null
+  onSuccess?: () => void
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -26,6 +28,7 @@ export default function CourierBookButton({
         return
       }
       router.refresh()
+      onSuccess?.()
     } catch {
       setError("বুকিং ব্যর্থ হয়েছে")
     } finally {

@@ -15,6 +15,7 @@ interface PaymentConfirmProps {
   paymentAmountPaid: number
   customerPhone: string
   customOrderId: string
+  onSuccess?: () => void
 }
 
 // 📱 বাংলাদেশি নম্বরকে WhatsApp এর জন্য আন্তর্জাতিক ফরম্যাটে কনভার্ট করা (01XXXXXXXXX -> 880XXXXXXXXX)
@@ -35,6 +36,7 @@ export default function PaymentConfirm({
   paymentAmountPaid,
   customerPhone,
   customOrderId,
+  onSuccess,
 }: PaymentConfirmProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -73,6 +75,7 @@ export default function PaymentConfirm({
         return
       }
       router.refresh()
+      onSuccess?.()
     } catch {
       setError("সার্ভার সমস্যা, আবার চেষ্টা করুন")
     } finally {

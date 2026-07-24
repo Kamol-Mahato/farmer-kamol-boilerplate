@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { generateCustomId } from "@/lib/orderUtils"
+import { updateOrderStatus } from "@/lib/orderStatusClient"
+import OrderDetailModal from "./OrderDetailModal"
 
 // ✅ Admin override করতে পারে — তাই বর্তমান বাদে সবকটা status অপশনে দেখানো হবে
 // আসল ভ্যালিডেশন সার্ভারে (lib/orderStatusRules.ts) হয়, এটা শুধু UI অপশন সাজানোর জন্য
@@ -53,6 +55,7 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([])
+  const [openOrderId, setOpenOrderId] = useState<number | null>(null)
   const [bulkStatus, setBulkStatus] = useState("")
   const [bulkCourierLoading, setBulkCourierLoading] = useState(false)
   const [courierName, setCourierName] = useState("")
@@ -218,79 +221,37 @@ export default function AdminOrdersPage() {
     setSelectedOrderIds([])
   }
 
-  // একক বা বাল্ক স্ট্যাটাস ও কুরিয়ার আপডেট করার মেথড
+  // একক বা বাল্ক স্ট্যাটাস ও কুরিয়ার আপডেট করার মেথড (শেয়ার্ড লজিক lib/orderStatusClient.ts-এ)
   async function handleStatusUpdate(ids: number[], status: string, courier?: string, collectedAmount?: string) {
-    let idsToUpdate = ids
-    const bookingFailures: string[] = []
+    if (status === "DELIVERY_ONGOING" && courier === "Pathao") setBulkCourierLoading(true)
 
-    // ✅ Pathao সিলেক্ট করা হলে — আগে real API booking, তারপরই status update
-    // যেসব অর্ডার booking-এ ব্যর্থ হবে, সেগুলোর status আপডেট হবে না (শুধু successfully booked গুলোই "পাঠানো হয়েছে" দেখাবে)
-    if (status === "DELIVERY_ONGOING" && courier === "Pathao") {
-      setBulkCourierLoading(true)
-      const successfulIds: number[] = []
-      for (const id of ids) {
-        try {
-          const res = await fetch(`/api/admin/orders/${id}/courier`, { method: "POST" })
-          if (res.ok) {
-            successfulIds.push(id)
-          } else {
-            const data = await res.json().catch(() => ({}))
-            bookingFailures.push(`অর্ডার #${id}: ${data.error || "বুকিং ব্যর্থ"}`)
-          }
-        } catch {
-          bookingFailures.push(`অর্ডার #${id}: নেটওয়ার্ক সমস্যা`)
-        }
-      }
-      setBulkCourierLoading(false)
-      idsToUpdate = successfulIds
+    const result = await updateOrderStatus(ids, status, courier, collectedAmount)
 
-      if (idsToUpdate.length === 0) {
-        alert(`❌ কোনো অর্ডারই Pathao-তে বুক করা যায়নি:\n\n${bookingFailures.join("\n")}`)
-        return
-      }
+    if (status === "DELIVERY_ONGOING" && courier === "Pathao") setBulkCourierLoading(false)
+
+    if (!result.success) {
+      alert(result.error || "আপডেট করা যায়নি, সার্ভারে সমস্যা হয়েছে")
+      return
     }
 
-    try {
-      const res = await fetch("/api/admin/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderIds: idsToUpdate,
-          status,
-          courierName: courier,
-          ...(collectedAmount !== undefined ? { collectedAmount: Number(collectedAmount) } : {}),
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok) {
-        const skipped: { orderId: number; reason: string }[] = data.skipped || []
-        const skippedIds = new Set(skipped.map((s) => s.orderId))
-        const updatedIds = ids.filter((id) => !skippedIds.has(id))
+    setOrders(prev => prev.map(o => result.updatedIds.includes(o.id) ? {
+      ...o,
+      orderStatus: status,
+      collectedAmount: status === "DELIVERED" && collectedAmount !== undefined ? Number(collectedAmount) : o.collectedAmount,
+      courierSummary: status === "DELIVERY_ONGOING" && courier ? { courierStatus: courier } : o.courierSummary
+    } : o))
 
-        setOrders(prev => prev.map(o => updatedIds.includes(o.id) ? { 
-          ...o, 
-          orderStatus: status, 
-          collectedAmount: status === "DELIVERED" && collectedAmount !== undefined ? Number(collectedAmount) : o.collectedAmount,
-          courierSummary: status === "DELIVERY_ONGOING" && courier ? { courierStatus: courier } : o.courierSummary 
-        } : o))
+    if (ids.length > 1) {
+      setSelectedOrderIds([])
+      setBulkStatus("")
+      setCourierName("")
+    }
 
-        if (ids.length > 1) {
-          setSelectedOrderIds([])
-          setBulkStatus("")
-          setCourierName("")
-        }
-
-        const allFailures = [...bookingFailures, ...skipped.map((s) => `অর্ডার #${s.orderId}: ${s.reason}`)]
-        if (allFailures.length > 0) {
-          alert(`কিছু অর্ডার আপডেট হয়নি:\n${allFailures.join("\n")}`)
-        } else if (ids.length > 1) {
-          alert("নির্বাচিত সব অর্ডারের কুরিয়ার ও স্ট্যাটাস আপডেট হয়েছে!")
-        }
-      } else {
-        alert(data.error || "আপডেট করা যায়নি, সার্ভারে সমস্যা হয়েছে")
-      }
-    } catch {
-      alert("আপডেট করা যায়নি")
+    const allFailures = [...result.bookingFailures, ...result.skipped.map((s) => `অর্ডার #${s.orderId}: ${s.reason}`)]
+    if (allFailures.length > 0) {
+      alert(`কিছু অর্ডার আপডেট হয়নি:\n${allFailures.join("\n")}`)
+    } else if (ids.length > 1) {
+      alert("নির্বাচিত সব অর্ডারের কুরিয়ার ও স্ট্যাটাস আপডেট হয়েছে!")
     }
   }
 
@@ -662,11 +623,11 @@ export default function AdminOrdersPage() {
                     />
                   </td>
 
-                  {/* 🔗 ক্লিকেবল অর্ডার আইডি */}
+                  {/* 🔗 ক্লিক করলে পপ-আপ খুলবে */}
                   <td className="px-6 py-4 font-bold text-blue-600 tracking-wider hover:underline">
-                    <Link href={`/admin/orders/${order.id}`}>
+                    <button onClick={() => setOpenOrderId(order.id)}>
                       {generateCustomId(order.createdAt, order.dailySeq)}
-                    </Link>
+                    </button>
                   </td>
 
                   {/* লকড কলামসমূহ (ক্লিক করা যাবে না) */}
@@ -832,9 +793,9 @@ export default function AdminOrdersPage() {
                   {/* 🔗 ক্লিকেবল অ্যাকশন কলাম */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3 whitespace-nowrap">
-                      <Link href={`/admin/orders/${order.id}`} className="font-semibold text-blue-600 hover:underline whitespace-nowrap">
+                    <button onClick={() => setOpenOrderId(order.id)} className="font-semibold text-blue-600 hover:underline whitespace-nowrap">
                         বিস্তারিত
-                      </Link>
+                      </button>
                       <Link href={`/admin/orders/${generateCustomId(order.createdAt, order.dailySeq)}/edit`} className="font-semibold text-green-700 hover:underline whitespace-nowrap">
                         এডিট
                       </Link>
@@ -850,8 +811,14 @@ export default function AdminOrdersPage() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
       </div>
+
+      <OrderDetailModal
+        orderId={openOrderId}
+        onClose={() => setOpenOrderId(null)}
+        onOrderUpdated={fetchOrders}
+      />
     </div>
   )
 }
