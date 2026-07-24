@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const rateCheck = await checkRateLimit(`customer-login:${phone}`)
+    const rateCheck = await checkRateLimit(`login:${phone}`)
     if (!rateCheck.allowed) {
       const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
       return NextResponse.json(
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
       where: { phone },
     })
 
-    if (!user || !user.password) {
-      await recordFailedAttempt(`customer-login:${phone}`)
+    if (!user || !user.isActive || !user.password) {
+      await recordFailedAttempt(`login:${phone}`)
       return NextResponse.json(
         { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
@@ -40,18 +40,32 @@ export async function POST(request: Request) {
 
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
-      await recordFailedAttempt(`customer-login:${phone}`)
+      await recordFailedAttempt(`login:${phone}`)
       return NextResponse.json(
         { error: "মোবাইল নম্বর বা পাসওয়ার্ড সঠিক নয়" },
         { status: 401 }
       )
     }
-    await clearAttempts(`customer-login:${phone}`)
+    await clearAttempts(`login:${phone}`)
 
-    // 🔒 ব্রাউজারে সেশন কুকি সেট করা (নেভবার যেন লগইন ডিটেক্ট করতে পারে)
+    // 🔀 role অনুযায়ী সঠিক session কুকি বসানো — Admin/Agent/Customer সবাই এই একই API ব্যবহার করে
+    const cookieName =
+      user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+        ? "admin_session"
+        : user.role === "AGENT"
+        ? "agent_session"
+        : "customer_session"
+
+    const redirectTo =
+      user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+        ? "/admin"
+        : user.role === "AGENT"
+        ? "/agent"
+        : "/customer/dashboard"
+
     const cookieStore = await cookies()
-    const sessionToken = await signSession({ id: user.id, name: user.name, phone: user.phone })
-    cookieStore.set("customer_session", sessionToken, {
+    const sessionToken = await signSession({ id: user.id, name: user.name, phone: user.phone, role: user.role })
+    cookieStore.set(cookieName, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -61,8 +75,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "লগইন সফল হয়েছে",
-      user: { id: user.id, name: user.name, role: user.role }
+      message: "লগইন সফল হয়েছে",
+      user: { id: user.id, name: user.name, role: user.role },
+      redirectTo,
     })
   } catch (error) {
     console.error("LOGIN API ERROR:", error)

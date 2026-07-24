@@ -83,6 +83,15 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
+      // 🔀 Admin/Agent হলে সরাসরি নিজ নিজ প্যানেলে পাঠানো, Customer হলে আগের মতোই
+      if (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN") {
+        router.push("/admin")
+        return
+      }
+      if (data.user.role === "AGENT") {
+        router.push("/agent")
+        return
+      }
       localStorage.setItem("user", JSON.stringify(data.user))
       setUser(data.user)
       window.dispatchEvent(new Event("storage"))
@@ -296,6 +305,11 @@ export default function LoginPage() {
                 <p className="text-center text-xs text-gray-500 mt-3 pt-3 border-t border-yellow-200">
                   <Link href="/reset-password" className="hover:underline font-medium">
                     কোড পেয়েছেন? পাসওয়ার্ড সেট করুন
+                  </Link>
+                </p>
+                <p className="text-center text-xs text-gray-500 mt-2">
+                  <Link href="/admin/forgot-password" className="hover:underline font-medium">
+                    অ্যাডমিন? এখান থেকে পাসওয়ার্ড রিসেট করুন
                   </Link>
                 </p>
               </div>

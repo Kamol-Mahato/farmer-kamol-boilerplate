@@ -48,8 +48,7 @@ export async function middleware(request: NextRequest) {
           { status: 401 }
         )
       }
-      const loginPath = path.startsWith("/agent") ? "/agent/login" : "/admin/login"
-      return NextResponse.redirect(new URL(loginPath, request.url))
+      return NextResponse.redirect(new URL("/login", request.url))
     }
   }
 
