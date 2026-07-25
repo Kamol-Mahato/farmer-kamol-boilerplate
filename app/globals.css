@@ -11,6 +11,26 @@ body {
   font-family: var(--font-hind-siliguri), Arial, Helvetica, sans-serif !important;
 }
 
+/* 🖱️ যেকোনো ক্লিক-যোগ্য এলিমেন্টে মাউস গেলেই হাতের/pointer আইকন দেখাবে — পুরো সাইটে (Customer/Admin/Agent) একবারই বসানো হলো */
+button:not(:disabled),
+a,
+[role="button"],
+[onclick],
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"],
+input[type="submit"],
+input[type="button"] {
+  cursor: pointer;
+}
+
+/* 🚫 disabled বাটনে যেন উল্টো "নিষিদ্ধ" চিহ্ন দেখায়, ভুল বোঝার সুযোগ না থাকে */
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
 @keyframes marquee {
   0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
