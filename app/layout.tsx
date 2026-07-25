@@ -4,6 +4,7 @@ import ConditionalLayout from "./components/ConditionalLayout"
 import OrganizationSchema from "./components/OrganizationSchema"
 import "./globals.css"
 import { headers } from "next/headers"
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 const hindSiliguri = Hind_Siliguri({
   weight: ["300", "400", "500", "600", "700"],
@@ -62,6 +63,8 @@ export default async function RootLayout({
       <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
       <OrganizationSchema lang={lang} />
         <ConditionalLayout>{children}</ConditionalLayout>
+        {/* গুগল অ্যানালিটিক্স কম্পোনেন্ট */}
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || 'G-8ZRHT134HL'} />
       </body>
     </html>
   )
