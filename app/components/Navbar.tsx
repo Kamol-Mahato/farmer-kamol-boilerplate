@@ -52,7 +52,6 @@ export default function Navbar() {
   const { mobileOpen, openSidebar, closeSidebar, closeSidebarForNav } = useMobileMenu()
   const [searchQuery, setSearchQuery] = useState("")
   const [cartCount, setCartCount] = useState<number>(0)
-  const [openMobileMenu, setOpenMobileMenu] = useState<number | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [authMenuOpen, setAuthMenuOpen] = useState(false)
 
@@ -151,30 +150,30 @@ export default function Navbar() {
               <span className="text-yellow-200 text-[10px] font-bold whitespace-nowrap">{t.tagline}</span>
             </div>
           </Link>
-          <button onClick={() => { closeSidebar(); setOpenMobileMenu(null) }} className="text-white text-2xl shrink-0">✕</button>
+          <button onClick={() => closeSidebar()} className="text-white text-2xl shrink-0">✕</button>
         </div>
-        <div className="p-2 flex flex-col gap-2">
+        <div className="p-3 flex flex-col gap-3">
+          {/* 🏠 Home — সবসময় লিস্টের সবার ওপরে */}
+          <Link
+            href={href("/")}
+            onClick={() => closeSidebarForNav()}
+            className="block px-4 py-1.5 rounded-full bg-green-800 text-white text-sm font-bold hover:bg-yellow-400 hover:text-green-900 transition"
+          >
+            {locale === "bn" ? "হোম" : "Home"}
+          </Link>
+
           {menus.map(menu => (
             <div key={menu.id}>
-              <div className="w-full flex justify-between items-center bg-green-800 rounded-full hover:bg-yellow-400 transition">
-                <Link
-                  href={menu.url}
-                  onClick={() => closeSidebarForNav()}
-                  className="flex-1 text-left px-4 py-1 text-white text-sm font-medium hover:text-green-900 transition"
-                >
-                  {translateTitle(menu)}
-                </Link>
-                {menu.subMenus.length > 0 && (
-                  <button
-                    onClick={() => setOpenMobileMenu(openMobileMenu === menu.id ? null : menu.id)}
-                    className="px-4 py-1 text-white hover:text-green-900 transition"
-                  >
-                    {openMobileMenu === menu.id ? "▴" : "▾"}
-                  </button>
-                )}
-              </div>
-              {menu.subMenus.length > 0 && openMobileMenu === menu.id && (
-                <div className="ml-4 mt-1 flex flex-col gap-1">
+              <Link
+                href={menu.url}
+                onClick={() => closeSidebarForNav()}
+                className="block px-4 py-1.5 rounded-full bg-green-800 text-white text-sm font-medium hover:bg-yellow-400 hover:text-green-900 transition"
+              >
+                {translateTitle(menu)} {menu.subMenus.length > 0 && "▾"}
+              </Link>
+              {/* 🔓 সাবমেনু থাকলে সবসময়ই খোলা দেখাবে — আলাদা ক্লিক লাগবে না */}
+              {menu.subMenus.length > 0 && (
+                <div className="ml-4 mt-1.5 flex flex-col gap-1.5">
                   {menu.subMenus.map(sub => (
                     <Link key={sub.id} href={sub.url}
                       className="block px-3 py-1.5 text-white font-bold text-sm hover:text-yellow-400 transition"
