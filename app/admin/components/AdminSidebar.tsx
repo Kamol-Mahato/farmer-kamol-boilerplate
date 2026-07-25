@@ -9,7 +9,7 @@ const navItems = [
   { label: "অর্ডার ম্যানেজমেন্ট", href: "/admin/orders", agentVisible: true },
   { label: "পণ্য ম্যানেজমেন্ট", href: "/admin/products", agentVisible: false },
   { label: "কাস্টমার ম্যানেজমেন্ট", href: "/admin/customers", agentVisible: true },
-  { label: "এজেন্ট ম্যানেজমেন্ট", href: "/admin/agents", agentVisible: true },
+  { label: "এজেন্ট ম্যানেজমেন্ট", href: "/admin/agents", agentVisible: false },
   { label: "ব্লগ ম্যানেজমেন্ট", href: "/admin/blog", agentVisible: false },
   { label: "ভিডিও ম্যানেজমেন্ট", href: "/admin/videos", agentVisible: false },
   { label: "গ্যালারি ম্যানেজমেন্ট", href: "/admin/images", agentVisible: false },
@@ -30,7 +30,8 @@ export default function AdminSidebar() {
 
   useEffect(() => {
     fetch("/api/agent/me")
-      .then((r) => setIsAgent(r.ok))
+      .then((r) => r.json())
+      .then((data) => setIsAgent(!!data.agent))
       .catch(() => setIsAgent(false))
       .finally(() => setRoleReady(true))
   }, [])

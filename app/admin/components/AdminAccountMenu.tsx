@@ -24,7 +24,10 @@ export default function AdminAccountMenu() {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch("/api/agent/me").then((r) => setIsAgent(r.ok))
+    fetch("/api/agent/me")
+      .then((r) => r.json())
+      .then((data) => setIsAgent(!!data.agent))
+      .catch(() => setIsAgent(false))
   }, [])
 
   useEffect(() => {
