@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { generateCustomId } from "@/lib/orderUtils"
 import { updateOrderStatus } from "@/lib/orderStatusClient"
@@ -67,6 +67,10 @@ export default function AgentOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("")
   const [courierFilter, setCourierFilter] = useState("")
   const [showingLimit, setShowingLimit] = useState(10)
+  const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const isFirstRender = useRef(true)
 
   const [startDate, setStartDate] = useState(() => {
     const d = new Date()
@@ -79,11 +83,28 @@ export default function AgentOrdersPage() {
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
   })
 
-  async function fetchOrders() {
+  async function fetchOrders(pageArg?: number) {
+    const targetPage = pageArg ?? page
+    setLoading(true)
     try {
-      const res = await fetch("/api/admin/orders")
+      const params = new URLSearchParams()
+      params.set("page", String(targetPage))
+      params.set("pageSize", String(showingLimit))
+      if (searchId.trim().length >= 4) params.set("searchId", searchId.trim())
+      if (searchPhone.trim().length >= 4) params.set("searchPhone", searchPhone.trim())
+      if (searchName.trim().length >= 4) params.set("searchName", searchName.trim())
+      if (statusFilter) params.set("status", statusFilter)
+      if (courierFilter) params.set("courier", courierFilter)
+      params.set("startDate", startDate)
+      params.set("endDate", endDate)
+
+      const res = await fetch(`/api/admin/orders?${params.toString()}`)
       const data = await res.json()
-      if (res.ok) setOrders(data)
+      if (res.ok) {
+        setOrders(data.orders)
+        setTotalCount(data.totalCount)
+        setTotalPages(data.totalPages)
+      }
     } catch (error) {
       console.error("Orders sync failed", error)
     } finally {
@@ -92,8 +113,19 @@ export default function AgentOrdersPage() {
   }
 
   useEffect(() => {
-    fetchOrders()
-  }, [])
+    fetchOrders(page)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page])
+
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
+    const timer = setTimeout(() => {
+      if (page !== 1) setPage(1)
+      else fetchOrders(1)
+    }, 400)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchId, searchPhone, searchName, statusFilter, courierFilter, startDate, endDate, showingLimit])
 
   function handlePresentDateClick() {
     const d = new Date()
@@ -147,36 +179,7 @@ export default function AgentOrdersPage() {
     return order.collectedAmount - getExpectedCashCollection(order)
   }
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const customId = generateCustomId(order.createdAt, order.dailySeq)
-
-      if (searchId.trim().length >= 4 && !customId.toLowerCase().endsWith(searchId.trim().toLowerCase())) {
-        return false
-      }
-      if (searchPhone.trim().length >= 4 && !order.customer.phone.endsWith(searchPhone.trim())) {
-        return false
-      }
-      if (searchName.trim().length >= 4 && !order.customer.name.toLowerCase().includes(searchName.trim().toLowerCase())) {
-        return false
-      }
-      if (statusFilter && order.orderStatus !== statusFilter) {
-        return false
-      }
-      if (courierFilter && order.courierSummary?.courierStatus !== courierFilter) {
-        return false
-      }
-
-      const orderTime = new Date(order.createdAt).getTime()
-      const start = new Date(startDate).getTime()
-      const end = new Date(endDate).getTime()
-      if (orderTime < start || orderTime > end) {
-        return false
-      }
-
-      return true
-    }).slice(0, showingLimit === -1 ? undefined : showingLimit)
-  }, [orders, searchId, searchPhone, searchName, statusFilter, courierFilter, startDate, endDate, showingLimit])
+  // 🚀 ফিল্টারিং+pagination এখন সার্ভার-সাইডে হয়
 
   async function handleStatusUpdate(ids: number[], status: string, courier?: string, collectedAmount?: string) {
     if (status === "DELIVERY_ONGOING" && courier === "Pathao") setBulkCourierLoading(true)
@@ -255,7 +258,7 @@ export default function AgentOrdersPage() {
 
   function handleSelectAll(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.checked) {
-      setSelectedOrderIds(filteredOrders.map(o => o.id))
+      setSelectedOrderIds(orders.map(o => o.id))
     } else {
       setSelectedOrderIds([])
     }
@@ -450,8 +453,11 @@ export default function AgentOrdersPage() {
             <option value={50}>৫০টি</option>
             <option value={100}>১০০টি</option>
             <option value={200}>২০০টি</option>
-            <option value={-1}>সবগুলো (All)</option>
+            <option value={500}>৫০০টি</option>
           </select>
+          <span className="text-sm text-gray-500 font-medium">
+            ({orders.length} / মোট {totalCount.toLocaleString("bn-BD")}টি)
+          </span>
           <Link href="/agent/orders/bulk-update" className="text-sm font-bold underline">
             Bulk Update
           </Link>
@@ -511,7 +517,7 @@ export default function AgentOrdersPage() {
                 <input
                   type="checkbox"
                   onChange={handleSelectAll}
-                  checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                  checked={orders.length > 0 && selectedOrderIds.length === orders.length}
                   className="w-4 h-4 accent-green-700 cursor-pointer"
                 />
               </th>
@@ -531,12 +537,12 @@ export default function AgentOrdersPage() {
             </tr>
           </thead>
           <tbody className="border-t border-gray-200">
-            {filteredOrders.length === 0 ? (
+          {orders.length === 0 ? (
               <tr>
                 <td colSpan={14} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
-              filteredOrders.map((order) => {
+              orders.map((order) => {
                 const canEdit = !TERMINAL_STATUSES.includes(order.orderStatus)
                 return (
                 <tr key={order.id} className={`transition border-b border-gray-100 ${
@@ -731,10 +737,30 @@ export default function AgentOrdersPage() {
           </table>
       </div>
 
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page <= 1}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold disabled:opacity-40 hover:bg-gray-50"
+          >
+            ← আগের
+          </button>
+          <span className="text-sm text-gray-600 font-medium">পেজ {page} / {totalPages}</span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-bold disabled:opacity-40 hover:bg-gray-50"
+          >
+            পরের →
+          </button>
+        </div>
+      )}
+
       <OrderDetailModal
         orderId={openOrderId}
         onClose={() => setOpenOrderId(null)}
-        onOrderUpdated={fetchOrders}
+        onOrderUpdated={() => fetchOrders()}
         role="AGENT"
         basePath="/agent/orders"
       />

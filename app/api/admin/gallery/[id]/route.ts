@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
 import { sanitizeHtml } from "@/lib/sanitize"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
@@ -77,6 +78,8 @@ export async function PUT(
         descriptionEn: descriptionEn ? sanitizeHtml(descriptionEn) : descriptionEn,
       },
     })
+    revalidatePath("/media/image")
+    revalidatePath("/en/media/image")
     return NextResponse.json({ success: true, id: updated.id })
   } catch (error: any) {
     console.error("GALLERY UPDATE ERROR ->", error)
@@ -101,6 +104,8 @@ export async function DELETE(
     await prisma.galleryItem.delete({
       where: { id: parseInt(id) },
     })
+    revalidatePath("/media/image")
+    revalidatePath("/en/media/image")
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error("GALLERY DELETE ERROR ->", error)

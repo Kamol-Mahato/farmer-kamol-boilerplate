@@ -8,6 +8,8 @@ import NoticeModal from "./components/NoticeModal" // এটি যোগ কর
 import VideoSection from "./components/VideoSection"
 import TopSellerSection from "./components/TopSellerSection"
 
+export const revalidate = 86400 // ২৪ ঘণ্টা safety-net; Admin Save করলেই সাথে সাথে revalidatePath() দিয়ে আগে আপডেট হয়ে যাবে
+
 export const metadata: Metadata = {
   title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
   description:

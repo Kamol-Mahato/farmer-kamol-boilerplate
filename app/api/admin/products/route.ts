@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { sanitizeHtml } from "@/lib/sanitize"
@@ -15,6 +16,10 @@ export async function GET() {
       include: { category: true, images: true },
       orderBy: { createdAt: "desc" },
     })
+    revalidatePath("/")
+    revalidatePath("/en")
+    revalidatePath("/shop")
+    revalidatePath("/en/shop")
     return NextResponse.json(products)
   } catch (error) {
     return NextResponse.json({ error: "সমস্যা হয়েছে" }, { status: 500 })

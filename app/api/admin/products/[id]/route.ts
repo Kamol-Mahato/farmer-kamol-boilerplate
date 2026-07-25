@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { sanitizeHtml } from "@/lib/sanitize"
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -10,9 +11,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       include: { images: true, category: true },
     })
     if (!product) return NextResponse.json({ error: "পণ্য পাওয়া যায়নি" }, { status: 404 })
+      revalidatePath("/")
+    revalidatePath("/en")
+    revalidatePath("/shop")
+    revalidatePath("/en/shop")
+    if (product.slug) revalidatePath(`/shop/${product.slug}`)
+    if (product.slugEn) revalidatePath(`/en/shop/${product.slugEn}`)
     return NextResponse.json(product)
   } catch (error) {
-    console.error(error)
     return NextResponse.json({ error: "সমস্যা হয়েছে" }, { status: 500 })
   }
 }

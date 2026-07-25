@@ -3,6 +3,7 @@ import Link from "next/link"
 import Image from "next/image"
 import Breadcrumb from "@/app/components/Breadcrumb"
 
+export const revalidate = 86400
 
 export async function generateMetadata() {
   return {

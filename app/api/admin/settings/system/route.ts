@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { verifyAdminOnly } from "@/lib/adminAuth"
 
 // ✅ System Control Center-এর সব ফ্ল্যাগ/সেটিংস একসাথে পড়ার জন্য
@@ -64,6 +65,8 @@ export async function PUT(request: Request) {
       create: { id: 1, ...updateData },
     })
 
+    revalidatePath("/")
+    revalidatePath("/en")
     return NextResponse.json(settings)
   } catch (error) {
     console.error("SYSTEM SETTINGS PUT ERROR:", error)

@@ -4,23 +4,82 @@ import { verifyAdminOrAgent, verifyAdminOnly } from "@/lib/adminAuth"
 import { getAllowedNextStatuses, requiresCollectedAmount, isOverrideTransition, UserRole } from "@/lib/orderStatusRules"
 import { applyStockChangeForStatusTransition } from "@/lib/orderUtils"
 
-export async function GET() {
+export async function GET(request: Request) {
   const authUser = await verifyAdminOrAgent()
   if (!authUser) {
     return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
   }
   try {
-    const orders = await prisma.order.findMany({
-      include: {
-        customer: true,
-        orderItems: { include: { product: true } },
-        courierSummary: true, 
-      },
-      orderBy: { createdAt: "desc" },
+    const { searchParams } = new URL(request.url)
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"))
+    const pageSize = Math.min(500, Math.max(1, parseInt(searchParams.get("pageSize") || "10")))
+    const searchId = searchParams.get("searchId")?.trim() || ""
+    const searchPhone = searchParams.get("searchPhone")?.trim() || ""
+    const searchName = searchParams.get("searchName")?.trim() || ""
+    const status = searchParams.get("status") || ""
+    const courier = searchParams.get("courier") || ""
+    const startDateParam = searchParams.get("startDate")
+    const endDateParam = searchParams.get("endDate")
+
+    const where: any = {}
+    if (searchPhone.length >= 4) {
+      where.customer = { ...(where.customer || {}), phone: { endsWith: searchPhone } }
+    }
+    if (searchName.length >= 4) {
+      where.customer = { ...(where.customer || {}), name: { contains: searchName, mode: "insensitive" } }
+    }
+    if (status) where.orderStatus = status
+    if (courier) where.courierSummary = { courierStatus: courier }
+    if (startDateParam && endDateParam) {
+      where.createdAt = { gte: new Date(startDateParam), lte: new Date(endDateParam) }
+    }
+
+    // 🔎 অর্ডার ID (শেষ কয়েক সংখ্যা) সার্চ — dailySeq-এর ওপর, নিরাপদ parameterized raw query
+    if (searchId.length >= 4) {
+      const rows = await prisma.$queryRaw<{ id: number }[]>`
+        SELECT id FROM "Order" WHERE CAST("dailySeq" AS TEXT) LIKE ${"%" + searchId}
+      `
+      const matchedIds = rows.map((r) => r.id)
+      where.id = { in: matchedIds.length > 0 ? matchedIds : [-1] }
+    }
+
+    const [orders, totalCount] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        select: {
+          id: true,
+          createdAt: true,
+          dailySeq: true,
+          deliveryAddress: true,
+          district: true,
+          upazila: true,
+          finalCodAmount: true,
+          orderStatus: true,
+          paymentMethod: true,
+          paymentStatus: true,
+          paymentAmountPaid: true,
+          customerNote: true,
+          collectedAmount: true,
+          customer: { select: { name: true, phone: true } },
+          orderItems: { select: { quantity: true, product: { select: { name: true, unit: true } } } },
+          courierSummary: { select: { courierStatus: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.order.count({ where }),
+    ])
+
+    return NextResponse.json({
+      orders,
+      totalCount,
+      totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
+      page,
     })
-    return NextResponse.json(orders)
   } catch (error) {
-    return NextResponse.json({ error: "অর্ডার লিস্ট লোড করা যায়নি" }, { status: 500 })
+    console.error("ORDERS LIST ERROR:", error)
+    return NextResponse.json({ error: "অর্ডার লিস্ট লোড করা যায়নি" }, { status: 500 })
   }
 }
 

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma"
 import GalleryCard from "./components/GalleryCard"
 import type { Metadata } from "next"
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: "Media Gallery - Farmer Kamol",
   description: "Explore photo galleries of Farmer Kamol's farm, products, and daily activities.",

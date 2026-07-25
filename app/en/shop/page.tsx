@@ -3,6 +3,8 @@ import ProductCard from "@/app/en/components/ProductCard"
 import type { Metadata } from "next"
 import Breadcrumb from "@/app/components/Breadcrumb"
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: "All Products - Honey, Ghee, Mustard Oil | Farmer Kamol",
   description:

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 
 // ✅ সব ক্যাটাগরির লিস্ট (Admin panel-এর জন্য)
 export async function GET() {
@@ -34,6 +35,8 @@ export async function POST(req: Request) {
         isVisible: true,
       },
     })
+    revalidatePath("/shop")
+    revalidatePath("/en/shop")
     return NextResponse.json(category)
   } catch (error: any) {
     if (error.code === "P2002") {

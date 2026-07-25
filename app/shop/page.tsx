@@ -3,6 +3,8 @@ import ProductCard from "@/app/components/ProductCard"
 import type { Metadata } from "next"
 import Breadcrumb from "../components/Breadcrumb"
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: "আমাদের সকল পণ্য - মধু, ঘি, সরিষার তেল | Farmer Kamol",
   description:

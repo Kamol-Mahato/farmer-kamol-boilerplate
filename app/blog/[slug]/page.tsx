@@ -5,6 +5,8 @@ import Image from "next/image"
 import { safeJsonLd } from "@/lib/jsonLd"
 import { cache } from "react"
 
+export const revalidate = 86400
+
 const getBlog = cache(async (slug: string) => {
   return prisma.blog.findUnique({ where: { slug } })
 })

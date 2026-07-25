@@ -3,6 +3,8 @@ import Breadcrumb from "@/app/components/Breadcrumb"
 import VideoGalleryClient from "./VideoGalleryClient"
 import type { Metadata } from "next"
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: "ভিডিও গ্যালারি - Farmer Kamol",
   description: "Farmer Kamol YouTube চ্যানেলের ভিডিওগুলো দেখুন — আমাদের খামার, পণ্য ও কার্যক্রম সম্পর্কে।",

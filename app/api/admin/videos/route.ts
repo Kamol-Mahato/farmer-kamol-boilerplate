@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { sanitizeHtml } from "@/lib/sanitize"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { sendPushToCustomers } from "@/lib/webpush"
@@ -49,12 +50,14 @@ export async function POST(req: Request) {
       ).catch((err) => console.error("Push notify error:", err))
     }
 
+    revalidatePath("/")
+    revalidatePath("/en")
     return NextResponse.json(video)
   } catch (error) {
-    console.error(error)
     return NextResponse.json({ error: "যোগ হয়নি" }, { status: 500 })
   }
 }
+
 export async function PUT(req: Request) {
   const isAuthorized = await verifyAdminOrAgent()
   if (!isAuthorized) {
@@ -76,9 +79,10 @@ export async function PUT(req: Request) {
         isActive: body.isActive,
       },
     })
+    revalidatePath("/")
+    revalidatePath("/en")
     return NextResponse.json(video)
   } catch (error) {
-    console.error(error)
     return NextResponse.json({ error: "আপডেট হয়নি" }, { status: 500 })
   }
 }
@@ -92,9 +96,10 @@ export async function DELETE(req: Request) {
   try {
     const { id } = await req.json()
     await prisma.youtubeVideo.delete({ where: { id } })
+    revalidatePath("/")
+    revalidatePath("/en")
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error(error)
     return NextResponse.json({ error: "মুছা যায়নি" }, { status: 500 })
   }
 }

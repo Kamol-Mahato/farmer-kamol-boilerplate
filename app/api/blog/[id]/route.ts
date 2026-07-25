@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { verifyAdminOnly } from "@/lib/adminAuth"
 import { sanitizeHtml } from "@/lib/sanitize"
 
@@ -11,6 +12,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   const { id } = await params
   await prisma.blog.delete({ where: { id: parseInt(id) } })
+  revalidatePath("/")
+  revalidatePath("/en")
+  revalidatePath("/blog")
+  revalidatePath("/en/blog")
   return NextResponse.json({ success: true })
 }
 
@@ -43,5 +48,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       isPublished: body.isPublished,
     },
   })
+  revalidatePath("/")
+  revalidatePath("/en")
+  revalidatePath("/blog")
+  revalidatePath("/en/blog")
+  if (updated.slug) revalidatePath(`/blog/${updated.slug}`)
+  if (updated.slugEn) revalidatePath(`/en/blog/${updated.slugEn}`)
   return NextResponse.json(updated)
 }

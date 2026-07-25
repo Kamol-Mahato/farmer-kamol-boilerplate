@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { verifyAdminOnly } from "@/lib/adminAuth"
 import { sanitizeHtml } from "@/lib/sanitize"
 import { sendPushToCustomers } from "@/lib/webpush"
@@ -42,5 +43,9 @@ export async function POST(req: Request) {
     ).catch((err) => console.error("Push notify error:", err))
   }
 
+  revalidatePath("/")
+  revalidatePath("/en")
+  revalidatePath("/blog")
+  revalidatePath("/en/blog")
   return NextResponse.json(blog)
 }

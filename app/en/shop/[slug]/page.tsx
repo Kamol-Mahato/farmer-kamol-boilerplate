@@ -8,6 +8,8 @@ import { safeJsonLd } from "@/lib/jsonLd"
 import { cache } from "react"
 import ReviewForm from "@/app/components/ReviewForm"
 
+export const revalidate = 86400
+
 const getProduct = cache((slug: string) =>
   prisma.product.findUnique({
     where: { slug },

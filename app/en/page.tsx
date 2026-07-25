@@ -8,6 +8,8 @@ import NoticeModal from "@/app/en/components/NoticeModal"
 import VideoSection from "@/app/en/components/VideoSection"
 import TopSellerSection from "@/app/en/components/TopSellerSection"
 
+export const revalidate = 86400
+
 export const metadata: Metadata = {
   title: "Farmer Kamol - From Our Farm To Your Door",
   description:

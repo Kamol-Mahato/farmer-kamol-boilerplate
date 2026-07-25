@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
 import { NextResponse } from "next/server"
 import { sanitizeHtml } from "@/lib/sanitize"
 import { sendPushToCustomers } from "@/lib/webpush"
@@ -59,6 +60,8 @@ export async function POST(request: Request) {
       `/media/image`
     ).catch((err) => console.error("Push notify error:", err))
 
+    revalidatePath("/media/image")
+    revalidatePath("/en/media/image")
     return NextResponse.json({ success: true, id: galleryItem.id })
   } catch (error: any) {
     console.error("GALLERY CREATE ERROR ->", error)
