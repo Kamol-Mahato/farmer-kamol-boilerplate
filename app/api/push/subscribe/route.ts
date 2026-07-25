@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { verifyAdminOnly } from "@/lib/adminAuth"
+import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
-// ✅ ব্রাউজার থেকে subscription তথ্য এসে এখানে সেভ হবে
-// শুধুমাত্র লগইন করা Admin-ই subscribe করতে পারবে
+// ✅ ব্রাউজার থেকে subscription তথ্য এসে এখানে সেভ হবে — Admin ও Agent দুজনেই subscribe করতে পারবে
 export async function POST(req: Request) {
-  const admin = await verifyAdminOnly()
+  const admin = await verifyAdminOrAgent()
   if (!admin) {
     return NextResponse.json({ error: "অনুমতি নেই" }, { status: 401 })
   }
@@ -33,7 +32,7 @@ export async function POST(req: Request) {
 
 // ✅ Notification বন্ধ করলে (unsubscribe) এই endpoint-টা সেভ করা রেকর্ড মুছে দেবে
 export async function DELETE(req: Request) {
-  const admin = await verifyAdminOnly()
+  const admin = await verifyAdminOrAgent()
   if (!admin) {
     return NextResponse.json({ error: "অনুমতি নেই" }, { status: 401 })
   }

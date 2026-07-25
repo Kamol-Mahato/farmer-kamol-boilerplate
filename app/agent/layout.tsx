@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import PanelNavbar from "../components/PanelNavbar"
 import AgentLogoutButton from "./components/AgentLogoutButton"
+import EnablePushButton from "../admin/components/EnablePushButton"
 
 export const metadata: Metadata = {
   robots: {
@@ -17,7 +18,12 @@ export default function AgentLayout({
     <>
       <PanelNavbar
         homeHref="/agent"
-        rightSlot={<AgentLogoutButton />}
+        rightSlot={
+          <div className="flex items-center gap-2">
+            <EnablePushButton />
+            <AgentLogoutButton />
+          </div>
+        }
         navLinks={[
           { label: "Orders", href: "/agent/orders" },
           { label: "Customer", href: "/agent/customers" },
