@@ -63,9 +63,18 @@ export async function POST(request: Request) {
         ? "/agent"
         : "/customer/dashboard"
 
-    const cookieStore = await cookies()
-    const sessionToken = await signSession({ id: user.id, name: user.name, phone: user.phone, role: user.role })
-    cookieStore.set(cookieName, sessionToken, {
+        const cookieStore = await cookies()
+
+        // 🔒 নতুন role-এ লগইন হলে বাকি role-এর পুরনো session কুকি মুছে ফেলা
+        const allSessionCookies = ["admin_session", "agent_session", "customer_session"]
+        for (const name of allSessionCookies) {
+          if (name !== cookieName) {
+            cookieStore.delete(name)
+          }
+        }
+    
+        const sessionToken = await signSession({ id: user.id, name: user.name, phone: user.phone, role: user.role })
+        cookieStore.set(cookieName, sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

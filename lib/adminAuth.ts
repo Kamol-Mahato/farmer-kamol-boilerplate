@@ -13,7 +13,15 @@ export async function verifyAdminOrAgent() {
     return null
   }
 
-  const data = await verifySession((adminCookie ?? agentCookie)!.value)
+  // 🔒 দুটো কুকিই একসাথে থাকা মানে পুরনো/leftover session — কোনটা আসল সেটা অনুমান
+  // (যেমন সবসময় admin ধরে নেওয়া) করলে ভুল ইউজারের নামে কাজ রেকর্ড হয়ে যেতে পারে।
+  // তাই এরকম হলে দুটোই বাতিল করে re-login করতে বলা — নিরাপদ ও নির্ভুল
+  if (adminCookie && agentCookie) {
+    return null
+  }
+
+  const activeCookie = adminCookie ?? agentCookie
+  const data = await verifySession(activeCookie!.value)
   const userId = data?.id as number | undefined
 
   if (!userId) return null
@@ -25,13 +33,13 @@ export async function verifyAdminOrAgent() {
     user.isActive &&
     (user.role === "ADMIN" || user.role === "SUPER_ADMIN" || user.role === "AGENT")
 
-    return isValid ? user : null
-  }
-  
-  // ✅ শুধুমাত্র ADMIN/SUPER_ADMIN পাস করবে — AGENT পাস করবে না
-  export async function verifyAdminOnly() {
-    const user = await verifyAdminOrAgent()
-    if (!user) return null
-    const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN"
-    return isAdmin ? user : null
-  }
+  return isValid ? user : null
+}
+
+// ✅ শুধুমাত্র ADMIN/SUPER_ADMIN পাস করবে — AGENT পাস করবে না
+export async function verifyAdminOnly() {
+  const user = await verifyAdminOrAgent()
+  if (!user) return null
+  const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+  return isAdmin ? user : null
+}
