@@ -83,8 +83,15 @@ function getPaymentBadge(order: OrderDetailData) {
     }
     return { text: "⏳ পেমেন্ট কনফার্মেশন পেন্ডিং", cls: "bg-white border border-gray-300 text-gray-700" }
   }
-  // COD
-  if (order.orderStatus !== "DELIVERED") return { text: "Unpaid (COD)", cls: "bg-white border border-gray-300 text-gray-700" }
+  // COD — ডেলিভারির আগেও যদি আগাম কিছু টাকা (paymentAmountPaid) পাওয়া থাকে সেটা দেখাবে
+  if (order.orderStatus !== "DELIVERED") {
+    if (order.paymentStatus === "PAID") return { text: "✅ পেইড (আগাম)", cls: "bg-gray-900 text-white" }
+    if (order.paymentStatus === "PARTIAL_PAID") {
+      const due = order.finalCodAmount - order.paymentAmountPaid
+      return { text: `আংশিক পেইড (বাকি ৳${due})`, cls: "bg-white border border-gray-300 text-gray-700" }
+    }
+    return { text: "Unpaid (COD)", cls: "bg-white border border-gray-300 text-gray-700" }
+  }
   if (order.collectedAmount === null || order.collectedAmount === undefined) {
     return { text: "কালেক্টেড অ্যামাউন্ট নেই", cls: "bg-white border border-gray-300 text-gray-700" }
   }

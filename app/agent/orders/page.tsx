@@ -133,13 +133,6 @@ export default function AgentOrdersPage() {
   }
 
   function renderPaymentBadge(order: Order) {
-    if (order.paymentMethod !== "GATEWAY") {
-      return (
-        <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
-          COD
-        </span>
-      )
-    }
     if (order.paymentStatus === "PAID") {
       return (
         <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-900 bg-gray-900 text-white">
@@ -155,15 +148,22 @@ export default function AgentOrdersPage() {
         </span>
       )
     }
+    if (order.paymentMethod === "GATEWAY") {
+      return (
+        <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+          পেমেন্ট কনফার্মেশন পেন্ডিং
+        </span>
+      )
+    }
     return (
       <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
-        পেমেন্ট কনফার্মেশন পেন্ডিং
+        COD
       </span>
     )
   }
 
   function getExpectedCashCollection(order: Order) {
-    return order.finalCodAmount - (order.paymentMethod === "GATEWAY" ? order.paymentAmountPaid : 0)
+    return order.finalCodAmount - order.paymentAmountPaid
   }
 
   const CLOSED_NO_DUE_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
@@ -573,7 +573,7 @@ export default function AgentOrdersPage() {
 </td>
 
 <td className="px-6 py-4 font-medium text-gray-900 ">
-{order.paymentMethod === "GATEWAY" ? order.paymentAmountPaid : "-"}
+{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
 </td>
 <td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
 

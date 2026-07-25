@@ -97,9 +97,10 @@ export default function CreateOrderForm({ basePath, products }: Props) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-6">
       <h1 className="text-2xl font-bold text-black">নতুন অর্ডার বুকিং</h1>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
       <div className="bg-white border border-black rounded-xl p-6 space-y-4">
         <h2 className="font-bold text-gray-800">কাস্টমার তথ্য</h2>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="নাম" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
@@ -145,6 +146,7 @@ export default function CreateOrderForm({ basePath, products }: Props) {
         <textarea value={customerNote} onChange={(e) => setCustomerNote(e.target.value)} placeholder="কাস্টমার নোট" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" rows={2} />
       </div>
 
+      <div className="space-y-6">
       <div className="bg-white border border-black rounded-xl p-6 space-y-3">
         <h2 className="font-bold text-gray-800">প্রোডাক্ট / আইটেম</h2>
         {items.map((item, i) => (
@@ -201,6 +203,8 @@ export default function CreateOrderForm({ basePath, products }: Props) {
           <p className="text-black">সর্বমোট: ৳ {grandTotal}</p>
           <p className={due > 0 ? "text-red-600" : "text-green-700"}>বাকি (Due): ৳ {due}</p>
         </div>
+      </div>
+      </div>
       </div>
 
       {error && <p className="text-red-600 font-medium text-sm">{error}</p>}

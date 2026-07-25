@@ -137,15 +137,8 @@ export default function AdminOrdersPage() {
     setEndDate(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16))
   }
 
-  // 💳 পেমেন্ট কলামের ব্যাজ তৈরি করার লজিক — COD ও Online Payment আলাদাভাবে দেখাবে
+  // 💳 পেমেন্ট কলামের ব্যাজ তৈরি করার লজিক — paymentStatus সবার আগে চেক হবে (COD-তেও আগাম টাকা থাকতে পারে)
   function renderPaymentBadge(order: Order) {
-    if (order.paymentMethod !== "GATEWAY") {
-      return (
-        <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
-          COD
-        </span>
-      )
-    }
     if (order.paymentStatus === "PAID") {
       return (
         <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-900 bg-gray-900 text-white">
@@ -161,16 +154,23 @@ export default function AdminOrdersPage() {
         </span>
       )
     }
+    if (order.paymentMethod === "GATEWAY") {
+      return (
+        <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+          পেমেন্ট কনফার্মেশন পেন্ডিং
+        </span>
+      )
+    }
     return (
       <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
-        পেমেন্ট কনফার্মেশন পেন্ডিং
+        COD
       </span>
     )
   }
 
-  // ✅ status অনুযায়ী "প্রত্যাশিত ক্যাশ কালেকশন" — GATEWAY-তে আগে থেকে অনলাইনে পেইড অংশ বাদ দিয়ে
+  // ✅ status অনুযায়ী "প্রত্যাশিত ক্যাশ কালেকশন" — যেকোনো পদ্ধতিতেই আগাম যা পাওয়া গেছে তা বাদ দিয়ে
   function getExpectedCashCollection(order: Order) {
-    return order.finalCodAmount - (order.paymentMethod === "GATEWAY" ? order.paymentAmountPaid : 0)
+    return order.finalCodAmount - order.paymentAmountPaid
   }
 
   const CLOSED_NO_DUE_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
@@ -648,7 +648,7 @@ export default function AdminOrdersPage() {
 </td>
 
 <td className="px-6 py-4 font-medium text-gray-900 ">
-{order.paymentMethod === "GATEWAY" ? order.paymentAmountPaid : "-"}
+{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
 </td>
 <td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
 
