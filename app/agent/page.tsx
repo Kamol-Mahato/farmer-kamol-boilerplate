@@ -78,7 +78,7 @@ export default async function AgentDashboardPage() {
         </a>
 
         {/* কার্ড ৩: নতুন অর্ডার তৈরি করুন */}
-        <a href="/shop" className="block bg-black p-6 rounded-2xl border border-black hover:shadow-md transition-shadow">
+        <a href="/agent/orders/create" className="block bg-black p-6 rounded-2xl border border-black hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-300 uppercase tracking-wider">নতুন</p>
@@ -90,7 +90,7 @@ export default async function AgentDashboardPage() {
               </svg>
             </div>
           </div>
-          <p className="text-xs text-gray-300 mt-4 font-bold">→ শপে গিয়ে কাস্টমারের অর্ডার বসান</p>
+          <p className="text-xs text-gray-300 mt-4 font-bold">→ প্রোডাক্ট বেছে সরাসরি অর্ডার বুক করুন</p>
         </a>
 
       </div>

@@ -59,6 +59,21 @@ export default async function AdminDashboard() {
           <p className="text-lg font-bold">ভিডিও ম্যানেজমেন্ট</p>
           <p className="text-red-100 text-sm mt-1">ভিডিও যোগ ও সম্পাদনা</p>
         </Link>
+        {/* নতুন অর্ডার বুকিং শর্টকাট */}
+<a href="/admin/orders/create" className="block bg-black p-6 rounded-2xl border border-black hover:shadow-md transition-shadow">
+  <div className="flex items-center justify-between">
+    <div>
+      <p className="text-sm font-medium text-gray-300 uppercase tracking-wider">নতুন</p>
+      <h3 className="text-2xl font-bold text-white mt-2">নতুন অর্ডার তৈরি করুন</h3>
+    </div>
+    <div className="p-3 bg-white/10 rounded-xl text-white">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    </div>
+  </div>
+  <p className="text-xs text-gray-300 mt-4 font-bold">→ প্রোডাক্ট বেছে সরাসরি অর্ডার বুক করুন</p>
+</a>
       </div>
     </div>
   )
