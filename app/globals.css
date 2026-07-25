@@ -31,6 +31,58 @@ input:disabled {
   cursor: not-allowed;
 }
 
+/* ✨ পুরো সাইটজুড়ে ছোটখাটো Professional পালিশ — একবারই বসানো, সব জায়গায় কাজ করবে */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🖱️ মাউস ক্লিকে না, শুধু কীবোর্ড (Tab) দিয়ে navigate করলে সবুজ ফোকাস রিং দেখাবে */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid #15803d;
+  outline-offset: 2px;
+}
+
+/* 🎨 লেখা সিলেক্ট করলে ব্র্যান্ড সবুজ হাইলাইট */
+::selection {
+  background-color: #bbf7d0;
+  color: #14532d;
+}
+
+/* 📱 মোবাইলে ট্যাপ করলে কুৎসিত ধূসর ফ্ল্যাশ বন্ধ */
+a, button, [role="button"], input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 👆 বাটনে ক্লিক করলে হালকা press effect (native app-এর মতো ফিল) */
+button:not(:disabled):active,
+[role="button"]:active {
+  transform: scale(0.97);
+  transition: transform 0.08s ease;
+}
+
+/* 🖼️ ছবি ভুলে টেনে ধরলে ghost drag বন্ধ */
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 🟡 Chrome Autofill-এর কুৎসিত হলুদ ব্যাকগ্রাউন্ড সরানো (Login/Register ফর্মে) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 @keyframes marquee {
   0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
