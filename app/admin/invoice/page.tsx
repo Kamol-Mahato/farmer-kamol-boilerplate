@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, usePathname } from "next/navigation"
 import QRCode from "qrcode"
 import Barcode from "react-barcode"
 import { generateCustomId } from "@/lib/orderUtils"
@@ -97,7 +97,7 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
           {qrUrl && <img src={qrUrl} alt="QR" className="w-20 h-20" />}
         </div>
       </div>
-      <p className="text-center text-xs text-gray-400 mt-4">ধন্যবাদ আপনার অর্ডারের জন্য 🌿</p>
+      <p className="text-center text-xs text-gray-400 mt-4">ধন্যবাদ আপনার অর্ডারের জন্য </p>
     </div>
   )
 }
@@ -164,6 +164,8 @@ function StickerInvoice({ order }: { order: Order }) {
 
 function InvoicePage() {
   const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const ordersBasePath = pathname?.startsWith("/agent") ? "/agent/orders" : "/admin/orders"
   const idsParam = searchParams.get("ids") || searchParams.get("id") || ""
   const type = searchParams.get("type") || "a4"
   const ids = idsParam.split(",").map(Number).filter(Boolean)
@@ -238,7 +240,7 @@ function InvoicePage() {
           className="bg-green-700 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition">
           📄 PDF ওপেন করুন
         </button>
-        <a href="/admin/orders" className="ml-auto text-gray-500 hover:text-green-700 text-sm flex items-center">
+        <a href={ordersBasePath} className="ml-auto text-gray-500 hover:text-green-700 text-sm flex items-center">
           ← ফিরে যান
         </a>
       </div>

@@ -306,7 +306,7 @@ export default function AgentOrdersPage() {
                   <button
                     key={opt.type}
                     onClick={() => {
-                      window.open(`/admin/invoice?ids=${selectedOrderIds.join(",")}&type=${opt.type}`, "_blank")
+                      window.open(`/agent/invoice?ids=${selectedOrderIds.join(",")}&type=${opt.type}`, "_blank")
                       setShowInvoiceMenu(false)
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-800 font-medium transition"

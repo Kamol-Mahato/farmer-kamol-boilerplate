@@ -6,16 +6,16 @@ import { useAdminSidebar } from "./AdminSidebarContext"
 
 const navItems = [
   { label: "ড্যাশবোর্ড", href: "/admin", agentVisible: false },
-  { label: "অর্ডার ম্যানেজমেন্ট", href: "/admin/orders", agentVisible: true },
+  { label: "অর্ডার ম্যানেজমেন্ট", href: "/admin/orders", agentHref: "/agent/orders", agentVisible: true },
   { label: "পণ্য ম্যানেজমেন্ট", href: "/admin/products", agentVisible: false },
-  { label: "কাস্টমার ম্যানেজমেন্ট", href: "/admin/customers", agentVisible: true },
+  { label: "কাস্টমার ম্যানেজমেন্ট", href: "/admin/customers", agentHref: "/agent/customers", agentVisible: true },
   { label: "এজেন্ট ম্যানেজমেন্ট", href: "/admin/agents", agentVisible: false },
   { label: "ব্লগ ম্যানেজমেন্ট", href: "/admin/blog", agentVisible: false },
   { label: "ভিডিও ম্যানেজমেন্ট", href: "/admin/videos", agentVisible: false },
   { label: "গ্যালারি ম্যানেজমেন্ট", href: "/admin/images", agentVisible: false },
   { label: "ক্যাটাগরি ম্যানেজমেন্ট", href: "/admin/categories", agentVisible: false },
   { label: "ব্লগ ক্যাটাগরি", href: "/admin/blog-categories", agentVisible: false },
-  { label: "ইনভয়েস", href: "/admin/invoice", agentVisible: true },
+  { label: "ইনভয়েস", href: "/admin/invoice", agentHref: "/agent/invoice", agentVisible: true },
   { label: "ডেলিভারি চার্জ সেটিংস", href: "/admin/delivery-settings", agentVisible: false },
   { label: "রিভিউ ম্যানেজমেন্ট", href: "/admin/reviews", agentVisible: false },
   { label: "সিস্টেম কন্ট্রোল সেন্টার", href: "/admin/settings", agentVisible: false },
@@ -63,11 +63,12 @@ export default function AdminSidebar() {
         {isOpen && roleReady && (
           <nav className="flex flex-col gap-1 mt-8">
             {visibleItems.map((item) => {
-              const isActive = pathname === item.href
+              const resolvedHref = isAgent && item.agentHref ? item.agentHref : item.href
+              const isActive = pathname === resolvedHref
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={resolvedHref}
                   onClick={() => setMobileOpen(false)}
                   className={
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors " +

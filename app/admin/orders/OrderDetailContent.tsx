@@ -324,7 +324,7 @@ interface Props {
                 {[{ label: "A4 প্রিন্ট", type: "a4" }, { label: "POS প্রিন্ট", type: "pos" }, { label: "স্টিকার প্রিন্ট", type: "sticker" }].map((opt) => (
                   <button
                     key={opt.type}
-                    onClick={() => { window.open(`/admin/invoice?ids=${order.id}&type=${opt.type}`, "_blank"); setShowPrintMenu(false) }}
+                    onClick={() => { window.open(`${isAdmin ? "/admin/invoice" : "/agent/invoice"}?ids=${order.id}&type=${opt.type}`, "_blank"); setShowPrintMenu(false) }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-800 font-medium"
                   >{opt.label}</button>
                 ))}
