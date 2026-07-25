@@ -16,6 +16,7 @@ const PUBLIC_PATHS = [
 // এই prefix গুলোতে ADMIN এবং AGENT দুজনেই ঢুকতে পারবে
 const AGENT_ALLOWED_PREFIXES = [
   "/api/admin/orders",
+  "/api/admin/invoice",
   "/admin/orders",
   "/admin/invoice",
   "/agent",
