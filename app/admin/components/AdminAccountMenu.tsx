@@ -17,10 +17,15 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function AdminAccountMenu() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [isAgent, setIsAgent] = useState(false)
   const [supported, setSupported] = useState(true)
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushLoading, setPushLoading] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetch("/api/agent/me").then((r) => setIsAgent(r.ok))
+  }, [])
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -78,8 +83,8 @@ export default function AdminAccountMenu() {
   }
 
   async function handleLogout() {
-    await fetch("/api/admin/logout", { method: "POST" })
-    router.push("/admin/login")
+    await fetch(isAgent ? "/api/agent/logout" : "/api/admin/logout", { method: "POST" })
+    router.push(isAgent ? "/agent/login" : "/admin/login")
   }
 
   return (
