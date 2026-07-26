@@ -28,10 +28,19 @@ export default function LoginPage() {
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser))
+        return
       } catch {
         localStorage.removeItem("user")
       }
     }
+    // 🔀 কাস্টমার হিসেবে লগইন নেই, কিন্তু Agent হিসেবে আগে থেকে সেশন (কুকি) থাকতে পারে —
+    // সেক্ষেত্রে আবার লগইন ফর্ম না দেখিয়ে সরাসরি Agent ড্যাশবোর্ডে পাঠানো হচ্ছে
+    fetch("/api/agent/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.agent) router.push("/agent")
+      })
+      .catch(() => {})
   }, [])
 
   function handleLogout() {

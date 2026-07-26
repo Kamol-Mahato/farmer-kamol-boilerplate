@@ -28,7 +28,7 @@ export default function AgentLayout({
         navLinks={[
           { label: "Orders", href: "/agent/orders" },
           { label: "Customer", href: "/agent/customers" },
-          { label: "নতুন অর্ডার", href: "/shop" },
+          { label: "নতুন অর্ডার", href: "/agent/orders/create" },
           {
             label: (
               <span className="flex items-center gap-1">

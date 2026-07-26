@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Hind_Siliguri } from "next/font/google"
 import ConditionalLayout from "./components/ConditionalLayout"
 import OrganizationSchema from "./components/OrganizationSchema"
+import EnterKeyNav from "./components/EnterKeyNav"
 import "./globals.css"
 import { headers } from "next/headers"
 import { GoogleAnalytics } from '@next/third-parties/google'
@@ -62,6 +63,7 @@ export default async function RootLayout({
     <html lang={lang}>
       <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
       <OrganizationSchema lang={lang} />
+        <EnterKeyNav />
         <ConditionalLayout>{children}</ConditionalLayout>
         {/* গুগল অ্যানালিটিক্স কম্পোনেন্ট */}
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || 'G-8ZRHT134HL'} />

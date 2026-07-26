@@ -1,8 +1,8 @@
 "use client"
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { districts, upazilas } from "@/lib/bd-locations"
-import { DistrictSearch, UpazilaSearch } from "@/app/components/LocationSearch"
+import { DistrictSearch, UpazilaSearch } from "@/app/components/LocationSearch" 
 
 interface Product {
   id: number
@@ -34,19 +34,6 @@ export default function CreateOrderForm({ basePath, products }: Props) {
   )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-
-  // ⌨️ Enter চাপলে পরের ইনপুটে ফোকাস যাওয়ার জন্য
-  const phoneRef = useRef<HTMLInputElement>(null)
-  const addressRef = useRef<HTMLInputElement>(null)
-  const districtRef = useRef<HTMLInputElement>(null)
-  const upazilaRef = useRef<HTMLInputElement>(null)
-
-  function handleEnterFocus(e: React.KeyboardEvent<HTMLInputElement>, next?: React.RefObject<HTMLInputElement | null>) {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      next?.current?.focus()
-    }
-  }
 
   const upazilaOptions = districtId ? upazilas[districtId] || [] : []
 
@@ -120,23 +107,18 @@ export default function CreateOrderForm({ basePath, products }: Props) {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => handleEnterFocus(e, phoneRef)}
           placeholder="নাম"
           className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
         />
         <input
-          ref={phoneRef}
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          onKeyDown={(e) => handleEnterFocus(e, addressRef)}
           placeholder="ফোন"
           className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
         />
         <input
-          ref={addressRef}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          onKeyDown={(e) => handleEnterFocus(e, districtRef)}
           placeholder="ঠিকানা"
           className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
         />
@@ -145,8 +127,6 @@ export default function CreateOrderForm({ basePath, products }: Props) {
           <DistrictSearch
             districts={districts}
             value={district}
-            inputRef={districtRef}
-            onEnterNext={() => upazilaRef.current?.focus()}
             onSelect={(d) => {
               setDistrictId(d.id)
               setDistrict(d.name)
@@ -157,7 +137,6 @@ export default function CreateOrderForm({ basePath, products }: Props) {
             upazilas={upazilaOptions}
             value={upazila}
             disabled={!districtId}
-            inputRef={upazilaRef}
             onSelect={(u) => setUpazila(u)}
           />
         </div>

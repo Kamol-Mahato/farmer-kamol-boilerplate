@@ -1,7 +1,9 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
-// 🔎 জেলা টাইপ করে খোঁজার ইনপুট — কাস্টমার cart পেজের মতোই আচরণ করে
+// 🔎 জেলা টাইপ করে খোঁজার ইনপুট
+// 🐛 ফিক্স: আগে খালি করলে (backspace দিয়ে সব মুছলে) আবার আগের সিলেক্ট করা জেলার নাম ফিরে আসত।
+// এখন input-টা সরাসরি নিজের একটা টেক্সট state দিয়ে চলে, তাই খালি করলে সত্যিকারের খালিই থাকবে।
 export function DistrictSearch({ districts, value, onSelect, inputRef, onEnterNext }: {
   districts: { id: number; name: string; en_name: string }[]
   value: string
@@ -9,26 +11,29 @@ export function DistrictSearch({ districts, value, onSelect, inputRef, onEnterNe
   inputRef?: React.Ref<HTMLInputElement>
   onEnterNext?: () => void
 }) {
-  const [query, setQuery] = useState("")
+  const [text, setText] = useState(value)
   const [show, setShow] = useState(false)
+
+  useEffect(() => { setText(value) }, [value])
+
   const filtered = districts.filter(d =>
-    d.name.includes(query) ||
-    d.en_name.toLowerCase().includes(query.toLowerCase())
+    d.name.includes(text) ||
+    d.en_name.toLowerCase().includes(text.toLowerCase())
   )
   return (
     <div className="relative">
       <input
         ref={inputRef}
         type="text"
-        value={query || value}
-        onChange={e => { setQuery(e.target.value); setShow(true) }}
-        onFocus={() => { setQuery(""); setShow(true) }}
+        value={text}
+        onChange={e => { setText(e.target.value); setShow(true) }}
+        onFocus={() => setShow(true)}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         onKeyDown={e => {
           if (e.key === "Enter") {
             e.preventDefault()
             if (show && filtered.length > 0) {
-              setQuery("")
+              setText(filtered[0].name)
               setShow(false)
               onSelect(filtered[0])
             }
@@ -43,7 +48,7 @@ export function DistrictSearch({ districts, value, onSelect, inputRef, onEnterNe
           {filtered.map(d => (
             <div key={d.id}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setQuery(""); setShow(false); onSelect(d) }}
+              onMouseDown={() => { setText(d.name); setShow(false); onSelect(d) }}
             >
               {d.name} <span className="text-gray-400 text-xs">({d.en_name})</span>
             </div>
@@ -54,7 +59,7 @@ export function DistrictSearch({ districts, value, onSelect, inputRef, onEnterNe
   )
 }
 
-// 🔎 উপজেলা টাইপ করে খোঁজার ইনপুট
+// 🔎 উপজেলা টাইপ করে খোঁজার ইনপুট — একই ফিক্স
 export function UpazilaSearch({ upazilas, value, onSelect, disabled, inputRef, onEnterNext }: {
   upazilas: string[]
   value: string
@@ -63,23 +68,26 @@ export function UpazilaSearch({ upazilas, value, onSelect, disabled, inputRef, o
   inputRef?: React.Ref<HTMLInputElement>
   onEnterNext?: () => void
 }) {
-  const [query, setQuery] = useState("")
+  const [text, setText] = useState(value)
   const [show, setShow] = useState(false)
-  const filtered = upazilas.filter(u => u.includes(query))
+
+  useEffect(() => { setText(value) }, [value])
+
+  const filtered = upazilas.filter(u => u.includes(text))
   return (
     <div className="relative">
       <input
         ref={inputRef}
         type="text"
-        value={query || value}
-        onChange={e => { setQuery(e.target.value); setShow(true) }}
-        onFocus={() => { setQuery(""); setShow(true) }}
+        value={text}
+        onChange={e => { setText(e.target.value); setShow(true) }}
+        onFocus={() => setShow(true)}
         onBlur={() => setTimeout(() => setShow(false), 200)}
         onKeyDown={e => {
           if (e.key === "Enter") {
             e.preventDefault()
             if (show && filtered.length > 0) {
-              setQuery("")
+              setText(filtered[0])
               setShow(false)
               onSelect(filtered[0])
             }
@@ -95,7 +103,7 @@ export function UpazilaSearch({ upazilas, value, onSelect, disabled, inputRef, o
           {filtered.map(u => (
             <div key={u}
               className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
-              onMouseDown={() => { setQuery(""); setShow(false); onSelect(u) }}
+              onMouseDown={() => { setText(u); setShow(false); onSelect(u) }}
             >
               {u}
             </div>
