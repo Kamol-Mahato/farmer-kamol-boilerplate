@@ -1,8 +1,8 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { districts, upazilas } from "@/lib/bd-locations"
-import { DistrictSearch, UpazilaSearch } from "@/app/components/LocationSearch" 
+import { districts, upazilas, upazilasEn } from "@/lib/bd-locations"
+import { normalizePhone, isValidBDPhone } from "@/lib/phone"
 
 interface Product {
   id: number
@@ -17,6 +17,87 @@ interface Props {
   products: Product[]
 }
 
+function DistrictSearch({ districts, value, onSelect }: {
+  districts: { id: number; name: string; en_name: string }[]
+  value: string
+  onSelect: (d: { id: number; name: string; en_name: string }) => void
+}) {
+  const [query, setQuery] = useState("")
+  const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const filtered = districts.filter(d =>
+    d.name.includes(query) ||
+    d.en_name.toLowerCase().includes(query.toLowerCase())
+  )
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={editing ? query : value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setEditing(true); setQuery(""); setShow(true) }}
+        onBlur={() => setTimeout(() => { setShow(false); setEditing(false) }, 200)}
+        placeholder="জেলা লিখুন বা খুঁজুন"
+        className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
+      />
+      {show && filtered.length > 0 && (
+        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto mt-1">
+          {filtered.map(d => (
+            <div key={d.id}
+              className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
+              onMouseDown={() => { setQuery(""); setEditing(false); setShow(false); onSelect(d) }}
+            >
+              {d.name} <span className="text-gray-400 text-xs">({d.en_name})</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function UpazilaSearch({ upazilas, upazilasEn, value, onSelect, disabled }: {
+  upazilas: string[]
+  upazilasEn: string[]
+  value: string
+  onSelect: (u: string) => void
+  disabled?: boolean
+}) {
+  const [query, setQuery] = useState("")
+  const [show, setShow] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const q = query.toLowerCase()
+  const filtered = upazilas.filter((u, i) =>
+    u.includes(query) || (upazilasEn[i] || "").toLowerCase().includes(q)
+  )
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={editing ? query : value}
+        onChange={e => { setQuery(e.target.value); setShow(true) }}
+        onFocus={() => { setEditing(true); setQuery(""); setShow(true) }}
+        onBlur={() => setTimeout(() => { setShow(false); setEditing(false) }, 200)}
+        placeholder={disabled ? "আগে জেলা বেছে নিন" : "উপজেলা লিখুন বা খুঁজুন"}
+        disabled={disabled}
+        className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black disabled:bg-gray-100"
+      />
+      {show && filtered.length > 0 && (
+        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto mt-1">
+          {filtered.map(u => (
+            <div key={u}
+              className="px-3 py-2 text-sm hover:bg-green-50 cursor-pointer"
+              onMouseDown={() => { setQuery(""); setEditing(false); setShow(false); onSelect(u) }}
+            >
+              {u}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function CreateOrderForm({ basePath, products }: Props) {
   const router = useRouter()
   const [name, setName] = useState("")
@@ -29,13 +110,41 @@ export default function CreateOrderForm({ basePath, products }: Props) {
   const [shipping, setShipping] = useState("0")
   const [paidAmount, setPaidAmount] = useState("0")
   const [orderSource, setOrderSource] = useState("CALL")
+  const [foundCustomer, setFoundCustomer] = useState(false)
+  const [lookupChecked, setLookupChecked] = useState("")
   const [items, setItems] = useState(
     products.length > 0 ? [{ productId: products[0].id, quantity: 1, price: products[0].pricePerUnit }] : []
   )
+
+  // 📞 ফোন নম্বর ঠিক ফরম্যাটে (01XXXXXXXXX) হলে পুরনো কাস্টমার আছে কিনা খুঁজে দেখা,
+  // পেলে খালি ফিল্ডগুলো (নাম/ঠিকানা/জেলা/উপজেলা) নিজে থেকে ভরে দেওয়া — হাতে-লেখা কিছু থাকলে সেটা বদলাবে না
+  useEffect(() => {
+    if (!isValidBDPhone(phone) || phone === lookupChecked) return
+    setLookupChecked(phone)
+    let cancelled = false
+    fetch(`/api/admin/customers/lookup?phone=${phone}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data.found) {
+          setFoundCustomer(false)
+          return
+        }
+        setFoundCustomer(true)
+        setName((prev) => prev.trim() ? prev : data.name)
+        setAddress((prev) => prev.trim() ? prev : data.address)
+        if (!district && data.districtId) {
+          setDistrictId(data.districtId)
+          setDistrict(data.district)
+        }
+        if (!upazila && data.upazila) {
+          setUpazila(data.upazila)
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [phone])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-
-  const upazilaOptions = districtId ? upazilas[districtId] || [] : []
 
   function updateProduct(index: number, productId: number) {
     const p = products.find((pr) => pr.id === productId)
@@ -104,40 +213,35 @@ export default function CreateOrderForm({ basePath, products }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
       <div className="bg-white border border-black rounded-xl p-6 space-y-4">
         <h2 className="font-bold text-gray-800">কাস্টমার তথ্য</h2>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="নাম"
-          className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
-        />
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="ফোন"
-          className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
-        />
-        <input
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="ঠিকানা"
-          className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
-        />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="নাম" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
+        <div>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            onBlur={(e) => setPhone(normalizePhone(e.target.value))}
+            placeholder="ফোন (যেকোনো ফরম্যাটে লিখুন)"
+            className={`w-full border rounded-lg px-3 py-2 text-sm ${
+              phone.trim() === "" ? "border-gray-400" : isValidBDPhone(phone) ? "border-green-500" : "border-red-500"
+            }`}
+          />
+          {foundCustomer && (
+            <p className="text-xs font-bold text-green-700 mt-1">✅ পুরনো কাস্টমার পাওয়া গেছে — তথ্য বসিয়ে দেওয়া হয়েছে</p>
+          )}
+        </div>
+        <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="ঠিকানা" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
 
         <div className="grid grid-cols-2 gap-3">
           <DistrictSearch
             districts={districts}
             value={district}
-            onSelect={(d) => {
-              setDistrictId(d.id)
-              setDistrict(d.name)
-              setUpazila("")
-            }}
+            onSelect={(d) => { setDistrictId(d.id); setDistrict(d.name); setUpazila("") }}
           />
           <UpazilaSearch
-            upazilas={upazilaOptions}
+            upazilas={districtId ? (upazilas[districtId] || []) : []}
+            upazilasEn={districtId ? (upazilasEn[districtId] || []) : []}
             value={upazila}
-            disabled={!districtId}
             onSelect={(u) => setUpazila(u)}
+            disabled={!districtId}
           />
         </div>
 
