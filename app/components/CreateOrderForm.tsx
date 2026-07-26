@@ -213,7 +213,6 @@ export default function CreateOrderForm({ basePath, products }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
       <div className="bg-white border border-black rounded-xl p-6 space-y-4">
         <h2 className="font-bold text-gray-800">কাস্টমার তথ্য</h2>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="নাম" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
         <div>
           <input
             value={phone}
@@ -228,6 +227,7 @@ export default function CreateOrderForm({ basePath, products }: Props) {
             <p className="text-xs font-bold text-green-700 mt-1">✅ পুরনো কাস্টমার পাওয়া গেছে — তথ্য বসিয়ে দেওয়া হয়েছে</p>
           )}
         </div>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="নাম" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
         <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="ঠিকানা" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
 
         <div className="grid grid-cols-2 gap-3">
