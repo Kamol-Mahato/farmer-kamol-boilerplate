@@ -395,9 +395,9 @@ export default function AdminOrdersPage() {
 
           {/* --- বাম কলাম --- */}
           <div className="space-y-5">
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">অর্ডার ID</label>
-              <div className="relative flex-1">
+          <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">অর্ডার ID</label>
+              <div className="relative w-full md:flex-1">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                 </svg>
@@ -411,9 +411,9 @@ export default function AdminOrdersPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">মোবাইল</label>
-              <div className="relative flex-1">
+            <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">মোবাইল</label>
+              <div className="relative w-full md:flex-1">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                 </svg>
@@ -427,9 +427,9 @@ export default function AdminOrdersPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">কাস্টমার নাম</label>
-              <div className="relative flex-1">
+            <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">কাস্টমার নাম</label>
+              <div className="relative w-full md:flex-1">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                 </svg>
@@ -482,21 +482,21 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* 🕒 ডেট-টাইম রেঞ্জ — এক লাইনে দুটো ফিল্ড, মাঝে ড্যাশ */}
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">অর্ডার তারিখ</label>
-              <div className="flex items-center gap-2 flex-1">
+            <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">অর্ডার তারিখ</label>
+              <div className="flex items-center gap-2 w-full md:flex-1">
                 <input
                   type="datetime-local"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
+                  className="flex-1 min-w-0 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
                 />
                 <span className="text-gray-400">-</span>
                 <input
                   type="datetime-local"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
+                  className="flex-1 min-w-0 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
                 />
                 <button
                   type="button"
@@ -587,7 +587,7 @@ export default function AdminOrdersPage() {
       )}
       {/* ডেটা টেবিল গ্রিড */}
       <div className="bg-white rounded-xl shadow border border-gray-200 overflow-x-auto">
-      <table className="w-full border-collapse text-left text-sm text-gray-500 min-w-[1000px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap [&_td]:border [&_td]:border-gray-200 [&_th]:border [&_th]:border-gray-300">
+      <table className="w-full border-collapse text-left text-sm text-gray-500 md:min-w-[1000px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap [&_td]:border [&_td]:border-gray-200 [&_th]:border [&_th]:border-gray-300">
           <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b-2 border-gray-200">
             <tr>
               <th className="px-4 py-4 w-10 text-center">
@@ -601,12 +601,12 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">অর্ডার ID</th>
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
-              <th className="px-6 py-4 font-medium">পেমেন্ট</th>
+              <th className="hidden md:table-cell px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
-              <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
-              <th className="px-6 py-4 font-medium">বাকি (Due)</th>
-              <th className="px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
-              <th className="px-6 py-4 font-medium">কালেকশন (Due)</th>
+              <th className="hidden md:table-cell px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
+              <th className="hidden md:table-cell px-6 py-4 font-medium">বাকি (Due)</th>
+              <th className="hidden md:table-cell px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
+              <th className="hidden md:table-cell px-6 py-4 font-medium">কালেকশন (Due)</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>

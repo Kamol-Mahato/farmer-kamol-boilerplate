@@ -326,9 +326,9 @@ export default function AgentOrdersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
 
           <div className="space-y-5">
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">অর্ডার ID</label>
-              <div className="relative flex-1">
+          <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">অর্ডার ID</label>
+              <div className="relative w-full md:flex-1">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                 </svg>
@@ -342,9 +342,9 @@ export default function AgentOrdersPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">মোবাইল</label>
-              <div className="relative flex-1">
+            <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">মোবাইল</label>
+              <div className="relative w-full md:flex-1">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                 </svg>
@@ -358,9 +358,9 @@ export default function AgentOrdersPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">কাস্টমার নাম</label>
-              <div className="relative flex-1">
+            <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">কাস্টমার নাম</label>
+              <div className="relative w-full md:flex-1">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                 </svg>
@@ -411,21 +411,21 @@ export default function AgentOrdersPage() {
               </select>
             </div>
 
-            <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">অর্ডার তারিখ</label>
-              <div className="flex items-center gap-2 flex-1">
+            <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:gap-4">
+              <label className="text-sm font-bold text-gray-700 md:w-32 md:shrink-0">অর্ডার তারিখ</label>
+              <div className="flex items-center gap-2 w-full md:flex-1">
                 <input
                   type="datetime-local"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
+                  className="flex-1 min-w-0 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
                 />
                 <span className="text-gray-400">-</span>
                 <input
                   type="datetime-local"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
+                  className="flex-1 min-w-0 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:border-black"
                 />
                 <button
                   type="button"
