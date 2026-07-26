@@ -214,7 +214,7 @@ function InvoicePage() {
             @media print {
               @page { size: ${type === "a4" ? "A4" : type === "sticker" ? "80mm 90mm" : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : type === "sticker" ? "2mm" : "0mm"}; }
               body { -webkit-print-color-adjust: exact; }
-              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
+              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; font-weight: 700 !important; -webkit-text-stroke: 0.3px #000; -webkit-font-smoothing: none; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
             }
           </style>
         </head>

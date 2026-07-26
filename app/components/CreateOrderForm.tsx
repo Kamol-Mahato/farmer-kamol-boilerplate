@@ -1,7 +1,8 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { districts, upazilas } from "@/lib/bd-locations"
+import { DistrictSearch, UpazilaSearch } from "@/app/components/LocationSearch"
 
 interface Product {
   id: number
@@ -33,6 +34,19 @@ export default function CreateOrderForm({ basePath, products }: Props) {
   )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // ⌨️ Enter চাপলে পরের ইনপুটে ফোকাস যাওয়ার জন্য
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const addressRef = useRef<HTMLInputElement>(null)
+  const districtRef = useRef<HTMLInputElement>(null)
+  const upazilaRef = useRef<HTMLInputElement>(null)
+
+  function handleEnterFocus(e: React.KeyboardEvent<HTMLInputElement>, next?: React.RefObject<HTMLInputElement | null>) {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      next?.current?.focus()
+    }
+  }
 
   const upazilaOptions = districtId ? upazilas[districtId] || [] : []
 
@@ -103,37 +117,49 @@ export default function CreateOrderForm({ basePath, products }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
       <div className="bg-white border border-black rounded-xl p-6 space-y-4">
         <h2 className="font-bold text-gray-800">কাস্টমার তথ্য</h2>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="নাম" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="ফোন" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
-        <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="ঠিকানা" className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm" />
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => handleEnterFocus(e, phoneRef)}
+          placeholder="নাম"
+          className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
+        />
+        <input
+          ref={phoneRef}
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          onKeyDown={(e) => handleEnterFocus(e, addressRef)}
+          placeholder="ফোন"
+          className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
+        />
+        <input
+          ref={addressRef}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          onKeyDown={(e) => handleEnterFocus(e, districtRef)}
+          placeholder="ঠিকানা"
+          className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm"
+        />
 
         <div className="grid grid-cols-2 gap-3">
-          <select
-            value={districtId ?? ""}
-            onChange={(e) => {
-              const id = e.target.value ? parseInt(e.target.value) : null
-              setDistrictId(id)
-              setDistrict(districts.find((d) => d.id === id)?.name || "")
+          <DistrictSearch
+            districts={districts}
+            value={district}
+            inputRef={districtRef}
+            onEnterNext={() => upazilaRef.current?.focus()}
+            onSelect={(d) => {
+              setDistrictId(d.id)
+              setDistrict(d.name)
               setUpazila("")
             }}
-            className="border border-gray-400 rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="">জেলা বাছুন</option>
-            {districts.map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
-          <select
+          />
+          <UpazilaSearch
+            upazilas={upazilaOptions}
             value={upazila}
-            onChange={(e) => setUpazila(e.target.value)}
             disabled={!districtId}
-            className="border border-gray-400 rounded-lg px-3 py-2 text-sm disabled:opacity-50"
-          >
-            <option value="">উপজেলা বাছুন</option>
-            {upazilaOptions.map((u) => (
-              <option key={u} value={u}>{u}</option>
-            ))}
-          </select>
+            inputRef={upazilaRef}
+            onSelect={(u) => setUpazila(u)}
+          />
         </div>
 
         <select value={orderSource} onChange={(e) => setOrderSource(e.target.value)} className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm">
