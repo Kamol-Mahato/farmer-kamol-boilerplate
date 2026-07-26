@@ -12,9 +12,10 @@ export default function AgentLogoutButton() {
   return (
     <button
       onClick={handleLogout}
-      className="text-sm font-bold text-red-600 hover:text-red-700 transition px-3 py-1.5 rounded-lg hover:bg-red-50"
+      className="text-sm font-bold text-red-600 hover:text-red-700 transition px-2 py-1.5 md:px-3 rounded-lg hover:bg-red-50"
     >
-      🔒 লগআউট
+      <span className="md:hidden">🔒</span>
+      <span className="hidden md:inline">🔒 লগআউট</span>
     </button>
   )
 }

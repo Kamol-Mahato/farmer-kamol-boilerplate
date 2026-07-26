@@ -36,6 +36,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description:
       product.description?.slice(0, 160) ||
       `${product.name} কিনুন Farmer Kamol থেকে — খামার থেকে সরাসরি আপনার দরজায়।`,
+    alternates: {
+      canonical: `/shop/${slug}`,
+      languages: {
+        bn: `/shop/${slug}`,
+        en: `/en/shop/${slug}`,
+      },
+    },
   }
 }
 

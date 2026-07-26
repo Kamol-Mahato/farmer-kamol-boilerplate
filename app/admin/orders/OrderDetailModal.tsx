@@ -36,7 +36,7 @@ interface Props {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 overflow-y-auto p-4 pt-10 sm:pt-20 sm:pb-16"
+      className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 overflow-y-auto px-7 pt-20 pb-8 sm:px-4 sm:pt-20 sm:pb-16"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       {loading && (

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import PanelNavbar from "../components/PanelNavbar"
 import AgentLogoutButton from "./components/AgentLogoutButton"
 import EnablePushButton from "../admin/components/EnablePushButton"
+import AgentBottomNav from "./components/AgentBottomNav"
 
 export const metadata: Metadata = {
   robots: {
@@ -40,8 +41,9 @@ export default function AgentLayout({
             href: "/",
           },
         ]}
-      />
-      {children}
-    </>
-  )
-}
+        />
+        <div className="pb-16 md:pb-0">{children}</div>
+        <AgentBottomNav />
+      </>
+    )
+  }

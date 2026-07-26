@@ -5,6 +5,7 @@ import { verifySession } from "@/lib/session"
 import { sendTelegramAlert } from "@/lib/telegram"
 import { sendPushToAdmin } from "@/lib/webpush"
 import { getBangladeshDayBoundaries, calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
+import { checkRateLimit, recordFailedAttempt } from "@/lib/rateLimiter"
 
 // ✅ agent_session কুকি থাকলে (এবং valid AGENT হলে) সেই agent-এর ID রিটার্ন করে
 async function resolveAgentId(): Promise<number | null> {
@@ -41,6 +42,17 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    // 🔒 একই ফোন নম্বর থেকে বারবার অর্ডার (spam) ঠেকাতে rate limit
+    const rateCheck = await checkRateLimit(`order:${phone}`)
+    if (!rateCheck.allowed) {
+      const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
+      return NextResponse.json(
+        { error: `অনেকবার অর্ডার চেষ্টা হয়েছে। ${minutes} মিনিট পর আবার চেষ্টা করুন।` },
+        { status: 429 }
+      )
+    }
+    await recordFailedAttempt(`order:${phone}`)
 
     // ✅ পেমেন্ট পদ্ধতি বাধ্যতামূলক
     if (!paymentMethod || (paymentMethod !== "COD" && paymentMethod !== "GATEWAY")) {

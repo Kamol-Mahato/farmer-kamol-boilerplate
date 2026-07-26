@@ -70,13 +70,14 @@ export default function EnablePushButton() {
     <button
       onClick={handleEnable}
       disabled={loading || enabled}
-      className={`text-xs font-bold px-3 py-1.5 rounded-full transition ${
+      className={`text-xs font-bold px-2 py-1.5 md:px-3 rounded-full transition ${
         enabled
           ? "bg-green-600 text-white cursor-default"
           : "bg-yellow-400 text-green-900 hover:bg-yellow-300"
       }`}
     >
-      {enabled ? "🔔 চালু আছে" : loading ? "..." : "🔔 Notification চালু করুন"}
+      <span className="md:hidden">{enabled ? "🔔" : loading ? "..." : "🔔"}</span>
+      <span className="hidden md:inline">{enabled ? "🔔 চালু আছে" : loading ? "..." : "🔔 Notification চালু করুন"}</span>
     </button>
   )
 }

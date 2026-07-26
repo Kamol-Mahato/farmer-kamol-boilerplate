@@ -49,8 +49,14 @@ export async function POST(request: Request) {
       )
     }
 
-    // ফাইল এক্সটেনশন বের করা
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+    // 🔒 এক্সটেনশন client-এর দেওয়া filename থেকে না নিয়ে, উপরে যাচাই করা আসল MIME type থেকে বসানো হচ্ছে
+    const MIME_TO_EXT: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+    }
+    const ext = MIME_TO_EXT[file.type] || "jpg"
 
     // ✅ SEO-friendly নাম জেনারেট করা
     const rawName = formData.get("name") as string | null

@@ -22,7 +22,7 @@ if (!rateCheck.allowed) {
     });
 
     if (!admin || (admin.role !== "ADMIN" && admin.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ message: "OTP sent" });
     }
 
     const otp = generateOTP();

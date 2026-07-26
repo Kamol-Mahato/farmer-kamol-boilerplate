@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getBangladeshDayBoundaries, calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
 import { sendTelegramAlert } from "@/lib/telegram"
 import { sendPushToAdmin } from "@/lib/webpush"
+import { checkRateLimit, recordFailedAttempt } from "@/lib/rateLimiter"
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +25,18 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    // 🔒 একই ফোন নম্বর থেকে বারবার অর্ডার (spam) ঠেকাতে rate limit
+    const rateCheck = await checkRateLimit(`order:${phone}`)
+    if (!rateCheck.allowed) {
+      const minutes = Math.ceil((rateCheck.remainingMs || 0) / 60000)
+      return NextResponse.json(
+        { error: `অনেকবার অর্ডার চেষ্টা হয়েছে। ${minutes} মিনিট পর আবার চেষ্টা করুন।` },
+        { status: 429 }
+      )
+    }
+    await recordFailedAttempt(`order:${phone}`)
+
     if (!paymentMethod || (paymentMethod !== "COD" && paymentMethod !== "GATEWAY")) {
       return NextResponse.json({ error: "পেমেন্ট পদ্ধতি বেছে নিন" }, { status: 400 })
     }

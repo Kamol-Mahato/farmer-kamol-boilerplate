@@ -30,7 +30,7 @@ export async function POST(
     }
 
     const customer = await prisma.user.findUnique({ where: { id: customerId } })
-    if (!customer) {
+    if (!customer || customer.role !== "CUSTOMER") {
       return NextResponse.json({ error: "কাস্টমার পাওয়া যায়নি" }, { status: 404 })
     }
 

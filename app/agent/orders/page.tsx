@@ -274,16 +274,17 @@ export default function AgentOrdersPage() {
 
   return (
     <div className="max-w-full mx-auto pt-4 px-6 py-12">
-      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-        <h1 className="text-3xl font-bold text-green-800">আমার অর্ডার সমূহ</h1>
-        <div className="flex gap-3">
+      <div className="flex flex-col gap-3 mb-6 md:flex-row md:justify-between md:items-center md:mb-8">
+        <h1 className="text-xl md:text-3xl font-bold text-green-800">আমার অর্ডার সমূহ</h1>
+        <div className="flex gap-2 md:gap-3">
           <button
             onClick={handleExportCSV}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-500 transition shadow-sm"
+            className="flex-1 md:flex-none whitespace-nowrap bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-blue-500 transition shadow-sm"
           >
-            📥 নির্বাচিত ডেটা CSV এক্সপোর্ট
+            <span className="md:hidden">📥 CSV এক্সপোর্ট</span>
+            <span className="hidden md:inline">📥 নির্বাচিত ডেটা CSV এক্সপোর্ট</span>
           </button>
-          <div className="relative">
+          <div className="relative flex-1 md:flex-none">
             <button
               onClick={() => {
                 if (selectedOrderIds.length === 0) {
@@ -292,9 +293,10 @@ export default function AgentOrdersPage() {
                   setShowInvoiceMenu(prev => !prev)
                 }
               }}
-              className="bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition shadow-sm flex items-center gap-2"
+              className="w-full whitespace-nowrap bg-green-700 text-white px-3 md:px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-green-600 transition shadow-sm flex items-center justify-center gap-2"
             >
-              🧾 Invoice প্রিন্ট ▾
+              <span className="md:hidden">🧾 Invoice ▾</span>
+              <span className="hidden md:inline">🧾 Invoice প্রিন্ট ▾</span>
             </button>
             {showInvoiceMenu && selectedOrderIds.length > 0 && (
               <div className="absolute right--5 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
