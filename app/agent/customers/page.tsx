@@ -21,14 +21,19 @@ export default function AdminCustomersPage() {
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([])
   const [resettingId, setResettingId] = useState<number | null>(null)
   const [resetResult, setResetResult] = useState<{ name: string; phone: string; password: string } | null>(null)
+  const [fetchError, setFetchError] = useState("")
 
   useEffect(() => {
     fetch("/api/admin/customers")
-      .then((res) => res.json())
-      .then((data) => {
+      .then(async (res) => {
+        const data = await res.json().catch(() => null)
+        if (!res.ok) {
+          setFetchError(`ডেটা আনা যায়নি (status: ${res.status}) — ${data?.error || "অজানা সমস্যা"}`)
+          return
+        }
         if (Array.isArray(data)) setCustomers(data)
       })
-      .catch(() => {})
+      .catch((err) => setFetchError(`নেটওয়ার্ক সমস্যা — ${err?.message || "সার্ভারে পৌঁছানো যায়নি"}`))
       .finally(() => setLoading(false))
   }, [])
 
@@ -133,11 +138,17 @@ export default function AdminCustomersPage() {
       </div>
     )
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-2">
-      <h1 className="text-3xl font-bold text-green-800 mb-8">
-        কাস্টমার ম্যানেজমেন্ট
-      </h1>
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-2">
+        <h1 className="text-3xl font-bold text-green-800 mb-8">
+          কাস্টমার ম্যানেজমেন্ট
+        </h1>
+  
+        {fetchError && (
+          <div className="bg-red-50 border border-red-300 text-red-700 rounded-lg p-3 mb-4 text-sm font-medium">
+            ⚠️ {fetchError}
+          </div>
+        )}
 
       {/* ফিল্টার বার */}
       <div className="bg-white rounded-xl shadow p-6 mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

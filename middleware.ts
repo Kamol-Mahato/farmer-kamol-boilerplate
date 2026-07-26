@@ -17,6 +17,7 @@ const PUBLIC_PATHS = [
 const AGENT_ALLOWED_PREFIXES = [
   "/api/admin/orders",
   "/api/admin/invoice",
+  "/api/admin/customers",
   "/admin/orders",
   "/admin/invoice",
   "/agent",
