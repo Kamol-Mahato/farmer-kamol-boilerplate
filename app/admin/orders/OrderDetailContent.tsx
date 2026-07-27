@@ -24,8 +24,8 @@ const TERMINAL_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LO
 const COURIER_OPTIONS = ["Steadfast", "Pathao", "RedX", "eCourier"]
 
 interface OrderItemData { id: number; quantity: number; finalPrice: number; product: { name: string; unit: string } }
-interface EditLogData { id: number; editedById: number; editedByRole: string; changesSummary: string; createdAt: string }
-interface StatusLogData { id: number; fromStatus: string; toStatus: string; changedById: number; changedByRole: string; isOverride: boolean; createdAt: string }
+interface EditLogData { id: number; editedById: number; editedByRole: string; editedByName?: string | null; changesSummary: string; createdAt: string }
+interface StatusLogData { id: number; fromStatus: string; toStatus: string; changedById: number; changedByRole: string; changedByName?: string | null; isOverride: boolean; createdAt: string }
 
 export interface OrderDetailData {
   id: number
@@ -442,7 +442,7 @@ interface Props {
             ) : (
               order.statusLogs.map((log) => (
                 <div key={log.id} className="border-b last:border-0 border-gray-100 pb-3 text-sm">
-                  <p className="text-gray-500 text-xs">{formatBD(log.createdAt)} — {log.changedByRole} #{log.changedById}{log.isOverride && " (override)"}</p>
+                  <p className="text-gray-500 text-xs">{formatBD(log.createdAt)} — {log.changedByName || `${log.changedByRole === "ADMIN" ? "এডমিন" : "এজেন্ট"} #${log.changedById}`} ({log.changedByRole === "ADMIN" ? "এডমিন" : "এজেন্ট"}){log.isOverride && " (override)"}</p>
                   <p className="text-gray-700 mt-1 font-medium">{STATUS_LABELS[log.fromStatus] || log.fromStatus} → {STATUS_LABELS[log.toStatus] || log.toStatus}</p>
                 </div>
               ))
@@ -458,7 +458,7 @@ interface Props {
             ) : (
               order.editLogs.map((log) => (
                 <div key={log.id} className="border-b last:border-0 border-gray-100 pb-3 text-sm">
-                  <p className="text-gray-500 text-xs">{formatBD(log.createdAt)} — {log.editedByRole} #{log.editedById}</p>
+                  <p className="text-gray-500 text-xs">{formatBD(log.createdAt)} — {log.editedByName || `${log.editedByRole === "ADMIN" ? "এডমিন" : "এজেন্ট"} #${log.editedById}`} ({log.editedByRole === "ADMIN" ? "এডমিন" : "এজেন্ট"})</p>
                   <ul className="mt-1 space-y-0.5 list-disc list-inside">
                     {log.changesSummary.split(" | ").map((line, i) => (
                       <li key={i} className="text-gray-700">{line}</li>

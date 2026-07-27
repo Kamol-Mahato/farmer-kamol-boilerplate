@@ -34,7 +34,23 @@ export async function GET(
       return NextResponse.json({ error: "অর্ডার পাওয়া যায়নি" }, { status: 404 })
     }
 
-    return NextResponse.json(order)
+    // 🔎 statusLogs/editLogs-এ শুধু ID/role আছে, নাম নেই — যাদের ID পাওয়া গেছে তাদের নাম এক কলে বের করে বসিয়ে দিচ্ছি
+    const userIds = Array.from(new Set([
+      ...order.statusLogs.map((l) => l.changedById),
+      ...order.editLogs.map((l) => l.editedById),
+    ]))
+    const users = userIds.length > 0
+      ? await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } })
+      : []
+    const nameById = new Map(users.map((u) => [u.id, u.name]))
+
+    const orderWithNames = {
+      ...order,
+      statusLogs: order.statusLogs.map((l) => ({ ...l, changedByName: nameById.get(l.changedById) || null })),
+      editLogs: order.editLogs.map((l) => ({ ...l, editedByName: nameById.get(l.editedById) || null })),
+    }
+
+    return NextResponse.json(orderWithNames)
   } catch (error) {
     console.error("ORDER DETAIL FETCH ERROR ->", error)
     return NextResponse.json({ error: "অর্ডার লোড করা যায়নি" }, { status: 500 })
