@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { normalizePhone, isValidBDPhone } from "@/lib/phone"
 
 interface User {
   name?: string;
@@ -175,12 +176,13 @@ export default function LoginPage() {
                   required
                   placeholder="01XXXXXXXXX"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
+                  onBlur={(e) => setPhone(normalizePhone(e.target.value))}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
                 />
                 {phone.length > 0 && (
-                  <p className={`text-xs mt-1.5 ${/^01[3-9]\d{8}$/.test(phone) ? "text-green-600" : "text-orange-600"}`}>
-                    {/^01[3-9]\d{8}$/.test(phone)
+                  <p className={`text-xs mt-1.5 ${isValidBDPhone(phone) ? "text-green-600" : "text-orange-600"}`}>
+                    {isValidBDPhone(phone)
                       ? "✓ সঠিক ফরম্যাট"
                       : `আরও ${11 - phone.length > 0 ? 11 - phone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)`}
                   </p>
@@ -226,7 +228,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleLogin}
-                disabled={loading || !/^01[3-9]\d{8}$/.test(phone) || !password}
+                disabled={loading || !isValidBDPhone(phone) || !password}
                 className="w-full bg-green-700 text-white py-3.5 rounded-lg font-bold text-lg
                            transition-all duration-150
                            active:bg-green-800 active:scale-[0.98] touch-manipulation
@@ -290,10 +292,11 @@ export default function LoginPage() {
                       type="tel"
                       placeholder="01XXXXXXXXX"
                       value={forgotPhone}
-                      onChange={(e) => setForgotPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                      onChange={(e) => setForgotPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
+                      onBlur={(e) => setForgotPhone(normalizePhone(e.target.value))}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-yellow-400"
                     />
-                    {forgotPhone.length > 0 && !/^01[3-9]\d{8}$/.test(forgotPhone) && (
+                    {forgotPhone.length > 0 && !isValidBDPhone(forgotPhone) && (
                       <p className="text-orange-600 text-xs mb-2">
                         আরও {11 - forgotPhone.length > 0 ? 11 - forgotPhone.length : 0}টি সংখ্যা লিখুন (মোট ১১ সংখ্যা)
                       </p>
@@ -304,7 +307,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={handleForgotPassword}
-                      disabled={forgotLoading || !/^01[3-9]\d{8}$/.test(forgotPhone)}
+                      disabled={forgotLoading || !isValidBDPhone(forgotPhone)}
                       className="w-full bg-yellow-500 text-white py-2 rounded-lg font-bold text-sm hover:bg-yellow-400 transition disabled:opacity-50"
                     >
                       {forgotLoading ? "পাঠানো হচ্ছে..." : "রিকোয়েস্ট পাঠান"}

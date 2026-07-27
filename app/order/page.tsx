@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { districts, upazilas, upazilasEn } from "@/lib/bd-locations"
+import { normalizePhone, isValidBDPhone } from "@/lib/phone"
 
 interface ProductData {
   name: string
@@ -316,7 +317,7 @@ const deliveryCharge = deliverySettings.mode === "FREE"
   const totalPrice = product ? product.pricePerUnit * Number(form.quantity) : 0
 
   async function handleSubmit(e: React.FormEvent) {
-    if (form.phone.length !== 11 || !form.phone.startsWith("01")) {
+    if (!isValidBDPhone(form.phone)) {
       setError("আপনার মোবাইল নম্বরটি সঠিক নয় (১১ ডিজিট হতে হবে এবং 01 দিয়ে শুরু হতে হবে)")
       return
     }
@@ -441,16 +442,17 @@ const deliveryCharge = deliverySettings.mode === "FREE"
               type="tel" 
               name="phone" 
               value={form.phone} 
-              onChange={handleChange} 
+              onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 13) }))} 
+              onBlur={(e) => setForm(prev => ({ ...prev, phone: normalizePhone(e.target.value) }))}
               placeholder="01XXXXXXXXX" 
               required 
               className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${
-                form.phone.length > 0 && (form.phone.length !== 11 || !form.phone.startsWith("01"))
+                form.phone.length > 0 && !isValidBDPhone(form.phone)
                   ? "border-red-500 bg-red-50" 
                   : "border-gray-200 focus:border-green-500"
               }`} 
             />
-            {form.phone.length > 0 && (form.phone.length !== 11 || !form.phone.startsWith("01")) && (
+            {form.phone.length > 0 && !isValidBDPhone(form.phone) && (
               <p className="text-red-500 text-[10px] mt-1 font-bold">সঠিক ১১ ডিজিটের নম্বর দিন (01 দিয়ে শুরু)</p>
             )}
           </div>

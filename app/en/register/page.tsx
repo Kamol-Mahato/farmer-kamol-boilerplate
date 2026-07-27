@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { normalizePhone, isValidBDPhone } from "@/lib/phone"
 
 export default function RegisterPageEn() {
   const router = useRouter()
@@ -33,7 +34,7 @@ export default function RegisterPageEn() {
         setError("Please fill in all fields")
         return
       }
-      if (!/^01[3-9]\d{8}$/.test(phone)) {
+      if (!isValidBDPhone(phone)) {
         setError("Enter a valid 11-digit mobile number (e.g. 017XXXXXXXX)")
         return
       }
@@ -103,12 +104,13 @@ export default function RegisterPageEn() {
               required
               placeholder="01XXXXXXXXX"
               value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
+              onBlur={(e) => setPhone(normalizePhone(e.target.value))}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
             />
             {phone.length > 0 && (
-  <p className={`text-xs mt-1.5 ${/^01[3-9]\d{8}$/.test(phone) ? "text-green-600" : "text-orange-600"}`}>
-    {/^01[3-9]\d{8}$/.test(phone)
+  <p className={`text-xs mt-1.5 ${isValidBDPhone(phone) ? "text-green-600" : "text-orange-600"}`}>
+    {isValidBDPhone(phone)
       ? "✓ Valid format"
       : `Enter ${11 - phone.length > 0 ? 11 - phone.length : 0} more digit(s) (11 digits total)`}
   </p>
@@ -197,7 +199,7 @@ export default function RegisterPageEn() {
           <button
             type="button"
             onClick={handleRegister}
-              disabled={loading || !name || !/^01[3-9]\d{8}$/.test(phone) || password.length < 4 || password !== confirmPassword}
+            disabled={loading || !name || !isValidBDPhone(phone) || password.length < 4 || password !== confirmPassword}
             className="w-full bg-green-700 text-white py-3.5 rounded-lg font-bold text-lg
                        transition-all duration-150
                        active:bg-green-800 active:scale-[0.98] touch-manipulation

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { districts, upazilas, upazilasEn } from "@/lib/bd-locations"
+import { normalizePhone, isValidBDPhone } from "@/lib/phone"
 
 type CartItem = {
   id: number
@@ -195,6 +196,9 @@ export default function CartPage() {
     if (!form.name.trim() || !form.phone.trim() || !form.district || !form.upazila || !form.address.trim()) {
       setError("Please fill in all details correctly"); return
     }
+    if (!isValidBDPhone(form.phone)) {
+      setError("Your mobile number is invalid (must be 11 digits and start with 01)"); return
+    }
     if (!form.paymentMethod) {
       setError("Please select a payment method (Cash on Delivery or Online Payment)")
       return
@@ -296,7 +300,23 @@ export default function CartPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Mobile *</label>
-            <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="01XXXXXXXXX" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+            <input
+              type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 13) }))}
+              onBlur={(e) => setForm(prev => ({ ...prev, phone: normalizePhone(e.target.value) }))}
+              placeholder="01XXXXXXXXX"
+              required
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${
+                form.phone.length > 0 && !isValidBDPhone(form.phone)
+                  ? "border-red-500 bg-red-50"
+                  : "border-gray-200 focus:border-green-500"
+              }`}
+            />
+            {form.phone.length > 0 && !isValidBDPhone(form.phone) && (
+              <p className="text-red-500 text-[10px] mt-1 font-bold">Enter a valid 11-digit number (starting with 01)</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Name *</label>

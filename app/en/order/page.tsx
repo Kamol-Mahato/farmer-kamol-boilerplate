@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { districts, upazilasEn } from "@/lib/bd-locations"
 import { translateUnit } from "@/lib/unitTranslate"
+import { normalizePhone, isValidBDPhone } from "@/lib/phone"
+
 interface ProductData {
   name: string
   nameEn?: string | null
@@ -250,7 +252,7 @@ function OrderForm() {
   }
   const totalPrice = product ? product.pricePerUnit * Number(form.quantity) : 0
   async function handleSubmit(e: React.FormEvent) {
-    if (form.phone.length !== 11 || !form.phone.startsWith("01")) {
+    if (!isValidBDPhone(form.phone)) {
       setError("Your mobile number isn't valid (must be 11 digits and start with 01)")
       return
     }
@@ -370,16 +372,17 @@ function OrderForm() {
               type="tel"
               name="phone"
               value={form.phone}
-              onChange={handleChange}
+              onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 13) }))}
+              onBlur={(e) => setForm(prev => ({ ...prev, phone: normalizePhone(e.target.value) }))}
               placeholder="01XXXXXXXXX"
               required
               className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${
-                form.phone.length > 0 && (form.phone.length !== 11 || !form.phone.startsWith("01"))
+                form.phone.length > 0 && !isValidBDPhone(form.phone)
                   ? "border-red-500 bg-red-50"
                   : "border-gray-200 focus:border-green-500"
               }`}
             />
-            {form.phone.length > 0 && (form.phone.length !== 11 || !form.phone.startsWith("01")) && (
+            {form.phone.length > 0 && !isValidBDPhone(form.phone) && (
               <p className="text-red-500 text-[10px] mt-1 font-bold">Enter a valid 11-digit number (starting with 01)</p>
             )}
           </div>

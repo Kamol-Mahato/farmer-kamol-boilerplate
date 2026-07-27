@@ -214,11 +214,11 @@ export default function CreateOrderForm({ basePath, products }: Props) {
       <div className="bg-white border border-black rounded-xl p-6 space-y-4">
         <h2 className="font-bold text-gray-800">কাস্টমার তথ্য</h2>
         <div>
-          <input
+        <input
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
             onBlur={(e) => setPhone(normalizePhone(e.target.value))}
-            placeholder="ফোন (যেকোনো ফরম্যাটে লিখুন)"
+            placeholder="ফোন নম্বর)"
             className={`w-full border rounded-lg px-3 py-2 text-sm ${
               phone.trim() === "" ? "border-gray-400" : isValidBDPhone(phone) ? "border-green-500" : "border-red-500"
             }`}

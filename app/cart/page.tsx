@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { districts, upazilas } from "@/lib/bd-locations"
 import { DistrictSearch, UpazilaSearch } from "@/app/components/LocationSearch"
+import { normalizePhone, isValidBDPhone } from "@/lib/phone"
 
 type CartItem = {
   id: number
@@ -119,6 +120,9 @@ export default function CartPage() {
     if (!form.name.trim() || !form.phone.trim() || !form.district || !form.upazila || !form.address.trim()) {
       setError("সব তথ্য সঠিকভাবে পূরণ করুন"); return
     }
+    if (!isValidBDPhone(form.phone)) {
+      setError("আপনার মোবাইল নম্বরটি সঠিক নয় (১১ ডিজিট হতে হবে এবং 01 দিয়ে শুরু হতে হবে)"); return
+    }
     if (!form.paymentMethod) {
       setError("পেমেন্ট পদ্ধতি বেছে নিন (Cash on Delivery বা Online Payment)")
       return
@@ -220,7 +224,23 @@ export default function CartPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">মোবাইল *</label>
-            <input type="tel" name="phone" value={form.phone} onChange={handleChange} placeholder="01XXXXXXXXX" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+            <input
+              type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 13) }))}
+              onBlur={(e) => setForm(prev => ({ ...prev, phone: normalizePhone(e.target.value) }))}
+              placeholder="01XXXXXXXXX"
+              required
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none ${
+                form.phone.length > 0 && !isValidBDPhone(form.phone)
+                  ? "border-red-500 bg-red-50"
+                  : "border-gray-200 focus:border-green-500"
+              }`}
+            />
+            {form.phone.length > 0 && !isValidBDPhone(form.phone) && (
+              <p className="text-red-500 text-[10px] mt-1 font-bold">সঠিক ১১ ডিজিটের নম্বর দিন (01 দিয়ে শুরু)</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">নাম *</label>
