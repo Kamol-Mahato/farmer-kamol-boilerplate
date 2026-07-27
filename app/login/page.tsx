@@ -292,7 +292,8 @@ export default function LoginPage() {
                       type="tel"
                       placeholder="01XXXXXXXXX"
                       value={forgotPhone}
-                      onChange={(e) => setForgotPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
+                      maxLength={11}
+                      onChange={(e) => setForgotPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
                       onBlur={(e) => setForgotPhone(normalizePhone(e.target.value))}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-yellow-400"
                     />

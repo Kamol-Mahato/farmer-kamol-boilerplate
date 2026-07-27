@@ -104,7 +104,8 @@ export default function RegisterPage() {
               required
               placeholder="01XXXXXXXXX"
               value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 13))}
+              maxLength={11}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
               onBlur={(e) => setPhone(normalizePhone(e.target.value))}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-[16px] focus:outline-none focus:border-green-500 touch-manipulation"
             />

@@ -228,7 +228,8 @@ export default function CartPage() {
               type="tel"
               name="phone"
               value={form.phone}
-              onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 13) }))}
+              maxLength={11}
+              onChange={(e) => setForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 11) }))}
               onBlur={(e) => setForm(prev => ({ ...prev, phone: normalizePhone(e.target.value) }))}
               placeholder="01XXXXXXXXX"
               required
