@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { Hind_Siliguri } from "next/font/google"
 import ConditionalLayout from "./components/ConditionalLayout"
 import OrganizationSchema from "./components/OrganizationSchema"
 import EnterKeyNav from "./components/EnterKeyNav"
+import TopLoadingBar from "./components/TopLoadingBar"
 import "./globals.css"
 import { headers } from "next/headers"
 import { GoogleAnalytics } from '@next/third-parties/google'
@@ -15,7 +17,10 @@ const hindSiliguri = Hind_Siliguri({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://farmerkamol.com"),
-  title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+  title: {
+    default: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+    template: "%s | Farmer Kamol",
+  },
   description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্য মূল্য।",
   manifest: "/manifest.json",
   keywords: [
@@ -63,6 +68,9 @@ export default async function RootLayout({
     <html lang={lang}>
       <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
       <OrganizationSchema lang={lang} />
+        <Suspense fallback={null}>
+          <TopLoadingBar />
+        </Suspense>
         <EnterKeyNav />
         <ConditionalLayout>{children}</ConditionalLayout>
         {/* গুগল অ্যানালিটিক্স কম্পোনেন্ট */}
