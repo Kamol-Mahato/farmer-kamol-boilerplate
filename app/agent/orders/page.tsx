@@ -13,6 +13,7 @@ const STATUS_LABELS: Record<string, string> = {
   DELIVERY_ONGOING: "পাঠানো হয়েছে",
   DELIVERED: "ডেলিভার্ড",
   PAID_RETURN: "পেইড রিটার্ন",
+  PARTIAL_DELIVERY: "আংশিক ডেলিভারি",
   RETURNED: "ফেরত",
   CANCELLED: "বাতিল",
   REFUNDED: "রিফান্ড",
@@ -45,6 +46,7 @@ interface Order {
   paymentAmountPaid: number
   customerNote: string | null
   collectedAmount: number | null
+  receivedQty: number | null
   courierSummary: CourierSummary | null
   customer: { name: string; phone: string }
   orderItems: OrderItem[]
@@ -61,6 +63,7 @@ export default function AgentOrdersPage() {
   const [showInvoiceMenu, setShowInvoiceMenu] = useState(false)
   const [pendingShipment, setPendingShipment] = useState<{ orderId: number; courier: string } | null>(null)
   const [pendingDelivery, setPendingDelivery] = useState<{ orderId: number; amount: string; status: string } | null>(null)
+  const [pendingReceive, setPendingReceive] = useState<{ orderId: number; qty: string } | null>(null)
 
   const [searchId, setSearchId] = useState("")
   const [searchPhone, setSearchPhone] = useState("")
@@ -165,6 +168,34 @@ export default function AgentOrdersPage() {
 
   function getExpectedCashCollection(order: Order) {
     return order.finalCodAmount - order.paymentAmountPaid
+  }
+
+  // 📦 অর্ডারের মোট প্রোডাক্ট কোয়ান্টিটি (raw সংখ্যা যোগফল) — Partial Delivery-এর "৪টার..." দেখানোর জন্য
+  function getOrderTotalQty(order: Order) {
+    return order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
+  }
+  // 📦 Partial Delivery-এ "কতটা পাওয়া গেছে" কনফার্ম করা
+  async function handleReceivePartial(orderId: number, qtyStr: string, totalQty: number) {
+    if (qtyStr === "" || isNaN(Number(qtyStr)) || Number(qtyStr) < 0 || Number(qtyStr) > totalQty) {
+      alert(`০ থেকে ${totalQty}-এর মধ্যে সঠিক সংখ্যা দিন`)
+      return
+    }
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/receive-partial`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receivedQty: Number(qtyStr) }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || "আপডেট করা যায়নি")
+        return
+      }
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, receivedQty: Number(qtyStr) } : o))
+      setPendingReceive(null)
+    } catch {
+      alert("সার্ভার সমস্যা, আবার চেষ্টা করুন")
+    }
   }
 
   const CLOSED_NO_DUE_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
@@ -376,7 +407,7 @@ export default function AgentOrdersPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">পার্সেল স্ট্যাটাস</label>
+              <label className="w-32 shrink-0 text-sm font-bold text-gray-700">পার্শিয়াল স্ট্যাটাস </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -387,6 +418,7 @@ export default function AgentOrdersPage() {
                 <option value="CONFIRMED">কনফার্মড</option>
                 <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
                 <option value="DELIVERED">ডেলিভার্ড</option>
+                <option value="PARTIAL_DELIVERY">আংশিক ডেলিভারি</option>
                 <option value="PAID_RETURN">পেইড রিটার্ন</option>
                 <option value="RETURNED">ফেরত</option>
                 <option value="CANCELLED">বাতিল</option>
@@ -529,13 +561,14 @@ export default function AgentOrdersPage() {
               <th className="px-6 py-4 font-medium">অর্ডার ID</th>
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
+              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
+              <th className="px-6 py-4 font-medium">পার্শিয়াল স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
               <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">বাকি (Due)</th>
               <th className="px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
               <th className="px-6 py-4 font-medium">কালেকশন (Due)</th>
-              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
@@ -544,7 +577,7 @@ export default function AgentOrdersPage() {
           <tbody className="border-t border-gray-200">
           {orders.length === 0 ? (
               <tr>
-                <td colSpan={14} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={15} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               orders.map((order) => {
@@ -570,31 +603,6 @@ export default function AgentOrdersPage() {
 
                   <td className="px-6 py-4 font-medium text-gray-800">{order.customer.name}</td>
                   <td className="px-6 py-4 text-gray-600">{order.customer.phone}</td>
-                  <td className="px-6 py-4">
-                    {renderPaymentBadge(order)}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 ">
-   {order.finalCodAmount}
-</td>
-
-<td className="px-6 py-4 font-medium text-gray-900 ">
-{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
-</td>
-<td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
-
-<td className="px-6 py-4 font-bold text-gray-800">
-  {order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : <span className="text-gray-400 font-normal">-</span>}
-</td>
-
-<td className="px-6 py-4 font-bold">
-  {(() => {
-    const collectionDue = getCollectionDue(order)
-    if (collectionDue === null) return <span className="text-gray-400">-</span>
-    if (collectionDue >= 0) return <span className="text-gray-700">{collectionDue}</span>
-    return <span className="text-red-600">{Math.abs(collectionDue)}</span>
-  })()}
-</td>
-
 <td className="px-6 py-4">
   <div
     className="relative inline-block rounded-full overflow-hidden"
@@ -612,7 +620,7 @@ export default function AgentOrdersPage() {
         if (newStatus === "DELIVERY_ONGOING") {
           setPendingShipment({ orderId: order.id, courier: "" })
           setPendingDelivery(null)
-        } else if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN") {
+        } else if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN" || newStatus === "PARTIAL_DELIVERY") {
           setPendingDelivery({ orderId: order.id, amount: String(order.finalCodAmount), status: newStatus })
           setPendingShipment(null)
         } else {
@@ -709,6 +717,64 @@ export default function AgentOrdersPage() {
     </div>
   )}
 </td>
+                  <td className="px-6 py-4">
+                    {order.orderStatus !== "PARTIAL_DELIVERY" ? (
+                      <span className="text-gray-400 text-xs">-</span>
+                    ) : order.receivedQty === null || order.receivedQty === undefined ? (
+                      pendingReceive?.orderId === order.id ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-500">মোট {getOrderTotalQty(order)}টা —</span>
+                          <input
+                            type="number"
+                            value={pendingReceive.qty}
+                            onChange={(e) => setPendingReceive({ orderId: order.id, qty: e.target.value })}
+                            className="text-xs border border-black rounded px-2 py-1 w-16 focus:outline-none"
+                            placeholder="কতটা"
+                          />
+                          <button
+                            onClick={() => handleReceivePartial(order.id, pendingReceive.qty, getOrderTotalQty(order))}
+                            className="text-xs bg-green-700 text-white px-2 py-1 rounded font-bold"
+                          >✓</button>
+                          <button onClick={() => setPendingReceive(null)} className="text-xs border border-gray-400 px-2 py-1 rounded">✕</button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-red-600">❌ পাওয়া যায়নি</span>
+                          <button
+                            onClick={() => setPendingReceive({ orderId: order.id, qty: String(getOrderTotalQty(order)) })}
+                            className="text-xs underline text-blue-600 font-medium"
+                          >Received মার্ক করুন</button>
+                        </div>
+                      )
+                    ) : (
+                      <span className="text-xs font-bold text-green-700">✅ পাওয়া গেছে ({getOrderTotalQty(order)}টার {order.receivedQty}টা)</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {renderPaymentBadge(order)}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900 ">
+   {order.finalCodAmount}
+</td>
+
+<td className="px-6 py-4 font-medium text-gray-900 ">
+{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
+</td>
+<td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
+
+<td className="px-6 py-4 font-bold text-gray-800">
+  {order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : <span className="text-gray-400 font-normal">-</span>}
+</td>
+
+<td className="px-6 py-4 font-bold">
+  {(() => {
+    const collectionDue = getCollectionDue(order)
+    if (collectionDue === null) return <span className="text-gray-400">-</span>
+    if (collectionDue >= 0) return <span className="text-gray-700">{collectionDue}</span>
+    return <span className="text-red-600">{Math.abs(collectionDue)}</span>
+  })()}
+</td>
+
                   <td className="px-6 py-4 ">
                     {order.courierSummary ? (
                       <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">

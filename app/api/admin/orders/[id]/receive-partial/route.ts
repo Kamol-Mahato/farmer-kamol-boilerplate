@@ -4,12 +4,13 @@ import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { applyPartialDeliveryStockRestore } from "@/lib/orderUtils"
 
 // ✅ PARTIAL_DELIVERY অর্ডারে "কতটা পাওয়া গেছে" কনফার্ম করার এন্ডপয়েন্ট — Admin ও Agent দুজনেই ব্যবহার করতে পারবে
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authUser = await verifyAdminOrAgent()
   if (!authUser) {
     return NextResponse.json({ error: "লগইন করুন" }, { status: 401 })
   }
-  const orderId = parseInt(params.id)
+  const { id } = await params
+  const orderId = parseInt(id)
   if (isNaN(orderId)) {
     return NextResponse.json({ error: "সঠিক অর্ডার আইডি দিন" }, { status: 400 })
   }
