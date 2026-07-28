@@ -13,14 +13,15 @@ const STATUS_LABELS: Record<string, string> = {
   CONFIRMED: "কনফার্মড",
   DELIVERY_ONGOING: "পাঠানো হয়েছে",
   DELIVERED: "ডেলিভার্ড",
+  PAID_RETURN: "পেইড রিটার্ন",
   RETURNED: "ফেরত",
   CANCELLED: "বাতিল",
   REFUNDED: "রিফান্ড",
   LOST: "হারানো",
   DAMAGED: "নষ্ট",
 }
-const ALL_STATUSES = ["PENDING", "CONFIRMED", "DELIVERY_ONGOING", "DELIVERED", "RETURNED", "CANCELLED", "REFUNDED", "LOST", "DAMAGED"]
-const TERMINAL_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
+const ALL_STATUSES = ["PENDING", "CONFIRMED", "DELIVERY_ONGOING", "DELIVERED", "PAID_RETURN", "RETURNED", "CANCELLED", "REFUNDED", "LOST", "DAMAGED"]
+const TERMINAL_STATUSES = ["DELIVERED", "PAID_RETURN", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
 const COURIER_OPTIONS = ["Steadfast", "Pathao", "RedX", "eCourier"]
 
 interface OrderItemData { id: number; quantity: number; finalPrice: number; product: { name: string; unit: string } }
@@ -69,7 +70,7 @@ function formatBD(dateStr: string) {
 
 function statusColorClasses(status: string) {
   if (status === "DELIVERED") return "bg-green-600 text-white border-green-600"
-  if (["CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"].includes(status)) return "bg-red-600 text-white border-red-600"
+  if (["PAID_RETURN", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"].includes(status)) return "bg-red-600 text-white border-red-600"
   return "bg-yellow-400 text-gray-900 border-yellow-400" // PENDING, CONFIRMED, DELIVERY_ONGOING
 }
 
@@ -131,6 +132,7 @@ interface Props {
   const [statusLoading, setStatusLoading] = useState(false)
   const [pendingShipmentCourier, setPendingShipmentCourier] = useState<string | null>(null)
   const [pendingDeliveredAmount, setPendingDeliveredAmount] = useState<string | null>(null)
+  const [pendingDeliveredStatus, setPendingDeliveredStatus] = useState<string | null>(null)
   const [showPrintMenu, setShowPrintMenu] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
@@ -150,6 +152,7 @@ interface Props {
     setStatusLoading(false)
     setPendingShipmentCourier(null)
     setPendingDeliveredAmount(null)
+    setPendingDeliveredStatus(null)
     if (!result.success) {
       alert(result.error || "স্ট্যাটাস পরিবর্তন করা যায়নি")
       return
@@ -169,8 +172,9 @@ interface Props {
       setPendingDeliveredAmount(null)
       return
     }
-    if (newStatus === "DELIVERED") {
+    if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN") {
       setPendingDeliveredAmount(String(order.finalCodAmount))
+      setPendingDeliveredStatus(newStatus)
       setPendingShipmentCourier(null)
       return
     }
@@ -299,7 +303,9 @@ interface Props {
         {/* Collected Amount — Delivered সিলেক্ট করলে */}
         {pendingDeliveredAmount !== null && (
           <div className="border border-black rounded-lg p-3 bg-gray-50 mb-3">
-            <label className="block text-sm font-bold text-gray-800 mb-2">Collected Amount — মোট COD: ৳ {order.finalCodAmount}</label>
+            <label className="block text-sm font-bold text-gray-800 mb-2">
+              Collected Amount ({STATUS_LABELS[pendingDeliveredStatus || "DELIVERED"]}) — মোট COD: ৳ {order.finalCodAmount}
+            </label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -310,11 +316,11 @@ interface Props {
               <button
                 onClick={() => {
                   if (pendingDeliveredAmount === "" || isNaN(Number(pendingDeliveredAmount))) { alert("সঠিক টাকার পরিমাণ দিন"); return }
-                  changeStatus("DELIVERED", undefined, pendingDeliveredAmount)
+                  changeStatus(pendingDeliveredStatus || "DELIVERED", undefined, pendingDeliveredAmount)
                 }}
                 className="bg-black text-white text-sm font-bold px-3 py-1.5 rounded-lg"
               >নিশ্চিত করুন</button>
-              <button onClick={() => setPendingDeliveredAmount(null)} className="text-sm border border-gray-300 px-3 py-1.5 rounded-lg">বাতিল</button>
+              <button onClick={() => { setPendingDeliveredAmount(null); setPendingDeliveredStatus(null) }} className="text-sm border border-gray-300 px-3 py-1.5 rounded-lg">বাতিল</button>
             </div>
           </div>
         )}

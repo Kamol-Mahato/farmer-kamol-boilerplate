@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { verifyAdminOrAgent, verifyAdminOnly } from "@/lib/adminAuth"
 import { getAllowedNextStatuses, requiresCollectedAmount, isOverrideTransition, UserRole } from "@/lib/orderStatusRules"
 import { applyStockChangeForStatusTransition } from "@/lib/orderUtils"
+const STATUS_LABEL_MAP: Record<string, string> = { DELIVERED: "Delivered", PAID_RETURN: "Paid Return", PARTIAL_DELIVERY: "Partial Delivery" }
 
 export async function GET(request: Request) {
   const authUser = await verifyAdminOrAgent()
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"))
-    const pageSize = Math.min(500, Math.max(1, parseInt(searchParams.get("pageSize") || "10")))
+    const pageSize = Math.min(100000, Math.max(1, parseInt(searchParams.get("pageSize") || "10")))
     const searchId = searchParams.get("searchId")?.trim() || ""
     const searchPhone = searchParams.get("searchPhone")?.trim() || ""
     const searchName = searchParams.get("searchName")?.trim() || ""
@@ -34,10 +35,14 @@ export async function GET(request: Request) {
       where.createdAt = { gte: new Date(startDateParam), lte: new Date(endDateParam) }
     }
 
-    // 🔎 অর্ডার ID (শেষ কয়েক সংখ্যা) সার্চ — dailySeq-এর ওপর, নিরাপদ parameterized raw query
+    // 🔎 অর্ডার ID সার্চ — পুরো কাস্টম ID (FKYYYYMMDD+dailySeq) অথবা তার শেষ কয়েক সংখ্যা দিয়ে
+    // generateCustomId()-এর সাথে হুবহু মিলিয়ে SQL-এ একই স্ট্রিং বানিয়ে তারপর মেলানো হচ্ছে
     if (searchId.length >= 4) {
       const rows = await prisma.$queryRaw<{ id: number }[]>`
-        SELECT id FROM "Order" WHERE CAST("dailySeq" AS TEXT) LIKE ${"%" + searchId}
+        SELECT id FROM "Order"
+        WHERE (
+          'FK' || to_char(("createdAt" AT TIME ZONE 'UTC') + interval '6 hours', 'YYYYMMDD') || CAST("dailySeq" AS TEXT)
+        ) ILIKE ${"%" + searchId}
       `
       const matchedIds = rows.map((r) => r.id)
       where.id = { in: matchedIds.length > 0 ? matchedIds : [-1] }
@@ -60,6 +65,7 @@ export async function GET(request: Request) {
           paymentAmountPaid: true,
           customerNote: true,
           collectedAmount: true,
+          receivedQty: true,
           customer: { select: { name: true, phone: true } },
           orderItems: { select: { quantity: true, product: { select: { name: true, unit: true } } } },
           courierSummary: { select: { courierStatus: true } },
@@ -98,18 +104,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "সঠিক তথ্য দিন" }, { status: 400 })
     }
 
-    // ✅ Delivered-এ bulk (একসাথে একাধিক) মার্ক করা যাবে না — প্রতিটার আলাদা Collected Amount দরকার
-    // একাধিক অর্ডার একসাথে Delivered করতে হলে Bulk CSV Update ব্যবহার করতে হবে
-    if (status === "DELIVERED" && orderIds.length > 1) {
+    // ✅ Amount লাগে এমন স্ট্যাটাসে (Delivered/Paid Return/Partial Delivery) bulk (একসাথে একাধিক) মার্ক করা যাবে না — প্রতিটার আলাদা Collected Amount দরকার
+    // একাধিক অর্ডার একসাথে করতে হলে Bulk CSV Update ব্যবহার করতে হবে
+    if (requiresCollectedAmount(status) && orderIds.length > 1) {
       return NextResponse.json(
-        { error: "একসাথে একাধিক অর্ডার Delivered করা যাবে না। প্রতিটার Collected Amount আলাদাভাবে বসাতে Bulk CSV Update ব্যবহার করুন।" },
+        { error: "একসাথে একাধিক অর্ডার এই স্ট্যাটাসে মার্ক করা যাবে না। প্রতিটার Collected Amount আলাদাভাবে বসাতে Bulk CSV Update ব্যবহার করুন।" },
         { status: 400 }
       )
     }
-
-    // ✅ Delivered করতে চাইলে Collected Amount বাধ্যতামূলক
+    // ✅ Collected Amount বাধ্যতামূলক এমন স্ট্যাটাসের জন্য
     if (requiresCollectedAmount(status) && (collectedAmount === undefined || collectedAmount === null || isNaN(Number(collectedAmount)))) {
-      return NextResponse.json({ error: "Delivered মার্ক করার আগে Collected Amount দিন" }, { status: 400 })
+      return NextResponse.json({ error: `${STATUS_LABEL_MAP[status] || status} মার্ক করার আগে Collected Amount দিন` }, { status: 400 })
     }
 
     const skipped: { orderId: number; reason: string }[] = []

@@ -82,6 +82,22 @@ export async function applyStockChangeForStatusTransition(
   }
 }
 
+// 📦 Partial Delivery — "না-পাওয়া" অংশের স্টক আনুপাতিকভাবে (proportionally) ফেরত দেওয়া
+// receivedQty হলো raw quantity (KG-তে না) — যেমন ৪টার ২টা পাওয়া গেলে receivedQty = 2
+// একাধিক ভিন্ন প্রোডাক্ট থাকলে প্রতিটাতে তার quantity-অনুপাতে ফেরত দেওয়া হয় (১০০% নিখুঁত না হলেও চলবে)
+export async function applyPartialDeliveryStockRestore(tx: any, orderId: number, receivedQty: number) {
+  const orderItems = await tx.orderItem.findMany({ where: { orderId }, include: { product: true } })
+  const totalRawQty = orderItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+  if (totalRawQty <= 0) return
+  const notReceivedRawQty = Math.max(0, totalRawQty - receivedQty)
+  const notReceivedRatio = notReceivedRawQty / totalRawQty
+  if (notReceivedRatio <= 0) return
+  for (const item of orderItems) {
+    const itemKg = item.quantity * getUnitToKgMultiplier(item.product.unit)
+    const restoreKg = itemKg * notReceivedRatio
+    await tx.product.update({ where: { id: item.productId }, data: { stockQty: { increment: restoreKg } } })
+  }
+}
 export async function resolveOrderIdFromCustomId(rawId: string): Promise<number | null> {
   const trimmed = rawId.trim()
   if (!trimmed) return null

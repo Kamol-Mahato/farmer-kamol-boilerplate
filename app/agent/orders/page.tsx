@@ -12,6 +12,7 @@ const STATUS_LABELS: Record<string, string> = {
   CONFIRMED: "কনফার্মড",
   DELIVERY_ONGOING: "পাঠানো হয়েছে",
   DELIVERED: "ডেলিভার্ড",
+  PAID_RETURN: "পেইড রিটার্ন",
   RETURNED: "ফেরত",
   CANCELLED: "বাতিল",
   REFUNDED: "রিফান্ড",
@@ -59,7 +60,7 @@ export default function AgentOrdersPage() {
   const [courierName, setCourierName] = useState("")
   const [showInvoiceMenu, setShowInvoiceMenu] = useState(false)
   const [pendingShipment, setPendingShipment] = useState<{ orderId: number; courier: string } | null>(null)
-  const [pendingDelivery, setPendingDelivery] = useState<{ orderId: number; amount: string } | null>(null)
+  const [pendingDelivery, setPendingDelivery] = useState<{ orderId: number; amount: string; status: string } | null>(null)
 
   const [searchId, setSearchId] = useState("")
   const [searchPhone, setSearchPhone] = useState("")
@@ -386,6 +387,7 @@ export default function AgentOrdersPage() {
                 <option value="CONFIRMED">কনফার্মড</option>
                 <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
                 <option value="DELIVERED">ডেলিভার্ড</option>
+                <option value="PAID_RETURN">পেইড রিটার্ন</option>
                 <option value="RETURNED">ফেরত</option>
                 <option value="CANCELLED">বাতিল</option>
                 <option value="REFUNDED">রিফান্ড</option>
@@ -456,6 +458,7 @@ export default function AgentOrdersPage() {
             <option value={100}>১০০টি</option>
             <option value={200}>২০০টি</option>
             <option value={500}>৫০০টি</option>
+            <option value={100000}>সব</option>
           </select>
           <span className="text-sm text-gray-500 font-medium">
             ({orders.length} / মোট {totalCount.toLocaleString("bn-BD")}টি)
@@ -580,16 +583,15 @@ export default function AgentOrdersPage() {
 <td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
 
 <td className="px-6 py-4 font-bold text-gray-800">
-  {order.collectedAmount !== null && order.collectedAmount !== undefined ? `৳ ${order.collectedAmount}` : <span className="text-gray-400 font-normal">-</span>}
+  {order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : <span className="text-gray-400 font-normal">-</span>}
 </td>
 
 <td className="px-6 py-4 font-bold">
   {(() => {
     const collectionDue = getCollectionDue(order)
     if (collectionDue === null) return <span className="text-gray-400">-</span>
-    if (collectionDue === 0) return <span className="text-gray-700">৳ ০ (ঠিক আছে)</span>
-    if (collectionDue > 0) return <span className="text-green-700">+৳ {collectionDue}</span>
-    return <span className="text-red-600">৳ {Math.abs(collectionDue)}</span>
+    if (collectionDue >= 0) return <span className="text-gray-700">{collectionDue}</span>
+    return <span className="text-red-600">{Math.abs(collectionDue)}</span>
   })()}
 </td>
 
@@ -610,8 +612,8 @@ export default function AgentOrdersPage() {
         if (newStatus === "DELIVERY_ONGOING") {
           setPendingShipment({ orderId: order.id, courier: "" })
           setPendingDelivery(null)
-        } else if (newStatus === "DELIVERED") {
-          setPendingDelivery({ orderId: order.id, amount: String(order.finalCodAmount) })
+        } else if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN") {
+          setPendingDelivery({ orderId: order.id, amount: String(order.finalCodAmount), status: newStatus })
           setPendingShipment(null)
         } else {
           setPendingShipment(null)
@@ -681,7 +683,7 @@ export default function AgentOrdersPage() {
       <input
         type="number"
         value={pendingDelivery.amount}
-        onChange={(e) => setPendingDelivery({ orderId: order.id, amount: e.target.value })}
+        onChange={(e) => setPendingDelivery({ orderId: order.id, amount: e.target.value, status: pendingDelivery.status })}
         className="text-xs border border-black rounded px-2 py-1 w-24 focus:outline-none"
         placeholder="Collected"
       />
@@ -691,8 +693,8 @@ export default function AgentOrdersPage() {
             alert("সঠিক Collected Amount দিন")
             return
           }
-          handleStatusUpdate([order.id], "DELIVERED", undefined, pendingDelivery.amount)
-          setPendingDelivery(null)
+          handleStatusUpdate([order.id], pendingDelivery.status, undefined, pendingDelivery.amount)
+                    setPendingDelivery(null)
         }}
         className="text-xs bg-green-700 text-white px-2 py-1 rounded font-bold"
       >

@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const rows: BulkRow[] = body.rows
+    const dryRun: boolean = body.dryRun === true
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json({ error: "কোনো ডেটা পাওয়া যায়নি" }, { status: 400 })
@@ -64,11 +65,22 @@ export async function POST(request: Request) {
 
       const needsAmount = requiresCollectedAmount(status)
       if (needsAmount && (row.amount === undefined || row.amount === "" || isNaN(Number(row.amount)))) {
-        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "Delivered-এর জন্য Amount দরকার" })
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: `${status === "PAID_RETURN" ? "Paid Return" : "Delivered"}-এর জন্য Amount দরকার` })
+        continue
+      }
+      // ✅ CANCELLED-এ Amount দেওয়া চলবে না
+      if (status === "CANCELLED" && row.amount !== undefined && row.amount !== "" && !isNaN(Number(row.amount))) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "CANCELLED স্ট্যাটাসে Amount দেওয়া যাবে না" })
         continue
       }
 
       const overrideFlag = isOverrideTransition(currentStatus, status, role)
+
+      // 🔍 dryRun = প্রিভিউ স্টেপ — শুধু ভ্যালিডেশন, DB-তে কিছু লেখা হবে না
+      if (dryRun) {
+        results.push({ orderIdRaw: row.orderIdRaw, success: true, reason: `${currentStatus} → ${status}` })
+        continue
+      }
 
       try {
         await prisma.$transaction(async (tx) => {

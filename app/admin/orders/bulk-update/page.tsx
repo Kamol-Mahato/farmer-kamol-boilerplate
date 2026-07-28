@@ -1,7 +1,14 @@
 "use client"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 const SAMPLE_CSV = "Order ID,Amount,Status\nFK20260721001,850,DELIVERED\nFK20260721002,,CANCELLED\n"
+
+interface CsvRow {
+  orderIdRaw: string
+  amount: string
+  status: string
+}
 
 interface RowResult {
   orderIdRaw: string
@@ -10,17 +17,19 @@ interface RowResult {
 }
 
 export default function AdminBulkUpdatePage() {
+  const router = useRouter()
   const [fileName, setFileName] = useState("")
-  const [rows, setRows] = useState<{ orderIdRaw: string; amount: string; status: string }[]>([])
-  const [results, setResults] = useState<RowResult[] | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [rows, setRows] = useState<CsvRow[]>([])
+  const [previewResults, setPreviewResults] = useState<RowResult[] | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [submitLoading, setSubmitLoading] = useState(false)
 
   function downloadSample() {
     const blob = new Blob(["\uFEFF" + SAMPLE_CSV], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = "sample_bulk_update.csv"
+    link.download = "Farmer Kamol Bulk Update Sample File.csv"
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -29,7 +38,7 @@ export default function AdminBulkUpdatePage() {
     const file = e.target.files?.[0]
     if (!file) return
     setFileName(file.name)
-    setResults(null)
+    setPreviewResults(null)
     const reader = new FileReader()
     reader.onload = () => {
       const text = String(reader.result || "")
@@ -43,31 +52,60 @@ export default function AdminBulkUpdatePage() {
     reader.readAsText(file)
   }
 
-  async function handleUpdate() {
+  // 🔍 ধাপ ১: প্রিভিউ — সার্ভারে dryRun পাঠিয়ে যাচাই করা, কিছু আপডেট হবে না
+  async function handlePreview() {
     if (rows.length === 0) {
       alert("প্রথমে একটা CSV ফাইল আপলোড করুন")
       return
     }
-    setLoading(true)
-    setResults(null)
+    setPreviewLoading(true)
+    setPreviewResults(null)
     try {
       const res = await fetch("/api/orders/bulk-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows }),
+        body: JSON.stringify({ rows, dryRun: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || "যাচাই করা যায়নি")
+        return
+      }
+      setPreviewResults(data.results)
+    } catch {
+      alert("সার্ভার সমস্যা হয়েছে")
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  // ✅ ধাপ ২: Submit — আসল আপডেট, শুধু প্রিভিউ সব সবুজ হলেই সক্রিয়
+  async function handleSubmit() {
+    setSubmitLoading(true)
+    try {
+      const res = await fetch("/api/orders/bulk-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows, dryRun: false }),
       })
       const data = await res.json()
       if (!res.ok) {
         alert(data.error || "আপডেট করা যায়নি")
         return
       }
-      setResults(data.results)
+      const failed = (data.results as RowResult[]).filter((r) => !r.success)
+      if (failed.length > 0) {
+        alert(`কিছু সারি আপডেট হয়নি:\n${failed.map((f) => `${f.orderIdRaw}: ${f.reason}`).join("\n")}`)
+      }
+      router.push("/admin/orders")
     } catch {
       alert("সার্ভার সমস্যা হয়েছে")
     } finally {
-      setLoading(false)
+      setSubmitLoading(false)
     }
   }
+
+  const allValid = previewResults !== null && previewResults.every((r) => r.success)
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -77,7 +115,7 @@ export default function AdminBulkUpdatePage() {
         <div>
           <p className="text-sm font-bold text-gray-800 mb-1">Sample file</p>
           <button onClick={downloadSample} className="text-sm underline text-black font-medium">
-            Click here to download sample CSV file
+            Click here to download sample file
           </button>
         </div>
 
@@ -93,37 +131,61 @@ export default function AdminBulkUpdatePage() {
         </div>
 
         <button
-          onClick={handleUpdate}
-          disabled={loading}
+          onClick={handlePreview}
+          disabled={previewLoading}
           className="bg-black text-white px-6 py-2.5 rounded-lg font-bold text-sm disabled:opacity-50"
         >
-          {loading ? "আপডেট হচ্ছে..." : "Update"}
+          {previewLoading ? "যাচাই হচ্ছে..." : "Update"}
         </button>
       </div>
 
-      {results && (
+      {/* 🔍 প্রিভিউ টেবিল — প্রতিটা সারির ID, Amount, Status + সবুজ/লাল ভ্যালিডিটি মার্ক */}
+      {previewResults && (
         <div className="bg-white border border-gray-300 rounded-xl p-6 mt-6">
-          <h2 className="font-bold text-gray-800 mb-4">ফলাফল</h2>
+          <h2 className="font-bold text-gray-800 mb-4">প্রিভিউ — সাবমিট করার আগে যাচাই করে নিন</h2>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-300 text-left">
                 <th className="py-2">Order ID</th>
-                <th className="py-2">স্ট্যাটাস</th>
-                <th className="py-2">কারণ</th>
+                <th className="py-2">Amount</th>
+                <th className="py-2">Status</th>
+                <th className="py-2">যাচাই</th>
+                <th className="py-2">রিমার্কস</th>
               </tr>
             </thead>
             <tbody>
-              {results.map((r, i) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="py-2 font-medium">{r.orderIdRaw}</td>
-                  <td className={`py-2 font-bold ${r.success ? "text-green-700" : "text-red-600"}`}>
-                    {r.success ? "✅ সফল" : "❌ ব্যর্থ"}
-                  </td>
-                  <td className="py-2 text-gray-600">{r.reason || "-"}</td>
-                </tr>
-              ))}
+              {rows.map((row, i) => {
+                const result = previewResults[i]
+                return (
+                  <tr key={i} className="border-b border-gray-100">
+                    <td className="py-2 font-medium">{row.orderIdRaw}</td>
+                    <td className="py-2">{row.amount || "-"}</td>
+                    <td className="py-2">{row.status}</td>
+                    <td className="py-2 font-bold">
+                      {result?.success ? <span className="text-green-700">✅</span> : <span className="text-red-600">❌</span>}
+                    </td>
+                    <td className={`py-2 ${result?.success ? "text-gray-500" : "text-red-600 font-medium"}`}>
+                      {result?.reason || "-"}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
+
+          {!allValid && (
+            <p className="text-red-600 text-sm font-bold mt-4">
+              ❌ কিছু সারিতে সমস্যা আছে — Submit করার আগে CSV ফাইল ঠিক করে আবার আপলোড করুন।
+            </p>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            disabled={!allValid || submitLoading}
+            className="mt-4 bg-green-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {submitLoading ? "সাবমিট হচ্ছে..." : "Submit"}
+          </button>
         </div>
       )}
     </div>
