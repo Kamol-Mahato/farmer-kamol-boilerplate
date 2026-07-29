@@ -65,6 +65,7 @@ export async function GET(request: Request) {
           paymentAmountPaid: true,
           customerNote: true,
           collectedAmount: true,
+          courierPaidAmount: true,
           receivedQty: true,
           customer: { select: { name: true, phone: true } },
           orderItems: { select: { quantity: true, product: { select: { name: true, unit: true } } } },
