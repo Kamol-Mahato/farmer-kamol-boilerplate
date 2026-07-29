@@ -1,61 +1,77 @@
-// public/sw.js
-// ✅ এই ফাইলটা ব্রাউজার ব্যাকগ্রাউন্ডে চলে, ট্যাব/অ্যাপ বন্ধ থাকলেও
+// ✅ এই ফাইলটি সাধারণ কাস্টমার, এজেন্ট এবং অ্যাডমিন — সবার জন্যই কাজ করবে
 
-// নতুন push notification এলে এখানে ধরা পড়ে
+// ১. Push Notification হ্যান্ডলার
 self.addEventListener("push", function (event) {
-    let data = { title: "Farmer Kamol", body: "নতুন অর্ডার এসেছে!", url: "/admin/orders" }
-  
-    if (event.data) {
-      try {
-        data = event.data.json()
-      } catch (e) {
-        data.body = event.data.text()
-      }
+  let data = { title: "Farmer Kamol", body: "নতুন আপডেট!", url: "/" }
+
+  if (event.data) {
+    try {
+      data = event.data.json()
+    } catch (e) {
+      data.body = event.data.text()
     }
-  
-    const options = {
-      body: data.body,
-      icon: "/uploads/kamol.png",
-      badge: "/uploads/kamol.png",
-      vibrate: [200, 100, 200],
-      data: { url: data.url || "/admin/orders" },
-      tag: data.tag || "farmer-kamol-order",
-      renotify: true,
-    }
-  
-    event.waitUntil(
-      Promise.all([
-        self.registration.showNotification(data.title, options),
-        // ✅ খোলা ট্যাব থাকলে সরাসরি সেখানে ডেটা পাঠাও — bell icon সাথে সাথে আপডেট হবে
-        clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-          clientList.forEach((client) => {
-            client.postMessage({
-              type: "NEW_ORDER",
-              orderId: data.orderId,
-              name: data.name,
-              amount: data.amount,
-            })
+  }
+
+  const options = {
+    body: data.body,
+    icon: "/uploads/kamol.png",
+    badge: "/uploads/kamol.png",
+    vibrate: [200, 100, 200],
+    data: { url: data.url || "/" }, // যে লিংক ব্যাকএন্ড পাঠাবে সেটাই সেভ হবে
+    tag: data.tag || "farmer-kamol-notification",
+    renotify: true,
+  }
+
+  event.waitUntil(
+    Promise.all([
+      self.registration.showNotification(data.title, options),
+      // খোলা ট্যাব থাকলে মেসেজ পাঠানো
+      clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+        clientList.forEach((client) => {
+          client.postMessage({
+            type: "NEW_NOTIFICATION",
+            ...data
           })
-        }),
-      ])
-    )
-  })
+        })
+      }),
+    ])
+  )
+})
+
+// ২. Notification Click হ্যান্ডলার (স্মার্ট রিডাইরেক্ট)
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close()
   
-  // ✅ Notification-এ ট্যাপ করলে Admin Orders পেজ খুলবে
-  self.addEventListener("notificationclick", function (event) {
-    event.notification.close()
-    const targetUrl = event.notification.data?.url || "/admin/orders"
-  
-    event.waitUntil(
-      clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clientList) {
+  // ব্যাকএন্ড থেকে পাঠানো আসল URL (যেমন: /admin/orders, /agent/orders, বা /blog/1)
+  const targetUrl = event.notification.data?.url || "/"
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clientList) {
+      
+      // ক) যদি কোনো ট্যাব অলরেডি খোলা থাকে এবং সেটিতে ম্যাচ করে, তবে সেখানে ফোকাস করো
+      for (const client of clientList) {
+        if (targetUrl !== "/" && client.url.includes(targetUrl) && "focus" in client) {
+          return client.focus()
+        }
+      }
+
+      // খ) যদি এটি অর্ডার নোটিফিকেশন হয় (URL-এ /orders থাকে)
+      if (targetUrl.includes("orders")) {
+        // ট্যাবগুলোর মধ্যে এজেন্ট বা অ্যাডমিন প্যানেল খোলা আছে কি না দেখা
         for (const client of clientList) {
-          if (client.url.includes(targetUrl) && "focus" in client) {
+          if (client.url.includes("/agent") && "focus" in client) {
+            return client.focus()
+          }
+          if (client.url.includes("/admin") && "focus" in client) {
             return client.focus()
           }
         }
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl)
-        }
-      })
-    )
-  })
+      }
+
+      // গ) কোনো উপযুক্ত ট্যাব খোলা না থাকলে যেই URL রিসিভ হয়েছে সেটি নতুন ট্যাবে খোলো
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl)
+      }
+    })
+  )
+})
