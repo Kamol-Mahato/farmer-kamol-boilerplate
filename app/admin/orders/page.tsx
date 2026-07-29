@@ -28,9 +28,8 @@ const STATUS_LABELS: Record<string, string> = {
 const AMOUNT_REQUIRED_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "LOST", "DAMAGED"]
 function getStatusPillStyle(status: string) {
   if (status === "DELIVERED") return { bg: "#16a34a", text: "#ffffff" } // সবুজ
-  if (["LOST", "CANCELLED", "DAMAGED", "REFUNDED"].includes(status)) return { bg: "#dc2626", text: "#ffffff" } // লাল
-  if (["PAID_RETURN", "PARTIAL_DELIVERY"].includes(status)) return { bg: "#f97316", text: "#ffffff" } // কমলা
-  return { bg: "#facc15", text: "#111827" } // হলুদ — PENDING, CONFIRMED, DELIVERY_ONGOING, RETURNED
+  if (status === "CANCELLED") return { bg: "#dc2626", text: "#ffffff" } // লাল
+  return { bg: "#ffffff", text: "#111827" } // Black & White — বাকি সব স্ট্যাটাস
 }
 
 interface OrderItem {
@@ -675,7 +674,7 @@ export default function AdminOrdersPage() {
               <th className="hidden md:table-cell px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
               <th className="hidden md:table-cell px-6 py-4 font-medium">কালেকশন (Due)</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
-              <th className="px-6 py-4 font-medium">Courier Payment</th>
+              <th className="px-6 py-4 font-medium">কুরিয়ার পেমেন্ট </th>
               <th className="px-6 py-4 font-medium">পার্শিয়াল স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
@@ -716,10 +715,11 @@ export default function AdminOrdersPage() {
     className="relative inline-block rounded-full overflow-hidden"
     style={{
       backgroundColor: getStatusPillStyle(order.orderStatus).bg,
-      border: order.orderStatus === "DELIVERED" ? "none" : "1px solid rgba(0,0,0,0.1)",
+      border: (order.orderStatus === "DELIVERED" || order.orderStatus === "CANCELLED") ? "none" : "1px solid #d1d5db",
     }}
   >
     <select
+      className="status-pill"
       value={order.orderStatus}
       onChange={(e) => {
         const newStatus = e.target.value
@@ -737,8 +737,8 @@ export default function AdminOrdersPage() {
         }
       }}
       style={{
-        background: "transparent",
-        color: getStatusPillStyle(order.orderStatus).text,
+        "--pill-bg": getStatusPillStyle(order.orderStatus).bg,
+        "--pill-text": getStatusPillStyle(order.orderStatus).text,
         border: "none",
         borderRadius: "9999px",
         padding: "6px 24px 6px 16px",
@@ -749,7 +749,7 @@ export default function AdminOrdersPage() {
         appearance: "none",
         WebkitAppearance: "none",
         MozAppearance: "none",
-      }}
+      } as React.CSSProperties}
     >
       <option value={order.orderStatus}>{STATUS_LABELS[order.orderStatus]}</option>
       {ALL_STATUSES.filter((s) => s !== order.orderStatus).map((s) => (

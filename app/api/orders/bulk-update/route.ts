@@ -8,7 +8,8 @@ import { OrderStatus } from "@prisma/client"
 interface BulkRow {
   orderIdRaw: string
   amount?: string
-  status: string
+  status?: string
+  courierPaidAmount?: string
 }
 
 export async function POST(request: Request) {
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const rows: BulkRow[] = body.rows
     const dryRun: boolean = body.dryRun === true
+    const mode: string = body.mode === "COURIER_PAYMENT" ? "COURIER_PAYMENT" : "STATUS"
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json({ error: "কোনো ডেটা পাওয়া যায়নি" }, { status: 400 })
@@ -31,6 +33,55 @@ export async function POST(request: Request) {
     }
 
     const results: { orderIdRaw: string; success: boolean; reason?: string }[] = []
+
+    // 🚚 Courier Payment বাল্ক আপডেট — Order ID + Courier Paid Amount, collectedAmount-এর সাথে মিলিয়ে দেখায় (মিসম্যাচেও ব্লক করে না, শুধু জানায়)
+    if (mode === "COURIER_PAYMENT") {
+      for (const row of rows) {
+        const courierPaidAmount = row.courierPaidAmount
+        if (courierPaidAmount === undefined || courierPaidAmount === "" || isNaN(Number(courierPaidAmount))) {
+          results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "Courier Paid Amount সঠিক নয়" })
+          continue
+        }
+
+        const orderId = await resolveOrderIdFromCustomId(row.orderIdRaw)
+        if (!orderId) {
+          results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "Order ID খুঁজে পাওয়া যায়নি" })
+          continue
+        }
+
+        const currentOrder = await prisma.order.findUnique({ where: { id: orderId }, select: { orderStatus: true, collectedAmount: true } })
+        if (!currentOrder) {
+          results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "অর্ডার নেই" })
+          continue
+        }
+        if (!requiresCollectedAmount(currentOrder.orderStatus) || currentOrder.collectedAmount === null || currentOrder.collectedAmount === undefined) {
+          results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "এই অর্ডারে এখনো Collected Amount বসেনি" })
+          continue
+        }
+
+        const matched = Number(courierPaidAmount) === currentOrder.collectedAmount
+        const reason = matched
+          ? "✅ মিলেছে"
+          : `⚠️ মিসম্যাচ: কালেক্টেড ৳${currentOrder.collectedAmount}, দেওয়া ৳${courierPaidAmount}`
+
+        if (dryRun) {
+          results.push({ orderIdRaw: row.orderIdRaw, success: true, reason })
+          continue
+        }
+
+        try {
+          await prisma.order.update({
+            where: { id: orderId },
+            data: { courierPaidAmount: Number(courierPaidAmount) },
+          })
+          results.push({ orderIdRaw: row.orderIdRaw, success: true, reason })
+        } catch {
+          results.push({ orderIdRaw: row.orderIdRaw, success: false, reason: "সার্ভার সমস্যা" })
+        }
+      }
+
+      return NextResponse.json({ success: true, results })
+    }
 
     for (const row of rows) {
       const status = (row.status || "").trim().toUpperCase()

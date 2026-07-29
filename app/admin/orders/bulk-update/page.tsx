@@ -2,12 +2,16 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-const SAMPLE_CSV = "Order ID,Amount,Status\nFK20260721001,850,DELIVERED\nFK20260721002,,CANCELLED\n"
+const SAMPLE_CSV_STATUS = "Order ID,Amount,Status\nFK20260721001,850,DELIVERED\nFK20260721002,,CANCELLED\n"
+const SAMPLE_CSV_COURIER = "Order ID,Courier Paid Amount\nFK20260721001,850\nFK20260721002,700\n"
+
+type UpdateMode = "STATUS" | "COURIER_PAYMENT"
 
 interface CsvRow {
   orderIdRaw: string
   amount: string
   status: string
+  courierPaidAmount: string
 }
 
 interface RowResult {
@@ -18,6 +22,7 @@ interface RowResult {
 
 export default function AdminBulkUpdatePage() {
   const router = useRouter()
+  const [mode, setMode] = useState<UpdateMode>("STATUS")
   const [fileName, setFileName] = useState("")
   const [rows, setRows] = useState<CsvRow[]>([])
   const [previewResults, setPreviewResults] = useState<RowResult[] | null>(null)
@@ -25,7 +30,8 @@ export default function AdminBulkUpdatePage() {
   const [submitLoading, setSubmitLoading] = useState(false)
 
   function downloadSample() {
-    const blob = new Blob(["\uFEFF" + SAMPLE_CSV], { type: "text/csv;charset=utf-8;" })
+    const csv = mode === "COURIER_PAYMENT" ? SAMPLE_CSV_COURIER : SAMPLE_CSV_STATUS
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
@@ -44,8 +50,12 @@ export default function AdminBulkUpdatePage() {
       const text = String(reader.result || "")
       const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0)
       const parsed = lines.slice(1).map((line) => {
+        if (mode === "COURIER_PAYMENT") {
+          const [orderIdRaw, courierPaidAmount] = line.split(",").map((s) => s.trim())
+          return { orderIdRaw: orderIdRaw || "", amount: "", status: "", courierPaidAmount: courierPaidAmount || "" }
+        }
         const [orderIdRaw, amount, status] = line.split(",").map((s) => s.trim())
-        return { orderIdRaw: orderIdRaw || "", amount: amount || "", status: status || "" }
+        return { orderIdRaw: orderIdRaw || "", amount: amount || "", status: status || "", courierPaidAmount: "" }
       }).filter((r) => r.orderIdRaw)
       setRows(parsed)
     }
@@ -64,7 +74,7 @@ export default function AdminBulkUpdatePage() {
       const res = await fetch("/api/orders/bulk-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows, dryRun: true }),
+        body: JSON.stringify({ rows, dryRun: true, mode }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -86,7 +96,7 @@ export default function AdminBulkUpdatePage() {
       const res = await fetch("/api/orders/bulk-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows, dryRun: false }),
+        body: JSON.stringify({ rows, dryRun: false, mode }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -112,6 +122,23 @@ export default function AdminBulkUpdatePage() {
       <h1 className="text-2xl font-bold text-black mb-6">Bulk Order Update</h1>
 
       <div className="bg-white border border-black rounded-xl p-6 space-y-5">
+        <div>
+          <p className="text-sm font-bold text-gray-800 mb-1">আপডেট মোড</p>
+          <select
+            value={mode}
+            onChange={(e) => {
+              setMode(e.target.value as UpdateMode)
+              setFileName("")
+              setRows([])
+              setPreviewResults(null)
+            }}
+            className="border border-gray-400 rounded-lg text-sm px-3 py-2"
+          >
+            <option value="STATUS">স্ট্যাটাস ও Amount আপডেট</option>
+            <option value="COURIER_PAYMENT">Courier Payment আপডেট</option>
+          </select>
+        </div>
+
         <div>
           <p className="text-sm font-bold text-gray-800 mb-1">Sample file</p>
           <button onClick={downloadSample} className="text-sm underline text-black font-medium">
@@ -139,7 +166,7 @@ export default function AdminBulkUpdatePage() {
         </button>
       </div>
 
-      {/* 🔍 প্রিভিউ টেবিল — প্রতিটা সারির ID, Amount, Status + সবুজ/লাল ভ্যালিডিটি মার্ক */}
+      {/* 🔍 প্রিভিউ টেবিল */}
       {previewResults && (
         <div className="bg-white border border-gray-300 rounded-xl p-6 mt-6">
           <h2 className="font-bold text-gray-800 mb-4">প্রিভিউ — সাবমিট করার আগে যাচাই করে নিন</h2>
@@ -147,8 +174,14 @@ export default function AdminBulkUpdatePage() {
             <thead>
               <tr className="border-b border-gray-300 text-left">
                 <th className="py-2">Order ID</th>
-                <th className="py-2">Amount</th>
-                <th className="py-2">Status</th>
+                {mode === "COURIER_PAYMENT" ? (
+                  <th className="py-2">Courier Paid Amount</th>
+                ) : (
+                  <>
+                    <th className="py-2">Amount</th>
+                    <th className="py-2">Status</th>
+                  </>
+                )}
                 <th className="py-2">যাচাই</th>
                 <th className="py-2">রিমার্কস</th>
               </tr>
@@ -159,8 +192,14 @@ export default function AdminBulkUpdatePage() {
                 return (
                   <tr key={i} className="border-b border-gray-100">
                     <td className="py-2 font-medium">{row.orderIdRaw}</td>
-                    <td className="py-2">{row.amount || "-"}</td>
-                    <td className="py-2">{row.status}</td>
+                    {mode === "COURIER_PAYMENT" ? (
+                      <td className="py-2">{row.courierPaidAmount || "-"}</td>
+                    ) : (
+                      <>
+                        <td className="py-2">{row.amount || "-"}</td>
+                        <td className="py-2">{row.status}</td>
+                      </>
+                    )}
                     <td className="py-2 font-bold">
                       {result?.success ? <span className="text-green-700">✅</span> : <span className="text-red-600">❌</span>}
                     </td>

@@ -174,3 +174,7 @@ a:active,
   transform: scale(0.94);
   opacity: 0.8;
 }
+select.status-pill {
+  background-color: var(--pill-bg) !important;
+  color: var(--pill-text) !important;
+}
