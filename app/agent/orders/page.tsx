@@ -22,6 +22,15 @@ const STATUS_LABELS: Record<string, string> = {
 }
 const TERMINAL_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
 
+// 🎨 স্ট্যাটাস অনুযায়ী পিলের রং — admin page-এর সাথে অভিন্ন স্কিম
+const AMOUNT_REQUIRED_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "LOST", "DAMAGED"]
+function getStatusPillStyle(status: string) {
+  if (status === "DELIVERED") return { bg: "#16a34a", text: "#ffffff" }
+  if (["LOST", "CANCELLED", "DAMAGED", "REFUNDED"].includes(status)) return { bg: "#dc2626", text: "#ffffff" }
+  if (["PAID_RETURN", "PARTIAL_DELIVERY"].includes(status)) return { bg: "#f97316", text: "#ffffff" }
+  return { bg: "#facc15", text: "#111827" }
+}
+
 interface OrderItem {
   id: number
   quantity: number
@@ -46,6 +55,7 @@ interface Order {
   paymentAmountPaid: number
   customerNote: string | null
   collectedAmount: number | null
+  courierPaidAmount: number | null
   receivedQty: number | null
   courierSummary: CourierSummary | null
   customer: { name: string; phone: string }
@@ -206,9 +216,27 @@ export default function AgentOrdersPage() {
   }
 
   function getCollectionDue(order: Order): number | null {
-    if (order.orderStatus !== "DELIVERED") return null
+    if (!AMOUNT_REQUIRED_STATUSES.includes(order.orderStatus)) return null
     if (order.collectedAmount === null || order.collectedAmount === undefined) return null
     return order.collectedAmount - getExpectedCashCollection(order)
+  }
+
+  // 🚚 Courier Payment ব্যাজ
+  function getCourierPaymentBadge(order: Order) {
+    if (!AMOUNT_REQUIRED_STATUSES.includes(order.orderStatus) || order.collectedAmount === null || order.collectedAmount === undefined) {
+      return <span className="text-gray-400 text-xs">-</span>
+    }
+    if (order.courierPaidAmount === null || order.courierPaidAmount === undefined) {
+      return <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-500 bg-white">পেন্ডিং</span>
+    }
+    if (order.courierPaidAmount === order.collectedAmount) {
+      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-600 text-white">✅ Paid ৳{order.courierPaidAmount}</span>
+    }
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white">
+        মিসম্যাচ: ৳{order.collectedAmount} / ৳{order.courierPaidAmount}
+      </span>
+    )
   }
 
   // 🚀 ফিল্টারিং+pagination এখন সার্ভার-সাইডে হয়
@@ -228,7 +256,7 @@ export default function AgentOrdersPage() {
     setOrders(prev => prev.map(o => result.updatedIds.includes(o.id) ? {
       ...o,
       orderStatus: status,
-      collectedAmount: status === "DELIVERED" && collectedAmount !== undefined ? Number(collectedAmount) : o.collectedAmount,
+      collectedAmount: AMOUNT_REQUIRED_STATUSES.includes(status) && collectedAmount !== undefined ? Number(collectedAmount) : o.collectedAmount,
       courierSummary: status === "DELIVERY_ONGOING" && courier ? { courierStatus: courier } : o.courierSummary
     } : o))
 
@@ -253,7 +281,7 @@ export default function AgentOrdersPage() {
     }
 
     const selectedOrdersData = orders.filter(o => selectedOrderIds.includes(o.id))
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Order Date,Customer Name,Phone,Full Address,District,Upazila,Customer Note,Products,Total Amount,Online Payment Received,Due Amount,Collected Amount,Collection Due,Payment Method,Payment Status,Status,Courier\n"
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Order Date,Customer Name,Phone,Full Address,District,Upazila,Customer Note,Products,Total Amount,Online Payment Received,Due Amount,Collected Amount,Collection Due,Courier Paid Amount,Payment Method,Payment Status,Status,Courier\n"
     selectedOrdersData.forEach((order) => {
       const orderIdText = `"${generateCustomId(order.createdAt, order.dailySeq)}"`
       const orderDate = `"${new Date(order.createdAt).toLocaleDateString("bn-BD")}"`
@@ -274,7 +302,8 @@ export default function AgentOrdersPage() {
       const paymentStatus = order.paymentMethod === "GATEWAY" ? order.paymentStatus : "-"
       const status = `"${order.orderStatus}"`
       const courier = `"${order.courierSummary ? order.courierSummary.courierStatus : "-"}"`
-      csvContent += `${orderIdText},${orderDate},${name},${phone},${address},${district},${upazila},${note},${products},${cod},${onlinePaid},${dueAmount},${collected},${collectionDueText},${paymentMethod},${paymentStatus},${status},${courier}\n`
+      const courierPaid = order.courierPaidAmount !== null && order.courierPaidAmount !== undefined ? order.courierPaidAmount : "-"
+      csvContent += `${orderIdText},${orderDate},${name},${phone},${address},${district},${upazila},${note},${products},${cod},${onlinePaid},${dueAmount},${collected},${collectionDueText},${courierPaid},${paymentMethod},${paymentStatus},${status},${courier}\n`
     })
 
     const encodedUri = encodeURI(csvContent)
@@ -561,8 +590,6 @@ export default function AgentOrdersPage() {
               <th className="px-6 py-4 font-medium">অর্ডার ID</th>
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
-              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
-              <th className="px-6 py-4 font-medium">পার্শিয়াল স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
               <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
@@ -570,6 +597,9 @@ export default function AgentOrdersPage() {
               <th className="px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
               <th className="px-6 py-4 font-medium">কালেকশন (Due)</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
+              <th className="px-6 py-4 font-medium">Courier Payment</th>
+              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
+              <th className="px-6 py-4 font-medium">পার্শিয়াল স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
             </tr>
@@ -577,7 +607,7 @@ export default function AgentOrdersPage() {
           <tbody className="border-t border-gray-200">
           {orders.length === 0 ? (
               <tr>
-                <td colSpan={15} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={16} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               orders.map((order) => {
@@ -603,12 +633,45 @@ export default function AgentOrdersPage() {
 
                   <td className="px-6 py-4 font-medium text-gray-800">{order.customer.name}</td>
                   <td className="px-6 py-4 text-gray-600">{order.customer.phone}</td>
+                  <td className="px-6 py-4">
+                    {renderPaymentBadge(order)}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900 ">
+   {order.finalCodAmount}
+</td>
+<td className="px-6 py-4 font-medium text-gray-900 ">
+{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
+</td>
+<td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
+<td className="px-6 py-4 font-bold text-gray-800">
+  {order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : <span className="text-gray-400 font-normal">-</span>}
+</td>
+<td className="px-6 py-4 font-bold">
+  {(() => {
+    const collectionDue = getCollectionDue(order)
+    if (collectionDue === null) return <span className="text-gray-400">-</span>
+    if (collectionDue >= 0) return <span className="text-gray-700">{collectionDue}</span>
+    return <span className="text-red-600">{Math.abs(collectionDue)}</span>
+  })()}
+</td>
+                  <td className="px-6 py-4 ">
+                    {order.courierSummary ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+                        {order.courierSummary.courierStatus}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {getCourierPaymentBadge(order)}
+                  </td>
 <td className="px-6 py-4">
   <div
     className="relative inline-block rounded-full overflow-hidden"
     style={{
-      backgroundColor: order.orderStatus === "DELIVERED" ? "#16a34a" : "#ffffff",
-      border: order.orderStatus === "DELIVERED" ? "none" : "1px solid #111827",
+      backgroundColor: getStatusPillStyle(order.orderStatus).bg,
+      border: order.orderStatus === "DELIVERED" ? "none" : "1px solid rgba(0,0,0,0.1)",
     }}
   >
     <select
@@ -620,7 +683,7 @@ export default function AgentOrdersPage() {
         if (newStatus === "DELIVERY_ONGOING") {
           setPendingShipment({ orderId: order.id, courier: "" })
           setPendingDelivery(null)
-        } else if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN" || newStatus === "PARTIAL_DELIVERY") {
+        } else if (AMOUNT_REQUIRED_STATUSES.includes(newStatus)) {
           setPendingDelivery({ orderId: order.id, amount: String(order.finalCodAmount), status: newStatus })
           setPendingShipment(null)
         } else {
@@ -631,7 +694,7 @@ export default function AgentOrdersPage() {
       }}
       style={{
         background: "transparent",
-        color: order.orderStatus === "DELIVERED" ? "#ffffff" : "#111827",
+        color: getStatusPillStyle(order.orderStatus).text,
         border: "none",
         borderRadius: "9999px",
         padding: "6px 24px 6px 16px",
@@ -651,12 +714,11 @@ export default function AgentOrdersPage() {
     </select>
     <div
       className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2"
-      style={{ color: order.orderStatus === "DELIVERED" ? "#ffffff" : "#6b7280" }}
+      style={{ color: getStatusPillStyle(order.orderStatus).text }}
     >
       <svg className="fill-current h-3 w-3" xmlns="http://w3.org" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
     </div>
   </div>
-
   {pendingShipment?.orderId === order.id && (
     <div className="mt-2 flex items-center gap-1">
       <select
@@ -685,7 +747,6 @@ export default function AgentOrdersPage() {
       </button>
     </div>
   )}
-
   {pendingDelivery?.orderId === order.id && (
     <div className="mt-2 flex items-center gap-1">
       <input
@@ -702,7 +763,7 @@ export default function AgentOrdersPage() {
             return
           }
           handleStatusUpdate([order.id], pendingDelivery.status, undefined, pendingDelivery.amount)
-                    setPendingDelivery(null)
+          setPendingDelivery(null)
         }}
         className="text-xs bg-green-700 text-white px-2 py-1 rounded font-bold"
       >
@@ -748,40 +809,6 @@ export default function AgentOrdersPage() {
                       )
                     ) : (
                       <span className="text-xs font-bold text-green-700">✅ পাওয়া গেছে ({getOrderTotalQty(order)}টার {order.receivedQty}টা)</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {renderPaymentBadge(order)}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 ">
-   {order.finalCodAmount}
-</td>
-
-<td className="px-6 py-4 font-medium text-gray-900 ">
-{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
-</td>
-<td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
-
-<td className="px-6 py-4 font-bold text-gray-800">
-  {order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : <span className="text-gray-400 font-normal">-</span>}
-</td>
-
-<td className="px-6 py-4 font-bold">
-  {(() => {
-    const collectionDue = getCollectionDue(order)
-    if (collectionDue === null) return <span className="text-gray-400">-</span>
-    if (collectionDue >= 0) return <span className="text-gray-700">{collectionDue}</span>
-    return <span className="text-red-600">{Math.abs(collectionDue)}</span>
-  })()}
-</td>
-
-                  <td className="px-6 py-4 ">
-                    {order.courierSummary ? (
-                      <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
-                        {order.courierSummary.courierStatus}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 text-xs">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-xs text-gray-400 ">

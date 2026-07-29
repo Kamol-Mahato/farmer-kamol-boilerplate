@@ -9,6 +9,7 @@ import OrderDetailModal from "./OrderDetailModal"
 // ✅ Admin override করতে পারে — তাই বর্তমান বাদে সবকটা status অপশনে দেখানো হবে
 // আসল ভ্যালিডেশন সার্ভারে (lib/orderStatusRules.ts) হয়, এটা শুধু UI অপশন সাজানোর জন্য
 const ALL_STATUSES = ["PENDING", "CONFIRMED", "DELIVERY_ONGOING", "DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "RETURNED", "CANCELLED", "REFUNDED", "LOST", "DAMAGED"]
+
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "পেন্ডিং",
   CONFIRMED: "কনফার্মড",
@@ -21,6 +22,15 @@ const STATUS_LABELS: Record<string, string> = {
   REFUNDED: "রিফান্ড",
   LOST: "হারানো",
   DAMAGED: "নষ্ট",
+}
+
+// 🎨 স্ট্যাটাস অনুযায়ী পিলের রং — টেবিল আর পপ-আপ দুই জায়গাতেই একই স্কিম
+const AMOUNT_REQUIRED_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "LOST", "DAMAGED"]
+function getStatusPillStyle(status: string) {
+  if (status === "DELIVERED") return { bg: "#16a34a", text: "#ffffff" } // সবুজ
+  if (["LOST", "CANCELLED", "DAMAGED", "REFUNDED"].includes(status)) return { bg: "#dc2626", text: "#ffffff" } // লাল
+  if (["PAID_RETURN", "PARTIAL_DELIVERY"].includes(status)) return { bg: "#f97316", text: "#ffffff" } // কমলা
+  return { bg: "#facc15", text: "#111827" } // হলুদ — PENDING, CONFIRMED, DELIVERY_ONGOING, RETURNED
 }
 
 interface OrderItem {
@@ -47,6 +57,7 @@ interface Order {
   paymentAmountPaid: number
   customerNote: string | null
   collectedAmount: number | null
+  courierPaidAmount: number | null
   receivedQty: number | null
   courierSummary: CourierSummary | null
   customer: { name: string; phone: string }
@@ -171,14 +182,7 @@ export default function AdminOrdersPage() {
     )
   }
 
-  // ✅ status অনুযায়ী "প্রত্যাশিত ক্যাশ কালেকশন" — যেকোনো পদ্ধতিতেই আগাম যা পাওয়া গেছে তা বাদ দিয়ে
-  function getExpectedCashCollection(order: Order) {
-    return order.finalCodAmount - order.paymentAmountPaid
-  }
-  // 📦 অর্ডারের মোট প্রোডাক্ট কোয়ান্টিটি (raw সংখ্যা যোগফল, KG-তে না) — Partial Delivery-এর "৪টার..." দেখানোর জন্য
-  function getOrderTotalQty(order: Order) {
-    return order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
-  }
+  
   // 📦 Partial Delivery-এ "কতটা পাওয়া গেছে" কনফার্ম করা
   async function handleReceivePartial(orderId: number, qtyStr: string, totalQty: number) {
     if (qtyStr === "" || isNaN(Number(qtyStr)) || Number(qtyStr) < 0 || Number(qtyStr) > totalQty) {
@@ -203,6 +207,16 @@ export default function AdminOrdersPage() {
     }
   }
 
+  // ✅ status অনুযায়ী "প্রত্যাশিত ক্যাশ কালেকশন"
+  function getExpectedCashCollection(order: Order) {
+    return order.finalCodAmount - order.paymentAmountPaid
+  }
+
+  // 📦 অর্ডারের মোট প্রোডাক্ট কোয়ান্টিটি (raw সংখ্যা যোগফল, KG-তে না) — Partial Delivery-এর "৪টার..." দেখানোর জন্য
+  function getOrderTotalQty(order: Order) {
+    return order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
+  }
+
   const CLOSED_NO_DUE_STATUSES = ["DELIVERED", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
 
   // 💰 বাকি (Due) — শুধু সক্রিয় (এখনো ডেলিভারি চলমান) অর্ডারেই দেখাবে, ফাইনাল স্ট্যাটাসে ৳০
@@ -211,11 +225,29 @@ export default function AdminOrdersPage() {
     return getExpectedCashCollection(order)
   }
 
-  // 💰 কালেকশন (Due) — শুধু Delivered status-এই অর্থবহ, অন্য status-এ override হয়ে গেলে আর দেখাবে না
+  // 💰 কালেকশন (Due) — Collected Amount লাগে এমন সব ফাইনাল স্ট্যাটাসেই অর্থবহ (DELIVERED, PAID_RETURN, PARTIAL_DELIVERY, LOST, DAMAGED)
   function getCollectionDue(order: Order): number | null {
-    if (order.orderStatus !== "DELIVERED") return null
+    if (!AMOUNT_REQUIRED_STATUSES.includes(order.orderStatus)) return null
     if (order.collectedAmount === null || order.collectedAmount === undefined) return null
     return order.collectedAmount - getExpectedCashCollection(order)
+  }
+
+  // 🚚 Courier Payment ব্যাজ — collectedAmount বনাম courierPaidAmount তুলনা
+  function getCourierPaymentBadge(order: Order) {
+    if (!AMOUNT_REQUIRED_STATUSES.includes(order.orderStatus) || order.collectedAmount === null || order.collectedAmount === undefined) {
+      return <span className="text-gray-400 text-xs">-</span>
+    }
+    if (order.courierPaidAmount === null || order.courierPaidAmount === undefined) {
+      return <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-500 bg-white">পেন্ডিং</span>
+    }
+    if (order.courierPaidAmount === order.collectedAmount) {
+      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-600 text-white">✅ Paid ৳{order.courierPaidAmount}</span>
+    }
+    return (
+      <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white">
+        মিসম্যাচ: ৳{order.collectedAmount} / ৳{order.courierPaidAmount}
+      </span>
+    )
   }
 
   // 🚀 ফিল্টারিং+pagination এখন সার্ভার-সাইডে হয় (/api/admin/orders), তাই এখানে আলাদা করে filteredOrders বানানোর দরকার নেই — orders array-ই সরাসরি ব্যবহার হবে
@@ -271,7 +303,7 @@ export default function AdminOrdersPage() {
     setOrders(prev => prev.map(o => result.updatedIds.includes(o.id) ? {
       ...o,
       orderStatus: status,
-      collectedAmount: status === "DELIVERED" && collectedAmount !== undefined ? Number(collectedAmount) : o.collectedAmount,
+      collectedAmount: AMOUNT_REQUIRED_STATUSES.includes(status) && collectedAmount !== undefined ? Number(collectedAmount) : o.collectedAmount,
       courierSummary: status === "DELIVERY_ONGOING" && courier ? { courierStatus: courier } : o.courierSummary
     } : o))
 
@@ -318,7 +350,7 @@ export default function AdminOrdersPage() {
     }
 
     const selectedOrdersData = orders.filter(o => selectedOrderIds.includes(o.id))
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Order Date,Customer Name,Phone,Full Address,District,Upazila,Customer Note,Products,Total Amount,Online Payment Received,Due Amount,Collected Amount,Collection Due,Payment Method,Payment Status,Status,Courier\n"
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFFOrder ID,Order Date,Customer Name,Phone,Full Address,District,Upazila,Customer Note,Products,Total Amount,Online Payment Received,Due Amount,Collected Amount,Collection Due,Courier Paid Amount,Payment Method,Payment Status,Status,Courier\n"
     selectedOrdersData.forEach((order) => {
       const orderIdText = `"${generateCustomId(order.createdAt, order.dailySeq)}"`
       const orderDate = `"${new Date(order.createdAt).toLocaleDateString("bn-BD")}"`
@@ -338,8 +370,9 @@ export default function AdminOrdersPage() {
       const paymentMethod = order.paymentMethod === "GATEWAY" ? "Online Payment" : "COD"
       const paymentStatus = order.paymentMethod === "GATEWAY" ? order.paymentStatus : "-"
       const status = `"${order.orderStatus}"`
-      const courier = `"${order.courierSummary ? order.courierSummary.courierStatus : "-"}"`
-      csvContent += `${orderIdText},${orderDate},${name},${phone},${address},${district},${upazila},${note},${products},${cod},${onlinePaid},${dueAmount},${collected},${collectionDueText},${paymentMethod},${paymentStatus},${status},${courier}\n`
+    const courier = `"${order.courierSummary ? order.courierSummary.courierStatus : "-"}"`
+    const courierPaid = order.courierPaidAmount !== null && order.courierPaidAmount !== undefined ? order.courierPaidAmount : "-"
+    csvContent += `${orderIdText},${orderDate},${name},${phone},${address},${district},${upazila},${note},${products},${cod},${onlinePaid},${dueAmount},${collected},${collectionDueText},${courierPaid},${paymentMethod},${paymentStatus},${status},${courier}\n`
     })
 
     const encodedUri = encodeURI(csvContent)
@@ -481,17 +514,18 @@ export default function AdminOrdersPage() {
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-black"
               >
                 <option value="">সব স্ট্যাটাস</option>
-                <option value="PENDING">পেন্ডিং</option>
-                <option value="CONFIRMED">কনফার্মড</option>
-                <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
-                <option value="DELIVERED">ডেলিভার্ড</option>
-                <option value="PAID_RETURN">পেইড রিটার্ন</option>
-                <option value="RETURNED">ফেরত</option>
-                <option value="CANCELLED">বাতিল</option>
-                <option value="REFUNDED">রিফান্ড</option>
-                <option value="LOST">হারানো</option>
-                <option value="DAMAGED">নষ্ট</option>
-              </select>
+              <option value="PENDING">পেন্ডিং</option>
+              <option value="CONFIRMED">কনফার্মড</option>
+              <option value="DELIVERY_ONGOING">পাঠানো হয়েছে</option>
+              <option value="DELIVERED">ডেলিভার্ড</option>
+              <option value="PAID_RETURN">পেইড রিটার্ন</option>
+              <option value="PARTIAL_DELIVERY">আংশিক ডেলিভারি</option>
+              <option value="RETURNED">ফেরত</option>
+              <option value="CANCELLED">বাতিল</option>
+              <option value="REFUNDED">রিফান্ড</option>
+              <option value="LOST">হারানো</option>
+              <option value="DAMAGED">নষ্ট</option>
+            </select>
             </div>
           </div>
 
@@ -639,9 +673,10 @@ export default function AdminOrdersPage() {
               <th className="hidden md:table-cell px-6 py-4 font-medium">বাকি (Due)</th>
               <th className="hidden md:table-cell px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
               <th className="hidden md:table-cell px-6 py-4 font-medium">কালেকশন (Due)</th>
-              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
-              <th className="px-6 py-4 font-medium">পার্সেল স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
+              <th className="px-6 py-4 font-medium">Courier Payment</th>
+              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
+              <th className="px-6 py-4 font-medium">পার্শিয়াল স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
             </tr>
@@ -649,7 +684,7 @@ export default function AdminOrdersPage() {
           <tbody className="border-t border-gray-200">
           {orders.length === 0 ? (
               <tr>
-                <td colSpan={15} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
+                <td colSpan={16} className="text-center py-12 text-gray-400">কোনো অর্ডার পাওয়া যায়নি।</td>
               </tr>
             ) : (
               orders.map((order) => (
@@ -702,13 +737,27 @@ export default function AdminOrdersPage() {
   })()}
 </td>
 
-{/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন — B&W, শুধু Delivered green */}
+{/* 🚴 কুরিয়ার কলাম (আগে ছিল, এখন স্ট্যাটাসের আগে চলে এসেছে) */}
+<td className="px-6 py-4 ">
+  {order.courierSummary ? (
+    <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+      {order.courierSummary.courierStatus}
+    </span>
+  ) : (
+    <span className="text-gray-400 text-xs">-</span>
+  )}
+</td>
+{/* 🚚 Courier Payment — নতুন কলাম */}
+<td className="px-6 py-4">
+  {getCourierPaymentBadge(order)}
+</td>
+{/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন — এখন প্রতিটা স্ট্যাটাসের নিজস্ব রং (getStatusPillStyle) */}
 <td className="px-6 py-4">
   <div
     className="relative inline-block rounded-full overflow-hidden"
     style={{
-      backgroundColor: order.orderStatus === "DELIVERED" ? "#16a34a" : "#ffffff",
-      border: order.orderStatus === "DELIVERED" ? "none" : "1px solid #111827",
+      backgroundColor: getStatusPillStyle(order.orderStatus).bg,
+      border: order.orderStatus === "DELIVERED" ? "none" : "1px solid rgba(0,0,0,0.1)",
     }}
   >
     <select
@@ -719,7 +768,7 @@ export default function AdminOrdersPage() {
         if (newStatus === "DELIVERY_ONGOING") {
           setPendingShipment({ orderId: order.id, courier: "" })
           setPendingDelivery(null)
-        } else if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN" || newStatus === "PARTIAL_DELIVERY") {
+        } else if (AMOUNT_REQUIRED_STATUSES.includes(newStatus)) {
           setPendingDelivery({ orderId: order.id, amount: String(order.finalCodAmount), status: newStatus })
           setPendingShipment(null)
         } else {
@@ -730,7 +779,7 @@ export default function AdminOrdersPage() {
       }}
       style={{
         background: "transparent",
-        color: order.orderStatus === "DELIVERED" ? "#ffffff" : "#111827",
+        color: getStatusPillStyle(order.orderStatus).text,
         border: "none",
         borderRadius: "9999px",
         padding: "6px 24px 6px 16px",
@@ -750,12 +799,11 @@ export default function AdminOrdersPage() {
     </select>
     <div
       className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2"
-      style={{ color: order.orderStatus === "DELIVERED" ? "#ffffff" : "#6b7280" }}
+      style={{ color: getStatusPillStyle(order.orderStatus).text }}
     >
       <svg className="fill-current h-3 w-3" xmlns="http://w3.org" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
     </div>
   </div>
-
   {/* কুরিয়ার নাম (Shipped) */}
   {pendingShipment?.orderId === order.id && (
     <div className="mt-2 flex items-center gap-1">
@@ -785,25 +833,24 @@ export default function AdminOrdersPage() {
       </button>
     </div>
   )}
-
-  {/* 💰 Collected Amount ইনপুট (Delivered) */}
+  {/* 💰 Collected/Courier Amount ইনপুট — DELIVERED, PAID_RETURN, PARTIAL_DELIVERY, LOST, DAMAGED — সব ক'টাতেই */}
   {pendingDelivery?.orderId === order.id && (
     <div className="mt-2 flex items-center gap-1">
       <input
         type="number"
         value={pendingDelivery.amount}
-        onChange={(e) => setPendingDelivery({ orderId: order.id, amount: e.target.value, status: pendingDelivery.status })}
+        onChange={(e) => setPendingDelivery({ ...pendingDelivery, amount: e.target.value })}
         className="text-xs border border-black rounded px-2 py-1 w-24 focus:outline-none"
         placeholder="Collected"
       />
       <button
         onClick={() => {
           if (pendingDelivery.amount === "" || isNaN(Number(pendingDelivery.amount))) {
-            alert("সঠিক Collected Amount দিন")
+            alert("সঠিক Amount দিন")
             return
           }
           handleStatusUpdate([order.id], pendingDelivery.status, undefined, pendingDelivery.amount)
-                    setPendingDelivery(null)
+          setPendingDelivery(null)
         }}
         className="text-xs bg-green-700 text-white px-2 py-1 rounded font-bold"
       >
@@ -818,48 +865,39 @@ export default function AdminOrdersPage() {
     </div>
   )}
 </td>
-                  <td className="px-6 py-4">
-                    {order.orderStatus !== "PARTIAL_DELIVERY" ? (
-                      <span className="text-gray-400 text-xs">-</span>
-                    ) : order.receivedQty === null || order.receivedQty === undefined ? (
-                      pendingReceive?.orderId === order.id ? (
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-500">মোট {getOrderTotalQty(order)}টা —</span>
-                          <input
-                            type="number"
-                            value={pendingReceive.qty}
-                            onChange={(e) => setPendingReceive({ orderId: order.id, qty: e.target.value })}
-                            className="text-xs border border-black rounded px-2 py-1 w-16 focus:outline-none"
-                            placeholder="কতটা"
-                          />
-                          <button
-                            onClick={() => handleReceivePartial(order.id, pendingReceive.qty, getOrderTotalQty(order))}
-                            className="text-xs bg-green-700 text-white px-2 py-1 rounded font-bold"
-                          >✓</button>
-                          <button onClick={() => setPendingReceive(null)} className="text-xs border border-gray-400 px-2 py-1 rounded">✕</button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-red-600">❌ পাওয়া যায়নি</span>
-                          <button
-                            onClick={() => setPendingReceive({ orderId: order.id, qty: String(getOrderTotalQty(order)) })}
-                            className="text-xs underline text-blue-600 font-medium"
-                          >Received মার্ক করুন</button>
-                        </div>
-                      )
-                    ) : (
-                      <span className="text-xs font-bold text-green-700">✅ পাওয়া গেছে ({getOrderTotalQty(order)}টার {order.receivedQty}টা)</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 ">
-                    {order.courierSummary ? (
-                      <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
-                        {order.courierSummary.courierStatus}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 text-xs">-</span>
-                    )}
-                  </td>
+<td className="px-6 py-4">
+  {order.orderStatus !== "PARTIAL_DELIVERY" ? (
+    <span className="text-gray-400 text-xs">-</span>
+  ) : order.receivedQty === null || order.receivedQty === undefined ? (
+    pendingReceive?.orderId === order.id ? (
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-gray-500">মোট {getOrderTotalQty(order)}টা —</span>
+        <input
+          type="number"
+          value={pendingReceive.qty}
+          onChange={(e) => setPendingReceive({ orderId: order.id, qty: e.target.value })}
+          className="text-xs border border-black rounded px-2 py-1 w-16 focus:outline-none"
+          placeholder="কতটা"
+        />
+        <button
+          onClick={() => handleReceivePartial(order.id, pendingReceive.qty, getOrderTotalQty(order))}
+          className="text-xs bg-green-700 text-white px-2 py-1 rounded font-bold"
+        >✓</button>
+        <button onClick={() => setPendingReceive(null)} className="text-xs border border-gray-400 px-2 py-1 rounded">✕</button>
+      </div>
+    ) : (
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-bold text-red-600">❌ পাওয়া যায়নি</span>
+        <button
+          onClick={() => setPendingReceive({ orderId: order.id, qty: String(getOrderTotalQty(order)) })}
+          className="text-xs underline text-blue-600 font-medium"
+        >Received মার্ক করুন</button>
+      </div>
+    )
+  ) : (
+    <span className="text-xs font-bold text-green-700">✅ পাওয়া গেছে ({getOrderTotalQty(order)}টার {order.receivedQty}টা)</span>
+  )}
+</td>
                   <td className="px-6 py-4 text-xs text-gray-400 ">
                     {new Date(order.createdAt).toLocaleDateString("bn-BD")}
                   </td>

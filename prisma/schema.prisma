@@ -204,6 +204,7 @@ model Order {
   paymentAmountPaid Float           @default(0.0)
   dailySeq          Int             @default(0)
   collectedAmount   Float?
+  courierPaidAmount Float?          // কুরিয়ার আসলে কত টাকা ফেরত দিয়েছে — collectedAmount-এর সাথে ক্রস-চেকের জন্য (null = এখনো কুরিয়ার পেমেন্ট আপডেট হয়নি)
   receivedQty       Float?          // null = "পাওয়া যায়নি" (Not Received); সংখ্যা থাকলে "পাওয়া গেছে" (Received) — শুধু PARTIAL_DELIVERY স্ট্যাটাসে প্রাসঙ্গিক
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt

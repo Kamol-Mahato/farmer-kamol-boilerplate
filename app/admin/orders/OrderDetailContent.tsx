@@ -14,15 +14,17 @@ const STATUS_LABELS: Record<string, string> = {
   DELIVERY_ONGOING: "পাঠানো হয়েছে",
   DELIVERED: "ডেলিভার্ড",
   PAID_RETURN: "পেইড রিটার্ন",
+  PARTIAL_DELIVERY: "আংশিক ডেলিভারি",
   RETURNED: "ফেরত",
   CANCELLED: "বাতিল",
   REFUNDED: "রিফান্ড",
   LOST: "হারানো",
   DAMAGED: "নষ্ট",
 }
-const ALL_STATUSES = ["PENDING", "CONFIRMED", "DELIVERY_ONGOING", "DELIVERED", "PAID_RETURN", "RETURNED", "CANCELLED", "REFUNDED", "LOST", "DAMAGED"]
-const TERMINAL_STATUSES = ["DELIVERED", "PAID_RETURN", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
-const COURIER_OPTIONS = ["Steadfast", "Pathao", "RedX", "eCourier"]
+
+const ALL_STATUSES = ["PENDING", "CONFIRMED", "DELIVERY_ONGOING", "DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "RETURNED", "CANCELLED", "REFUNDED", "LOST", "DAMAGED"]
+const TERMINAL_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
+const COURIER_OPTIONS = ["Steadfast", "Pathao","Carry Bee","RedX", "eCourier"]
 
 interface OrderItemData { id: number; quantity: number; finalPrice: number; product: { name: string; unit: string } }
 interface EditLogData { id: number; editedById: number; editedByRole: string; editedByName?: string | null; changesSummary: string; createdAt: string }
@@ -70,8 +72,9 @@ function formatBD(dateStr: string) {
 
 function statusColorClasses(status: string) {
   if (status === "DELIVERED") return "bg-green-600 text-white border-green-600"
-  if (["PAID_RETURN", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"].includes(status)) return "bg-red-600 text-white border-red-600"
-  return "bg-yellow-400 text-gray-900 border-yellow-400" // PENDING, CONFIRMED, DELIVERY_ONGOING
+  if (["LOST", "CANCELLED", "DAMAGED", "REFUNDED"].includes(status)) return "bg-red-600 text-white border-red-600"
+  if (["PAID_RETURN", "PARTIAL_DELIVERY"].includes(status)) return "bg-orange-500 text-white border-orange-500"
+  return "bg-yellow-400 text-gray-900 border-yellow-400" // PENDING, CONFIRMED, DELIVERY_ONGOING, RETURNED
 }
 
 // 💳 পেমেন্ট ব্যাজ — GATEWAY ও COD আলাদা লজিকে
@@ -172,7 +175,7 @@ interface Props {
       setPendingDeliveredAmount(null)
       return
     }
-    if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN") {
+    if (newStatus === "DELIVERED" || newStatus === "PAID_RETURN" || newStatus === "PARTIAL_DELIVERY" || newStatus === "LOST" || newStatus === "DAMAGED") {
       setPendingDeliveredAmount(String(order.finalCodAmount))
       setPendingDeliveredStatus(newStatus)
       setPendingShipmentCourier(null)

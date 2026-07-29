@@ -18,9 +18,9 @@ export const ALL_STATUSES = [
 const FORWARD_SEQUENCE = ["PENDING", "CONFIRMED", "DELIVERY_ONGOING", "DELIVERED"]
 
 // Agent যেসব "সাইড" টার্মিনাল স্ট্যাটাসে যেতে পারবে (আর্থিক-স্পর্শকাতর নয়)
-// ✅ PAID_RETURN, PARTIAL_DELIVERY — শুধু DELIVERY_ONGOING থেকে অনুমোদিত, নিচে আলাদাভাবে হ্যান্ডল করা হচ্ছে (Collected Amount লাগে বলে সাধারণ terminal-দের সাথে না রাখা)
+// ✅ PAID_RETURN, PARTIAL_DELIVERY, LOST, DAMAGED — শুধু DELIVERY_ONGOING থেকে অনুমোদিত, নিচে আলাদাভাবে হ্যান্ডল করা হচ্ছে (Collected/Courier Amount লাগে বলে সাধারণ terminal-দের সাথে না রাখা)
 const AGENT_ALLOWED_TERMINALS = ["CANCELLED", "RETURNED"]
-const AGENT_AMOUNT_STATUSES_FROM = ["DELIVERY_ONGOING"] // PAID_RETURN ও PARTIAL_DELIVERY দুটোই এখান থেকে
+const AGENT_AMOUNT_STATUSES_FROM = ["DELIVERY_ONGOING"] // PAID_RETURN, PARTIAL_DELIVERY, LOST, DAMAGED — চারটাই এখান থেকে
 
 // এসব status-এ একবার পৌঁছালে Agent আর কোথাও যেতে পারবে না
 const TERMINAL_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
@@ -42,13 +42,13 @@ const TERMINAL_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "CANC
   
     const forward = FORWARD_SEQUENCE.slice(idx + 1)
     const terminals = AGENT_AMOUNT_STATUSES_FROM.includes(currentStatus)
-      ? [...AGENT_ALLOWED_TERMINALS, "PAID_RETURN", "PARTIAL_DELIVERY"]
-      : AGENT_ALLOWED_TERMINALS
+    ? [...AGENT_ALLOWED_TERMINALS, "PAID_RETURN", "PARTIAL_DELIVERY", "LOST", "DAMAGED"]
+    : AGENT_ALLOWED_TERMINALS
     return [...forward, ...terminals]
   }
   
   export function requiresCollectedAmount(status: string): boolean {
-    return status === "DELIVERED" || status === "PAID_RETURN" || status === "PARTIAL_DELIVERY"
+    return status === "DELIVERED" || status === "PAID_RETURN" || status === "PARTIAL_DELIVERY" || status === "LOST" || status === "DAMAGED"
   }
   
   // একটা transition Admin override কিনা (Agent স্বাভাবিকভাবে করতে পারতো না) — লগের জন্য
