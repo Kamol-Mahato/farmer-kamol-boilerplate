@@ -433,6 +433,7 @@ model PushSubscription {
   endpoint  String   @unique
   p256dh    String
   auth      String
+  role      String   @default("ADMIN") // 👈 "ADMIN" অথবা "AGENT" সেভ হবে
   createdAt DateTime @default(now())
 }
 model CustomerPushSubscription {

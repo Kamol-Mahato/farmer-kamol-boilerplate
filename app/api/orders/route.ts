@@ -181,7 +181,7 @@ export async function POST(request: Request) {
     await sendPushToAdmin(
       "🛒 নতুন অর্ডার এসেছে!",
       `${name} — ৳ ${finalCodAmount} (COD)`,
-      "/orders",
+      undefined,
       { orderId: result.id, name, amount: finalCodAmount }
     )
 

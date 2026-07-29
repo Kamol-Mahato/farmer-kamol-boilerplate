@@ -4,8 +4,8 @@ import { verifyAdminOrAgent } from "@/lib/adminAuth"
 
 // ✅ ব্রাউজার থেকে subscription তথ্য এসে এখানে সেভ হবে — Admin ও Agent দুজনেই subscribe করতে পারবে
 export async function POST(req: Request) {
-  const admin = await verifyAdminOrAgent()
-  if (!admin) {
+  const user = await verifyAdminOrAgent()
+  if (!user) {
     return NextResponse.json({ error: "অনুমতি নেই" }, { status: 401 })
   }
 
@@ -17,10 +17,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "অসম্পূর্ণ subscription তথ্য" }, { status: 400 })
     }
 
+    // ✅ verifyAdminOrAgent থেকে প্রাপ্ত রোল নির্ধারণ (AGENT নাকি ADMIN)
+    const role = user.role === "AGENT" ? "AGENT" : "ADMIN"
+
     await prisma.pushSubscription.upsert({
       where: { endpoint },
-      update: { p256dh: keys.p256dh, auth: keys.auth },
-      create: { endpoint, p256dh: keys.p256dh, auth: keys.auth },
+      update: { 
+        p256dh: keys.p256dh, 
+        auth: keys.auth,
+        role: role 
+      },
+      create: { 
+        endpoint, 
+        p256dh: keys.p256dh, 
+        auth: keys.auth,
+        role: role 
+      },
     })
 
     return NextResponse.json({ success: true })
@@ -32,8 +44,8 @@ export async function POST(req: Request) {
 
 // ✅ Notification বন্ধ করলে (unsubscribe) এই endpoint-টা সেভ করা রেকর্ড মুছে দেবে
 export async function DELETE(req: Request) {
-  const admin = await verifyAdminOrAgent()
-  if (!admin) {
+  const user = await verifyAdminOrAgent()
+  if (!user) {
     return NextResponse.json({ error: "অনুমতি নেই" }, { status: 401 })
   }
 
