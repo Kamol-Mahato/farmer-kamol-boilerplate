@@ -667,6 +667,7 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">অর্ডার ID</th>
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
+              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="hidden md:table-cell px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
               <th className="hidden md:table-cell px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
@@ -675,7 +676,6 @@ export default function AdminOrdersPage() {
               <th className="hidden md:table-cell px-6 py-4 font-medium">কালেকশন (Due)</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
               <th className="px-6 py-4 font-medium">Courier Payment</th>
-              <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">পার্শিয়াল স্ট্যাটাস</th>
               <th className="px-6 py-4 font-medium">তারিখ</th>
               <th className="px-6 py-4 font-medium">Action</th>
@@ -710,47 +710,6 @@ export default function AdminOrdersPage() {
                   {/* লকড কলামসমূহ (ক্লিক করা যাবে না) */}
                   <td className="px-6 py-4 font-medium text-gray-800">{order.customer.name}</td>
                   <td className="px-6 py-4 text-gray-600">{order.customer.phone}</td>
-                  <td className="px-6 py-4">
-                    {renderPaymentBadge(order)}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 ">
-   {order.finalCodAmount}
-</td>
-
-<td className="px-6 py-4 font-medium text-gray-900 ">
-{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
-</td>
-<td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
-
-{/* 💰 Collected Amount — Delivered মার্ক করার সময় যে টাকা ইনপুট দেওয়া হয়েছিল, সরাসরি সেটাই */}
-<td className="px-6 py-4 font-bold text-gray-800">
-  {order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : <span className="text-gray-400 font-normal">-</span>}
-</td>
-
-{/* 💰 কালেকশন Due — Collected Amount vs COD */}
-<td className="px-6 py-4 font-bold">
-  {(() => {
-    const collectionDue = getCollectionDue(order)
-    if (collectionDue === null) return <span className="text-gray-400">-</span>
-    if (collectionDue >= 0) return <span className="text-gray-700">{collectionDue}</span>
-    return <span className="text-red-600">{Math.abs(collectionDue)}</span>
-  })()}
-</td>
-
-{/* 🚴 কুরিয়ার কলাম (আগে ছিল, এখন স্ট্যাটাসের আগে চলে এসেছে) */}
-<td className="px-6 py-4 ">
-  {order.courierSummary ? (
-    <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
-      {order.courierSummary.courierStatus}
-    </span>
-  ) : (
-    <span className="text-gray-400 text-xs">-</span>
-  )}
-</td>
-{/* 🚚 Courier Payment — নতুন কলাম */}
-<td className="px-6 py-4">
-  {getCourierPaymentBadge(order)}
-</td>
 {/* 🎯 ইন-লাইন একক স্ট্যাটাস পরিবর্তন — এখন প্রতিটা স্ট্যাটাসের নিজস্ব রং (getStatusPillStyle) */}
 <td className="px-6 py-4">
   <div
@@ -864,6 +823,47 @@ export default function AdminOrdersPage() {
       </button>
     </div>
   )}
+</td>
+                  <td className="px-6 py-4">
+                    {renderPaymentBadge(order)}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900 ">
+   {order.finalCodAmount}
+</td>
+
+<td className="px-6 py-4 font-medium text-gray-900 ">
+{order.paymentAmountPaid > 0 ? order.paymentAmountPaid : "-"}
+</td>
+<td className={`px-6 py-4 font-bold ${getDueAmount(order) === 0 ? "text-gray-700" : "text-red-600"}`}>{getDueAmount(order)}</td>
+
+{/* 💰 Collected Amount — Delivered মার্ক করার সময় যে টাকা ইনপুট দেওয়া হয়েছিল, সরাসরি সেটাই */}
+<td className="px-6 py-4 font-bold text-gray-800">
+  {order.collectedAmount !== null && order.collectedAmount !== undefined ? order.collectedAmount : <span className="text-gray-400 font-normal">-</span>}
+</td>
+
+{/* 💰 কালেকশন Due — Collected Amount vs COD */}
+<td className="px-6 py-4 font-bold">
+  {(() => {
+    const collectionDue = getCollectionDue(order)
+    if (collectionDue === null) return <span className="text-gray-400">-</span>
+    if (collectionDue >= 0) return <span className="text-gray-700">{collectionDue}</span>
+    return <span className="text-red-600">{Math.abs(collectionDue)}</span>
+  })()}
+</td>
+
+{/* 🚴 কুরিয়ার কলাম (আগে ছিল, এখন স্ট্যাটাসের আগে চলে এসেছে) */}
+<td className="px-6 py-4 ">
+  {order.courierSummary ? (
+    <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-700 bg-white">
+      {order.courierSummary.courierStatus}
+    </span>
+  ) : (
+    <span className="text-gray-400 text-xs">-</span>
+  )}
+</td>
+{/* 🚚 Courier Payment — নতুন কলাম */}
+<td className="px-6 py-4">
+  {getCourierPaymentBadge(order)}
 </td>
 <td className="px-6 py-4">
   {order.orderStatus !== "PARTIAL_DELIVERY" ? (

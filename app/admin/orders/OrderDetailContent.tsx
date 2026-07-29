@@ -24,6 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const ALL_STATUSES = ["PENDING", "CONFIRMED", "DELIVERY_ONGOING", "DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "RETURNED", "CANCELLED", "REFUNDED", "LOST", "DAMAGED"]
 const TERMINAL_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "CANCELLED", "RETURNED", "REFUNDED", "LOST", "DAMAGED"]
+const AMOUNT_REQUIRED_STATUSES = ["DELIVERED", "PAID_RETURN", "PARTIAL_DELIVERY", "LOST", "DAMAGED"]
 const COURIER_OPTIONS = ["Steadfast", "Pathao","Carry Bee","RedX", "eCourier"]
 
 interface OrderItemData { id: number; quantity: number; finalPrice: number; product: { name: string; unit: string } }
@@ -48,6 +49,8 @@ export interface OrderDetailData {
   paymentAmountPaid: number
   dailySeq: number
   collectedAmount: number | null
+  courierPaidAmount: number | null
+  receivedQty: number | null
   createdAt: string
   updatedAt: string
   customer: { name: string; phone: string }
@@ -105,6 +108,24 @@ function getPaymentBadge(order: OrderDetailData) {
   return { text: `আংশিক পেইড (ঘাটতি ৳${Math.abs(diff)})`, cls: "bg-white border border-gray-300 text-gray-700" }
 }
 
+// 🚚 Courier Payment ব্যাজ — collectedAmount বনাম courierPaidAmount তুলনা (list পেজের সাথে অভিন্ন লজিক)
+function getCourierPaymentBadge(order: OrderDetailData) {
+  if (!AMOUNT_REQUIRED_STATUSES.includes(order.orderStatus) || order.collectedAmount === null || order.collectedAmount === undefined) {
+    return <span className="text-gray-400 text-xs">-</span>
+  }
+  if (order.courierPaidAmount === null || order.courierPaidAmount === undefined) {
+    return <span className="px-3 py-1 rounded-full text-xs font-bold border border-gray-300 text-gray-500 bg-white">পেন্ডিং</span>
+  }
+  if (order.courierPaidAmount === order.collectedAmount) {
+    return <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-600 text-white">✅ Paid ৳{order.courierPaidAmount}</span>
+  }
+  return (
+    <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white">
+      মিসম্যাচ: ৳{order.collectedAmount} / ৳{order.courierPaidAmount}
+    </span>
+  )
+}
+
 // 🪜 স্ট্যাটাস স্টেপার — statusLogs থেকে আসল পথ বানানো হয় (assume করা হয় না)
 function buildStepperPath(order: OrderDetailData) {
   const chrono = [...order.statusLogs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
@@ -138,6 +159,8 @@ interface Props {
   const [pendingDeliveredStatus, setPendingDeliveredStatus] = useState<string | null>(null)
   const [showPrintMenu, setShowPrintMenu] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [pendingReceiveQty, setPendingReceiveQty] = useState<string | null>(null)
+  const [receiveLoading, setReceiveLoading] = useState(false)
 
   const customId = generateCustomId(order.createdAt, order.dailySeq)
 
@@ -184,6 +207,34 @@ interface Props {
     changeStatus(newStatus)
   }
 
+  // 📦 Partial Delivery-এ "কতটা পাওয়া গেছে" কনফার্ম করা (list পেজের অভিন্ন লজিক)
+  async function handleReceivePartial(qtyStr: string, totalQty: number) {
+    if (qtyStr === "" || isNaN(Number(qtyStr)) || Number(qtyStr) < 0 || Number(qtyStr) > totalQty) {
+      alert(`০ থেকে ${totalQty}-এর মধ্যে সঠিক সংখ্যা দিন`)
+      return
+    }
+    setReceiveLoading(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/receive-partial`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receivedQty: Number(qtyStr) }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || "আপডেট করা যায়নি")
+        return
+      }
+      setOrder(prev => ({ ...prev, receivedQty: Number(qtyStr) }))
+      setPendingReceiveQty(null)
+      onOrderUpdated?.()
+    } catch {
+      alert("সার্ভার সমস্যা, আবার চেষ্টা করুন")
+    } finally {
+      setReceiveLoading(false)
+    }
+  }
+
   async function handleDelete() {
     if (!confirm("আপনি কি নিশ্চিত এই অর্ডারটি ডিলিট করতে চান? এটি ফিরিয়ে আনা যাবে না।")) return
     setDeleteLoading(true)
@@ -210,6 +261,7 @@ interface Props {
   const paymentBadge = getPaymentBadge(order)
   const { path: stepperPath, hints: stepperHints } = buildStepperPath(order)
   const due = order.collectedAmount !== null ? order.collectedAmount - order.finalCodAmount : null
+  const totalQty = order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN"
   // 🔒 Agent টার্মিনাল status-এ এডিট করতে পারবে না; Admin সবসময় পারবে
   const canEdit = isAdmin || !TERMINAL_STATUSES.includes(order.orderStatus)
@@ -440,6 +492,53 @@ interface Props {
                 onSuccess={refetchOrder}
               />
             </div>
+
+            {/* 🚚 Courier Payment ব্যাজ */}
+            <div>
+              <h3 className="font-bold text-green-800 mb-2 text-sm">Courier Payment</h3>
+              <div className="bg-gray-50 rounded-lg p-3 flex justify-center">
+                {getCourierPaymentBadge(order)}
+              </div>
+            </div>
+
+            {/* 📦 Partial Delivery হলে "কতটা পাওয়া গেছে" — receivedQty */}
+            {order.orderStatus === "PARTIAL_DELIVERY" && (
+              <div>
+                <h3 className="font-bold text-green-800 mb-2 text-sm">প্রাপ্ত পরিমাণ (Received Qty)</h3>
+                <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                  {order.receivedQty === null || order.receivedQty === undefined ? (
+                    pendingReceiveQty !== null ? (
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs text-gray-500">মোট {totalQty}টা —</span>
+                        <input
+                          type="number"
+                          value={pendingReceiveQty}
+                          onChange={(e) => setPendingReceiveQty(e.target.value)}
+                          className="border border-black rounded-lg px-2 py-1 w-20 text-sm"
+                          placeholder="কতটা"
+                        />
+                        <button
+                          onClick={() => handleReceivePartial(pendingReceiveQty, totalQty)}
+                          disabled={receiveLoading}
+                          className="bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg disabled:opacity-50"
+                        >নিশ্চিত করুন</button>
+                        <button onClick={() => setPendingReceiveQty(null)} className="text-xs border border-gray-300 px-3 py-1.5 rounded-lg">বাতিল</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-red-600">❌ পাওয়া যায়নি</span>
+                        <button
+                          onClick={() => setPendingReceiveQty(String(totalQty))}
+                          className="text-xs underline text-blue-600 font-medium"
+                        >Received মার্ক করুন</button>
+                      </div>
+                    )
+                  ) : (
+                    <span className="text-xs font-bold text-green-700">✅ পাওয়া গেছে (মোট {totalQty}টার {order.receivedQty}টা)</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
