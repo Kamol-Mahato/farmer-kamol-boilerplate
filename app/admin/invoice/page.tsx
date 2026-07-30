@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useSearchParams, usePathname } from "next/navigation"
 import QRCode from "qrcode"
 import Barcode from "react-barcode"
@@ -186,12 +186,23 @@ function InvoicePage() {
     if (ids.length > 0) loadAll()
   }, [idsParam])
 
-  const handleDownloadPDF = async () => {
+  const printIframeRef = useRef<HTMLIFrameElement>(null)
+  const autoPrintedRef = useRef(false)
+
+  const buildPrintHTML = () => {
     const invoiceElements = document.querySelectorAll('.invoice-container')
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) return
+    // 📏 Sticker-এর কন্টেন্ট আসলে কতটুকু উচ্চতা নেয় তা মেপে, ঠিক ততটুকুই পেজ সাইজ বসানো হচ্ছে —
+    // যাতে কন্টেন্টের নিচে/উপরে অতিরিক্ত ফাঁকা কাগজ প্রিন্ট না হয়
+    let maxHeightPx = 0
+    invoiceElements.forEach((el) => {
+      const h = (el as HTMLElement).getBoundingClientRect().height
+      if (h > maxHeightPx) maxHeightPx = h
+    })
+    const pxToMm = (px: number) => (px * 25.4) / 96
+    const stickerHeightMm = Math.ceil(pxToMm(maxHeightPx)) + 6 // +6mm সেফটি বাফার (উপরে-নিচে মার্জিন সহ)
+
     let invoiceHTML = ""
-    const wrapperPadding = type === "a4" ? "0px" : "16px"
+    const wrapperPadding = type === "a4" ? "0px" : type === "sticker" ? "8px" : "16px"
     invoiceElements.forEach((el, idx) => {
       const isLast = idx === invoiceElements.length - 1
       const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;"
@@ -201,7 +212,7 @@ function InvoicePage() {
     const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
       .map((link) => `<link rel="stylesheet" href="${(link as HTMLLinkElement).href}">`)
       .join("\n")
-    printWindow.document.write(`
+    return `
       <html>
         <head>
           <title>Invoice - Farmer Kamol</title>
@@ -210,7 +221,7 @@ function InvoicePage() {
             body { font-family: sans-serif; padding: ${type === "a4" ? "20px" : "0"}; margin: 0; }
             .invoice-container { break-inside: avoid; page-break-inside: avoid; }
             @media print {
-              @page { size: ${type === "a4" ? "A4" : type === "sticker" ? "80mm 90mm" : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : type === "sticker" ? "2mm" : "0mm"}; }
+              @page { size: ${type === "a4" ? "A4" : type === "sticker" ? `80mm ${stickerHeightMm}mm` : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : type === "sticker" ? "2mm" : "0mm"}; }
               body { -webkit-print-color-adjust: exact; }
               ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; font-weight: 700 !important; -webkit-text-stroke: 0.3px #000; -webkit-font-smoothing: none; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
             }
@@ -220,13 +231,31 @@ function InvoicePage() {
           ${invoiceHTML}
         </body>
       </html>
-    `)
-    printWindow.document.close()
+    `
+  }
+
+  // 🖨️ নতুন কোনো popup/tab না খুলে, hidden iframe-এর ভেতরে প্রিন্ট HTML লোড করে সরাসরি print() কল করা হচ্ছে।
+  // popup না হওয়ায় ব্রাউজার ব্লক করবে না, তাই ডেটা লোড শেষ হওয়ার সাথে সাথেই এটা অটোমেটিক চালানো যায়।
+  const printInvoice = () => {
+    const iframe = printIframeRef.current
+    const doc = iframe?.contentDocument
+    if (!iframe || !doc) return
+    doc.open()
+    doc.write(buildPrintHTML())
+    doc.close()
     setTimeout(() => {
-      printWindow.focus()
-      printWindow.print()
+      iframe.contentWindow?.focus()
+      iframe.contentWindow?.print()
     }, 800)
   }
+
+  // পেজ লোড হয়ে অর্ডার ডেটা রেডি হওয়া মাত্র, কোনো বাটন ক্লিক ছাড়াই একবার অটো-প্রিন্ট ট্রিগার হবে
+  useEffect(() => {
+    if (!loading && orders.length > 0 && qrUrl && !autoPrintedRef.current) {
+      autoPrintedRef.current = true
+      printInvoice()
+    }
+  }, [loading, orders, qrUrl])
 
   if (loading) return <div className="text-center py-20 text-gray-400">লোড হচ্ছে...</div>
   if (orders.length === 0) return <div className="text-center py-20 text-red-400">অর্ডার পাওয়া যায়নি</div>
@@ -234,9 +263,9 @@ function InvoicePage() {
   return (
     <div className="bg-gray-100 min-h-screen p-4">
       <div className="max-w-4xl mx-auto mb-4 flex gap-3 print:hidden">
-        <button onClick={handleDownloadPDF}
+        <button onClick={printInvoice}
           className="bg-green-700 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-green-600 transition">
-          📄 PDF ওপেন করুন
+          🖨️ আবার প্রিন্ট করুন
         </button>
         <a href={ordersBasePath} className="ml-auto text-gray-500 hover:text-green-700 text-sm flex items-center">
           ← ফিরে যান
@@ -257,6 +286,7 @@ function InvoicePage() {
           body { background: white; }
         }
       `}</style>
+      <iframe ref={printIframeRef} title="print-frame" style={{ display: "none" }} />
     </div>
   )
 }
