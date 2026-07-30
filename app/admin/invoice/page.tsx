@@ -140,26 +140,27 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   )
 }
 
-// 🏷️ স্টিকার ফিক্সড: একদম কন্টেইনারের ব্লকের ভেতরেই বারকোড এবং তথ্যসমূহ সীমাবদ্ধ থাকবে
+// 🏷️ স্টিকার: শুধু নাম, নম্বর, COD আর কালেক্ট করুন — Delivery Charge লাইন নেই
+// height ফিক্সড না রেখে content-অনুযায়ী ছোট, POS-এর মতো auto height
 function StickerInvoice({ order }: { order: Order }) {
   const customId = generateCustomId(order.createdAt, order.dailySeq)
   const dueAmount = order.finalCodAmount - order.paymentAmountPaid
   return (
-    <div 
-      className="invoice-container bg-white border border-gray-400 rounded p-2" 
-      style={{ 
-        width: "280px", 
-        maxWidth: "100%", 
-        boxSizing: "border-box", 
+    <div
+      className="invoice-container bg-white border border-gray-400 rounded p-2"
+      style={{
+        width: "280px",
+        maxWidth: "100%",
+        boxSizing: "border-box",
         margin: "0 auto",
-        display: "block" 
+        display: "block"
       }}
     >
       <div className="flex items-center gap-2 pb-1 mb-1 border-b border-dashed border-gray-400">
         <img src="/uploads/kamol.png" alt="logo" className="w-6 h-6 rounded-full object-cover" />
         <span className="font-extrabold text-green-800 text-xs">FARMER KAMOL</span>
       </div>
-      
+
       <div className="text-left text-black" style={{ fontSize: "11px", lineHeight: "1.3" }}>
         <p className="font-bold text-xs" style={{ fontSize: "12px" }}>{order.customer.name}</p>
         <p className="font-semibold">{order.customer.phone}</p>
@@ -168,7 +169,6 @@ function StickerInvoice({ order }: { order: Order }) {
           কালেক্ট করুন: ৳ {dueAmount}
         </p>
       </div>
-
       <div className="mt-2 pt-1 border-t border-dashed border-gray-400 text-center w-full flex justify-center">
         <Barcode value={customId} width={1.1} height={28} fontSize={9} margin={0} />
       </div>
@@ -205,17 +205,16 @@ function InvoicePage() {
 
   const buildPrintHTML = () => {
     const invoiceElements = document.querySelectorAll('.invoice-container')
-
     let invoiceHTML = ""
     invoiceElements.forEach((el, idx) => {
       const isLast = idx === invoiceElements.length - 1
       const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;"
       invoiceHTML += `<div style="${pageBreakStyle} width: 100%; display: block; clear: both;">${el.outerHTML}</div>`
     })
-
     const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
       .map((link) => `<link rel="stylesheet" href="${(link as HTMLLinkElement).href}">`)
       .join("\n")
+
     return `
       <html>
         <head>
@@ -226,18 +225,19 @@ function InvoicePage() {
             html, body { padding: 0; margin: 0; background: #fff; }
             .invoice-container { break-inside: avoid; page-break-inside: avoid; }
             @media print {
-              @page { 
-                size: ${type === "a4" ? "A4" : type === "pos" ? "80mm auto" : "80mm 50mm"}; 
-                margin: 0mm; 
+              @page {
+                size: ${type === "a4" ? "A4" : "80mm auto"};
+                margin: 0mm;
               }
               body { -webkit-print-color-adjust: exact; width: 100%; margin: 0; padding: 0; }
               ${type === "sticker" ? `
-                .invoice-container { 
-                  width: 76mm !important; 
-                  max-width: 76mm !important; 
-                  margin: 0 auto !important; 
+                .invoice-container {
+                  width: 76mm !important;
+                  max-width: 76mm !important;
+                  margin: 0 auto !important;
                   padding: 4px !important;
                   border: none !important;
+                  border-bottom: 1px dashed #999 !important;
                   display: block !important;
                 }
               ` : ""}
