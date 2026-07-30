@@ -443,6 +443,7 @@ textarea.prop-textarea:focus{border-color:var(--accent);}
         <button class="btn btn-primary" onclick="addText()" style="justify-content:center;">✏️ Add Text</button>
         <label class="upload-btn-wrap btn btn-ghost" style="justify-content:center;">🖼 Add Image<input type="file" accept="image/*" onchange="addImage(this)"></label>
         <label class="upload-btn-wrap btn btn-ghost" style="justify-content:center;border-color:#2ecc71;color:#2ecc71;">🔵 Set Logo<input type="file" accept="image/*" onchange="setLogo(this)"></label>
+        <button class="btn btn-ghost" onclick="showAIBgModal()" style="justify-content:center;border-color:#9b59b6;color:#9b59b6;">🤖 AI Background <span style="font-size:9px;opacity:0.7;">(net লাগবে)</span></button>
         <button class="btn btn-ghost" onclick="addShape('rect')" style="justify-content:center;">▭ Rectangle</button>
         <button class="btn btn-ghost" onclick="addShape('circle')" style="justify-content:center;">◯ Circle</button>
       </div>
@@ -512,17 +513,19 @@ textarea.prop-textarea:focus{border-color:var(--accent);}
     <h3>✏️ Custom Canvas Size</h3>
     <div class="modal-row">
       <label>Width (px)</label>
-      <input class="prop-input" id="customW" type="number" min="100" max="5000" value="${CW}" placeholder="e.g. 1920" style="width:100%;" onkeydown="event.stopPropagation()">
+      <input class="prop-input" id="customW" type="number" min="20" max="5000" value="${CW}" placeholder="e.g. 1920" style="width:100%;" onkeydown="event.stopPropagation()">
     </div>
     <div class="modal-row">
       <label>Height (px)</label>
-      <input class="prop-input" id="customH" type="number" min="100" max="5000" value="${CH}" placeholder="e.g. 1080" style="width:100%;" onkeydown="event.stopPropagation()">
+      <input class="prop-input" id="customH" type="number" min="20" max="5000" value="${CH}" placeholder="e.g. 1080" style="width:100%;" onkeydown="event.stopPropagation()">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0;">
       <button class="btn btn-ghost" style="justify-content:center;" onclick="document.getElementById('customW').value=1920;document.getElementById('customH').value=1080">1920×1080</button>
       <button class="btn btn-ghost" style="justify-content:center;" onclick="document.getElementById('customW').value=1080;document.getElementById('customH').value=1080">1080×1080</button>
       <button class="btn btn-ghost" style="justify-content:center;" onclick="document.getElementById('customW').value=800;document.getElementById('customH').value=800">800×800</button>
       <button class="btn btn-ghost" style="justify-content:center;" onclick="document.getElementById('customW').value=2560;document.getElementById('customH').value=1440">2560×1440</button>
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="document.getElementById('customW').value=300;document.getElementById('customH').value=300">📷 300×300</button>
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="document.getElementById('customW').value=300;document.getElementById('customH').value=80">✍️ 300×80</button>
     </div>
     <div class="modal-btns">
       <button class="btn btn-ghost" style="flex:1;" onclick="hideCustomSize()">Cancel</button>
@@ -530,6 +533,22 @@ textarea.prop-textarea:focus{border-color:var(--accent);}
     </div>
   </div>
 </div>
+
+<!-- AI Background Modal -->
+<div class="modal-overlay" id="aiBgModal">
+    <div class="modal" style="max-width:340px;">
+      <h3>🤖 AI Background Generate</h3>
+      <div class="modal-row">
+        <label>কী ধরনের ব্যাকগ্রাউন্ড চান? (English-এ লিখলে ভালো রেজাল্ট)</label>
+        <textarea class="prop-input" id="aiBgPrompt" rows="3" placeholder="e.g. bright gradient background, blue and orange, modern abstract shapes" style="width:100%;resize:vertical;" onkeydown="event.stopPropagation()"></textarea>
+      </div>
+      <div id="aiBgStatus" style="font-size:11px;color:var(--text2);min-height:16px;margin:4px 0;"></div>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" style="flex:1;" onclick="hideAIBgModal()">Cancel</button>
+        <button class="btn btn-green" style="flex:2;" id="aiBgGenBtn" onclick="generateAIBackground()">✨ Generate</button>
+      </div>
+    </div>
+  </div>
 
 <!-- Download Modal -->
 <div class="modal-overlay" id="downloadModal">
@@ -955,12 +974,41 @@ function uploadBackground(input){
 // ═══════════════════════════
 // ELEMENTS
 // ═══════════════════════════
+function getTextLines(el){
+  if(!el.wrapText) return el.text.split('\n');
+  const tmp=document.createElement('canvas').getContext('2d');
+  tmp.font=`${el.italic?'italic ':''} ${el.bold?'bold ':''} ${el.fontSize}px '${el.fontFamily}','Noto Sans Bengali','Hind Siliguri',sans-serif`;
+  const maxW=Math.max(30, el.w - 4);
+  const out=[];
+  el.text.split('\n').forEach(para=>{
+    if(para===''){ out.push(''); return; }
+    const words=para.split(' ');
+    let line='';
+    words.forEach(word=>{
+      const test=line?line+' '+word:word;
+      if(tmp.measureText(test).width>maxW && line){
+        out.push(line);
+        line=word;
+      }else{
+        line=test;
+      }
+    });
+    out.push(line);
+  });
+  return out;
+}
+
 function calcTextSize(el){
   // Text এর actual w/h calculate করি — render এ mutate না করে
   const tmp=document.createElement('canvas').getContext('2d');
   tmp.font=`${el.italic?'italic ':''} ${el.bold?'bold ':''} ${el.fontSize}px '${el.fontFamily}','Noto Sans Bengali','Hind Siliguri',sans-serif`;
-  const lines=el.text.split('\n');
   const lineH=el.fontSize*1.3;
+  if(el.wrapText){
+    // wrap মোডে width ইউজার-সেট (fixed), শুধু height wrapped লাইন সংখ্যা অনুযায়ী বদলাবে
+    const lines=getTextLines(el);
+    return{w:el.w, h:Math.max(lines.length*lineH, el.fontSize*1.5)};
+  }
+  const lines=el.text.split('\n');
   let maxW=0;
   lines.forEach(ln=>{const m=tmp.measureText(ln);if(m.width>maxW)maxW=m.width;});
   return{w:Math.max(maxW,el.fontSize),h:Math.max(lines.length*lineH,el.fontSize*1.5)};
@@ -979,6 +1027,7 @@ function addText(){
     rotation:0,
     curveMode:'none',curveAmount:25,
     textBg:'none',textBgColor:'#e60000',textBgOpacity:0.85,textBgPad:20,
+    wrapText:false,
   };
   elements.push(el);
   saveState();
@@ -1315,6 +1364,7 @@ ${isMob?'':'<div class="section-title" style="margin-bottom:6px;">Text</div><tex
   <div class="style-btn ${el.italic?'active':''}" onclick="toggleProp('italic')"><i>Italic</i></div>
   <div class="style-btn ${el.shadow?'active':''}" onclick="toggleProp('shadow')">Shadow</div>
   <div class="style-btn ${el.stroke?'active':''}" onclick="toggleProp('stroke')">Stroke</div>
+  <div class="style-btn ${el.wrapText?'active':''}" onclick="toggleWrapText()">↩ Wrap</div>
   <div class="style-btn" onclick="updateProp('text',getSelected().text.toUpperCase())">ALL CAPS</div>
 </div>
 ${el.shadow?`
@@ -1573,6 +1623,14 @@ function updatePropNoHistory(key,val){
 function toggleProp(key){
   const el=getSelected();if(!el)return;
   el[key]=!el[key];showProps();render();saveState();
+}
+function toggleWrapText(){
+  const el=getSelected();if(!el||el.type!=='text')return;
+  el.wrapText=!el.wrapText;
+  if(el.wrapText && (!el.w || el.w<100)){
+    el.w=400;
+  }
+  showProps();render();saveState();
 }
 
 // ═══════════════════════════
@@ -2065,7 +2123,7 @@ function drawElement(c,el){
   if(el.type==='text'){
     const fontStr=`${el.italic?'italic ':''} ${el.bold?'bold ':''} ${el.fontSize}px '${el.fontFamily}','Noto Sans Bengali','Hind Siliguri','Anek Bangla',sans-serif`;
     c.font=fontStr;
-    const lines=el.text.split('\n');
+    const lines=getTextLines(el);
     const lineH=el.fontSize*1.3;
     let xPos=el.align==='center'?el.x+el.w/2:el.align==='right'?el.x+el.w:el.x;
     // w/h সঠিকভাবে update — render এ side effect নেই
@@ -2347,18 +2405,20 @@ function onPointerMove(e){
     const pos=resizeState.handle;
 
     if(el.type==='text'){
-      // Text — corner drag করলে font size বাড়বে/কমবে
-      // ডানে/নিচে drag = বড়, বামে/উপরে = ছোট
-      let delta=0;
-      if(pos.includes('r')) delta=dx;
-      else if(pos.includes('l')) delta=-dx;
-      if(pos.includes('b')) delta=Math.max(delta,dy);
-      else if(pos.includes('t')) delta=Math.max(delta,-dy);
-      const newSize=Math.max(8,Math.min(500,orig.fontSize+(delta*0.5)));
-      el.fontSize=Math.round(newSize);
-      // w/h update হবে drawElement এ automatically
-      if(pos.includes('l')) el.x=orig.x+dx;
-      if(pos.includes('t')) el.y=orig.y+dy;
+      if(el.wrapText){
+        if(pos.includes('r')) el.w=Math.max(60,orig.w+dx);
+        if(pos.includes('l')){ el.x=orig.x+dx; el.w=Math.max(60,orig.w-dx); }
+      }else{
+        let delta=0;
+        if(pos.includes('r')) delta=dx;
+        else if(pos.includes('l')) delta=-dx;
+        if(pos.includes('b')) delta=Math.max(delta,dy);
+        else if(pos.includes('t')) delta=Math.max(delta,-dy);
+        const newSize=Math.max(8,Math.min(500,orig.fontSize+(delta*0.5)));
+        el.fontSize=Math.round(newSize);
+        if(pos.includes('l')) el.x=orig.x+dx;
+        if(pos.includes('t')) el.y=orig.y+dy;
+      }
     }else{
       // Image/Shape — normal resize
       if(pos.includes('r'))el.w=Math.max(20,orig.w+dx);
@@ -3084,18 +3144,67 @@ function hideCustomSize(){
 function applyCustomSize(){
   const w = parseInt(document.getElementById('customW').value);
   const h = parseInt(document.getElementById('customH').value);
-  if(!w||!h||w<100||h<100||w>5000||h>5000){
-    alert('সাইজ ১০০ থেকে ৫০০০ এর মধ্যে হতে হবে!');
+  if(!w||!h||w<20||h<20||w>5000||h>5000){
+    alert('সাইজ ২০ থেকে ৫০০০ এর মধ্যে হতে হবে!');
     return;
   }
   setCanvasSize(`${w}|${h}|Custom ${w}×${h}`);
   hideCustomSize();
 }
 
+// ── AI BACKGROUND GENERATOR (Pollinations.ai — free, no API key) ──
+function showAIBgModal(){
+  document.getElementById('aiBgStatus').textContent='';
+  document.getElementById('aiBgModal').classList.add('show');
+}
+function hideAIBgModal(){
+  document.getElementById('aiBgModal').classList.remove('show');
+}
+async function generateAIBackground(){
+  const promptEl = document.getElementById('aiBgPrompt');
+  const statusEl = document.getElementById('aiBgStatus');
+  const btn = document.getElementById('aiBgGenBtn');
+  const prompt = promptEl.value.trim();
+  if(!prompt){ statusEl.textContent='⚠️ প্রথমে কিছু লিখুন।'; return; }
+  if(!navigator.onLine){ statusEl.textContent='⚠️ এই ফিচারের জন্য ইন্টারনেট দরকার।'; return; }
+
+  btn.disabled=true; btn.textContent='⏳ Generating...';
+  statusEl.textContent='ছবি তৈরি হচ্ছে, একটু অপেক্ষা করুন (১০-২০ সেকেন্ড লাগতে পারে)...';
+
+  try{
+    const seed = Math.floor(Math.random()*1000000);
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${CW}&height=${CH}&nologo=true&seed=${seed}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('server error '+res.status);
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+
+    const img = new Image();
+    img.onload = ()=>{
+      const el={id:++idCounter,type:'image',x:0,y:0,w:CW,h:CH,img,imgW:img.width,imgH:img.height,opacity:1,rotation:0,brightness:100,contrast:100,saturation:100,lockRatio:false};
+      elements.unshift(el);
+      saveState();selectElement(el.id);updateLayers();render();
+      statusEl.textContent='✅ যোগ হয়ে গেছে!';
+      btn.disabled=false; btn.textContent='✨ Generate';
+      setTimeout(hideAIBgModal, 600);
+    };
+    img.onerror = ()=>{ throw new Error('image load failed'); };
+    img.src = objUrl;
+  }catch(err){
+    console.error(err);
+    statusEl.textContent='❌ তৈরি করা যায়নি। ইন্টারনেট চেক করুন অথবা আবার চেষ্টা করুন।';
+    btn.disabled=false; btn.textContent='✨ Generate';
+  }
+}
+
 // Close modal on overlay click
 document.getElementById('customSizeModal')?.addEventListener('click',function(e){
   if(e.target===this) hideCustomSize();
 });
+document.getElementById('aiBgModal')?.addEventListener('click',function(e){
+  if(e.target===this) hideAIBgModal();
+});
+function showPreview(){
   const temp=document.createElement('canvas');
   temp.width=CW;temp.height=CH;
   const tc=temp.getContext('2d');
