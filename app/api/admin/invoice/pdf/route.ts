@@ -242,7 +242,7 @@ export async function POST(req: NextRequest) {
 
     await browser.close()
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(Buffer.from(pdfBuffer) as BodyInit, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `inline; filename="invoice-${type}-${Date.now()}.pdf"`,
