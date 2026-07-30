@@ -102,11 +102,10 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   )
 }
 
-// 👈 POSInvoice আপনার আগের অরিজিনাল কোডেই একদম হাত না দিয়ে রাখা হলো
 function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   const customId = generateCustomId(order.createdAt, order.dailySeq)
   return (
-    <div className="invoice-container bg-white p-4 mb-6 border border-gray-200 rounded-xl" style={{ width: "302px" }}>
+    <div className="invoice-container bg-white p-4 mb-6 border border-gray-200 rounded-xl mx-auto" style={{ width: "302px" }}>
       <div className="text-center mb-3">
         <img src="/uploads/kamol.png" alt="logo" className="w-12 h-12 rounded-full mx-auto mb-1 object-cover" />
         <p className="font-extrabold text-green-800 text-base">FARMER KAMOL</p>
@@ -133,31 +132,45 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
         কালেক্ট করুন: ৳ {order.finalCodAmount - order.paymentAmountPaid}
       </p>
       <div className="border-t border-dashed border-gray-400 my-2" />
-      <div className="mt-2">
+      <div className="mt-2 flex justify-center">
         <Barcode value={customId} width={2} height={60} fontSize={18} />
       </div>
-      <p className="text-center text-xs text-lack-400 mt-2"> ধন্যবাদান্তে farmerkamol.com</p>
+      <p className="text-center text-xs text-gray-400 mt-2"> ধন্যবাদান্তে farmerkamol.com</p>
     </div>
   )
 }
 
-// 👈 শুধুমাত্র Sticker-এ Delivery Charge বাদ এবং মার্জিন ফিক্স করা হলো
+// 🏷️ স্টিকার ফিক্সড: একদম কন্টেইনারের ব্লকের ভেতরেই বারকোড এবং তথ্যসমূহ সীমাবদ্ধ থাকবে
 function StickerInvoice({ order }: { order: Order }) {
   const customId = generateCustomId(order.createdAt, order.dailySeq)
   const dueAmount = order.finalCodAmount - order.paymentAmountPaid
   return (
-    <div className="invoice-container bg-white p-3 mb-4 border border-gray-200 rounded-xl" style={{ width: "100%", maxWidth: "80mm", boxSizing: "border-box" }}>
-      <div className="flex items-center gap-2 mb-2">
-        <img src="/uploads/kamol.png" alt="logo" className="w-8 h-8 rounded-full object-cover" />
-        <p className="font-extrabold text-green-800 text-sm">FARMER KAMOL</p>
+    <div 
+      className="invoice-container bg-white border border-gray-400 rounded p-2" 
+      style={{ 
+        width: "280px", 
+        maxWidth: "100%", 
+        boxSizing: "border-box", 
+        margin: "0 auto",
+        display: "block" 
+      }}
+    >
+      <div className="flex items-center gap-2 pb-1 mb-1 border-b border-dashed border-gray-400">
+        <img src="/uploads/kamol.png" alt="logo" className="w-6 h-6 rounded-full object-cover" />
+        <span className="font-extrabold text-green-800 text-xs">FARMER KAMOL</span>
       </div>
-      <div className="border-t border-dashed border-gray-400 my-2" />
-      <p className="text-sm font-bold text-gray-800">{order.customer.name}</p>
-      <p className="text-sm text-gray-700">{order.customer.phone}</p>
-      <p className="text-xs text-gray-600 mt-1">COD: ৳ {order.finalCodAmount}</p>
-      <p className="text-sm font-extrabold text-red-600 mt-1">কালেক্ট করুন: ৳ {dueAmount}</p>
-      <div className="mt-2 flex justify-center">
-        <Barcode value={customId} width={1.2} height={35} fontSize={9} />
+      
+      <div className="text-left text-black" style={{ fontSize: "11px", lineHeight: "1.3" }}>
+        <p className="font-bold text-xs" style={{ fontSize: "12px" }}>{order.customer.name}</p>
+        <p className="font-semibold">{order.customer.phone}</p>
+        <p className="font-semibold">COD: ৳ {order.finalCodAmount}</p>
+        <p className="font-extrabold text-red-600 mt-0.5" style={{ fontSize: "12px" }}>
+          কালেক্ট করুন: ৳ {dueAmount}
+        </p>
+      </div>
+
+      <div className="mt-2 pt-1 border-t border-dashed border-gray-400 text-center w-full flex justify-center">
+        <Barcode value={customId} width={1.1} height={28} fontSize={9} margin={0} />
       </div>
     </div>
   )
@@ -192,20 +205,12 @@ function InvoicePage() {
 
   const buildPrintHTML = () => {
     const invoiceElements = document.querySelectorAll('.invoice-container')
-    let maxHeightPx = 0
-    invoiceElements.forEach((el) => {
-      const h = (el as HTMLElement).getBoundingClientRect().height
-      if (h > maxHeightPx) maxHeightPx = h
-    })
-    const pxToMm = (px: number) => (px * 25.4) / 96
-    const stickerHeightMm = Math.ceil(pxToMm(maxHeightPx)) + 6
 
     let invoiceHTML = ""
-    const wrapperPadding = type === "a4" ? "0px" : type === "sticker" ? "0px" : "16px"
     invoiceElements.forEach((el, idx) => {
       const isLast = idx === invoiceElements.length - 1
       const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;"
-      invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: ${type === "sticker" ? "0px" : "20px"}; padding: ${wrapperPadding};">${el.innerHTML}</div>`
+      invoiceHTML += `<div style="${pageBreakStyle} width: 100%; display: block; clear: both;">${el.outerHTML}</div>`
     })
 
     const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
@@ -217,15 +222,26 @@ function InvoicePage() {
           <title>Invoice - Farmer Kamol</title>
           ${styleLinks}
           <style>
-            body { font-family: sans-serif; padding: ${type === "a4" ? "20px" : "0"}; margin: 0; }
+            * { box-sizing: border-box; }
+            html, body { padding: 0; margin: 0; background: #fff; }
             .invoice-container { break-inside: avoid; page-break-inside: avoid; }
             @media print {
               @page { 
-                size: ${type === "a4" ? "A4" : type === "sticker" ? `80mm ${stickerHeightMm}mm` : "80mm 400mm"}; 
-                margin: ${type === "a4" ? "10mm" : type === "sticker" ? "0mm" : "0mm"}; 
+                size: ${type === "a4" ? "A4" : type === "pos" ? "80mm auto" : "80mm 50mm"}; 
+                margin: 0mm; 
               }
-              body { -webkit-print-color-adjust: exact; }
-              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; font-weight: 700 !important; -webkit-text-stroke: 0.3px #000; -webkit-font-smoothing: none; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
+              body { -webkit-print-color-adjust: exact; width: 100%; margin: 0; padding: 0; }
+              ${type === "sticker" ? `
+                .invoice-container { 
+                  width: 76mm !important; 
+                  max-width: 76mm !important; 
+                  margin: 0 auto !important; 
+                  padding: 4px !important;
+                  border: none !important;
+                  display: block !important;
+                }
+              ` : ""}
+              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; font-weight: 700 !important; -webkit-text-stroke: 0.2px #000; -webkit-font-smoothing: none; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
             }
           </style>
         </head>
