@@ -102,6 +102,7 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   )
 }
 
+// 👈 POSInvoice আপনার আগের অরিজিনাল কোডেই একদম হাত না দিয়ে রাখা হলো
 function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   const customId = generateCustomId(order.createdAt, order.dailySeq)
   return (
@@ -140,11 +141,12 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   )
 }
 
+// 👈 শুধুমাত্র Sticker-এ Delivery Charge বাদ এবং মার্জিন ফিক্স করা হলো
 function StickerInvoice({ order }: { order: Order }) {
   const customId = generateCustomId(order.createdAt, order.dailySeq)
   const dueAmount = order.finalCodAmount - order.paymentAmountPaid
   return (
-    <div className="invoice-container bg-white p-3 mb-4 border border-gray-200 rounded-xl" style={{ width: "302px" }}>
+    <div className="invoice-container bg-white p-3 mb-4 border border-gray-200 rounded-xl" style={{ width: "100%", maxWidth: "80mm", boxSizing: "border-box" }}>
       <div className="flex items-center gap-2 mb-2">
         <img src="/uploads/kamol.png" alt="logo" className="w-8 h-8 rounded-full object-cover" />
         <p className="font-extrabold text-green-800 text-sm">FARMER KAMOL</p>
@@ -153,7 +155,6 @@ function StickerInvoice({ order }: { order: Order }) {
       <p className="text-sm font-bold text-gray-800">{order.customer.name}</p>
       <p className="text-sm text-gray-700">{order.customer.phone}</p>
       <p className="text-xs text-gray-600 mt-1">COD: ৳ {order.finalCodAmount}</p>
-      <p className="text-xs text-gray-600">Delivery: ৳ {order.deliveryCharge}</p>
       <p className="text-sm font-extrabold text-red-600 mt-1">কালেক্ট করুন: ৳ {dueAmount}</p>
       <div className="mt-2 flex justify-center">
         <Barcode value={customId} width={1.2} height={35} fontSize={9} />
@@ -191,24 +192,22 @@ function InvoicePage() {
 
   const buildPrintHTML = () => {
     const invoiceElements = document.querySelectorAll('.invoice-container')
-    // 📏 Sticker-এর কন্টেন্ট আসলে কতটুকু উচ্চতা নেয় তা মেপে, ঠিক ততটুকুই পেজ সাইজ বসানো হচ্ছে —
-    // যাতে কন্টেন্টের নিচে/উপরে অতিরিক্ত ফাঁকা কাগজ প্রিন্ট না হয়
     let maxHeightPx = 0
     invoiceElements.forEach((el) => {
       const h = (el as HTMLElement).getBoundingClientRect().height
       if (h > maxHeightPx) maxHeightPx = h
     })
     const pxToMm = (px: number) => (px * 25.4) / 96
-    const stickerHeightMm = Math.ceil(pxToMm(maxHeightPx)) + 6 // +6mm সেফটি বাফার (উপরে-নিচে মার্জিন সহ)
+    const stickerHeightMm = Math.ceil(pxToMm(maxHeightPx)) + 6
 
     let invoiceHTML = ""
-    const wrapperPadding = type === "a4" ? "0px" : type === "sticker" ? "8px" : "16px"
+    const wrapperPadding = type === "a4" ? "0px" : type === "sticker" ? "0px" : "16px"
     invoiceElements.forEach((el, idx) => {
       const isLast = idx === invoiceElements.length - 1
       const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;"
-      invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: 20px; padding: ${wrapperPadding};">${el.innerHTML}</div>`
+      invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: ${type === "sticker" ? "0px" : "20px"}; padding: ${wrapperPadding};">${el.innerHTML}</div>`
     })
-    // 🔒 বাইরের CDN থেকে না টেনে, নিজের পেজে লোড হওয়া CSS ফাইলগুলোই কপি করা হচ্ছে
+
     const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
       .map((link) => `<link rel="stylesheet" href="${(link as HTMLLinkElement).href}">`)
       .join("\n")
@@ -221,7 +220,10 @@ function InvoicePage() {
             body { font-family: sans-serif; padding: ${type === "a4" ? "20px" : "0"}; margin: 0; }
             .invoice-container { break-inside: avoid; page-break-inside: avoid; }
             @media print {
-              @page { size: ${type === "a4" ? "A4" : type === "sticker" ? `80mm ${stickerHeightMm}mm` : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : type === "sticker" ? "2mm" : "0mm"}; }
+              @page { 
+                size: ${type === "a4" ? "A4" : type === "sticker" ? `80mm ${stickerHeightMm}mm` : "80mm 400mm"}; 
+                margin: ${type === "a4" ? "10mm" : type === "sticker" ? "0mm" : "0mm"}; 
+              }
               body { -webkit-print-color-adjust: exact; }
               ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; font-weight: 700 !important; -webkit-text-stroke: 0.3px #000; -webkit-font-smoothing: none; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
             }
@@ -234,8 +236,6 @@ function InvoicePage() {
     `
   }
 
-  // 🖨️ নতুন কোনো popup/tab না খুলে, hidden iframe-এর ভেতরে প্রিন্ট HTML লোড করে সরাসরি print() কল করা হচ্ছে।
-  // popup না হওয়ায় ব্রাউজার ব্লক করবে না, তাই ডেটা লোড শেষ হওয়ার সাথে সাথেই এটা অটোমেটিক চালানো যায়।
   const printInvoice = () => {
     const iframe = printIframeRef.current
     const doc = iframe?.contentDocument
@@ -249,7 +249,6 @@ function InvoicePage() {
     }, 800)
   }
 
-  // পেজ লোড হয়ে অর্ডার ডেটা রেডি হওয়া মাত্র, কোনো বাটন ক্লিক ছাড়াই একবার অটো-প্রিন্ট ট্রিগার হবে
   useEffect(() => {
     if (!loading && orders.length > 0 && qrUrl && !autoPrintedRef.current) {
       autoPrintedRef.current = true
