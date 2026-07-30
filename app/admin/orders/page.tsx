@@ -667,12 +667,12 @@ export default function AdminOrdersPage() {
               <th className="px-6 py-4 font-medium">কাস্টমার নাম</th>
               <th className="px-6 py-4 font-medium">মোবাইল নম্বর</th>
               <th className="px-6 py-4 font-medium">স্ট্যাটাস</th>
-              <th className="hidden md:table-cell px-6 py-4 font-medium">পেমেন্ট</th>
+              <th className="px-6 py-4 font-medium">পেমেন্ট</th>
               <th className="px-6 py-4 font-medium">মোট COD</th>
-              <th className="hidden md:table-cell px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
-              <th className="hidden md:table-cell px-6 py-4 font-medium">বাকি (Due)</th>
-              <th className="hidden md:table-cell px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
-              <th className="hidden md:table-cell px-6 py-4 font-medium">কালেকশন (Due)</th>
+              <th className="px-6 py-4 font-medium">অনলাইন পেমেন্ট</th>
+              <th className="px-6 py-4 font-medium">বাকি (Due)</th>
+              <th className="px-6 py-4 font-medium">কালেক্টেড এমাউন্ট</th>
+              <th className="px-6 py-4 font-medium">কালেকশন (Due)</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার</th>
               <th className="px-6 py-4 font-medium">কুরিয়ার পেমেন্ট </th>
               <th className="px-6 py-4 font-medium">পার্শিয়াল স্ট্যাটাস</th>

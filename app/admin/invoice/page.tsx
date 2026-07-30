@@ -135,7 +135,7 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
       <div className="mt-2">
         <Barcode value={customId} width={2} height={60} fontSize={18} />
       </div>
-      <p className="text-center text-xs text-lack-400 mt-2"> ধন্যবাদান্তে farmerkamol.com 🌿</p>
+      <p className="text-center text-xs text-lack-400 mt-2"> ধন্যবাদান্তে farmerkamol.com</p>
     </div>
   )
 }

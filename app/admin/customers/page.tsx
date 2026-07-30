@@ -252,33 +252,33 @@ export default function AdminCustomersPage() {
                       className="w-4 h-4 accent-green-700 cursor-pointer"
                     />
                   </td>
-                  <td className="px-6 py-4 text-gray-400 text-xs">{index + 1}</td>
-                  <td className="px-6 py-4 font-medium text-gray-800">
-                    {customer.name}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{customer.phone}</td>
-                  <td className="px-6 py-4">
-                    <span className="bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full text-xs">
-                      {customer.totalOrders} টি
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-green-700">
-                    ৳ {customer.walletBalance.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4">
-                    {customer.isActive ? (
-                      <span className="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full text-xs">
-                        সক্রিয়
-                      </span>
-                    ) : (
-                      <span className="bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full text-xs">
-                      নিষ্ক্রিয়
-                    </span>
-                  )}
-                </td> 
-                  <td className="px-6 py-4 text-xs text-gray-400">
-                    {new Date(customer.createdAt).toLocaleDateString("bn-BD")}
-                  </td>
+                  <td className="px-6 py-4 text-gray-400 text-xs whitespace-nowrap">{index + 1}</td>
+<td className="px-6 py-4 font-medium text-gray-800 whitespace-nowrap">
+  {customer.name}
+</td>
+<td className="px-6 py-4 text-gray-600 whitespace-nowrap">{customer.phone}</td>
+<td className="px-6 py-4">
+  <span className="bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full text-xs whitespace-nowrap">
+    {customer.totalOrders} টি
+  </span>
+</td>
+<td className="px-6 py-4 font-bold text-green-700 whitespace-nowrap">
+   {customer.walletBalance.toFixed(2)}
+</td>
+<td className="px-6 py-4">
+  {customer.isActive ? (
+    <span className="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full text-xs whitespace-nowrap">
+      সক্রিয়
+    </span>
+  ) : (
+    <span className="bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full text-xs whitespace-nowrap">
+      নিষ্ক্রিয়
+    </span>
+  )}
+</td>
+<td className="px-6 py-4 text-xs text-gray-400 whitespace-nowrap">
+  {new Date(customer.createdAt).toLocaleDateString("bn-BD")}
+</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button
