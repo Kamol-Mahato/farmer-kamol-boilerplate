@@ -187,26 +187,45 @@ function InvoicePage() {
   }, [idsParam])
 
   const handleDownloadPDF = async () => {
-    try {
-      const res = await fetch("/api/admin/invoice/pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orders, type, qrUrl }),
-      })
-
-      if (!res.ok) {
-        alert("PDF তৈরি করা যায়নি, আবার চেষ্টা করুন")
-        return
-      }
-
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      window.open(url, "_blank")
-      setTimeout(() => URL.revokeObjectURL(url), 60_000)
-    } catch (err) {
-      console.error("PDF download failed", err)
-      alert("সার্ভার সমস্যা, আবার চেষ্টা করুন")
-    }
+    const invoiceElements = document.querySelectorAll('.invoice-container')
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+    let invoiceHTML = ""
+    const wrapperPadding = type === "a4" ? "0px" : "16px"
+    invoiceElements.forEach((el, idx) => {
+      const isLast = idx === invoiceElements.length - 1
+      const pageBreakStyle = isLast ? "" : "page-break-after: always; break-after: page;"
+      invoiceHTML += `<div style="${pageBreakStyle} margin-bottom: 20px; padding: ${wrapperPadding};">${el.innerHTML}</div>`
+    })
+    // 🔒 বাইরের CDN থেকে না টেনে, নিজের পেজে লোড হওয়া CSS ফাইলগুলোই কপি করা হচ্ছে
+    const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .map((link) => `<link rel="stylesheet" href="${(link as HTMLLinkElement).href}">`)
+      .join("\n")
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Invoice - Farmer Kamol</title>
+          ${styleLinks}
+          <style>
+            body { font-family: sans-serif; padding: ${type === "a4" ? "20px" : "0"}; margin: 0; }
+            .invoice-container { break-inside: avoid; page-break-inside: avoid; }
+            @media print {
+              @page { size: ${type === "a4" ? "A4" : type === "sticker" ? "80mm 90mm" : "80mm 400mm"}; margin: ${type === "a4" ? "10mm" : type === "sticker" ? "2mm" : "0mm"}; }
+              body { -webkit-print-color-adjust: exact; }
+              ${type !== "a4" ? "* { color: #000 !important; border-color: #000 !important; font-weight: 700 !important; -webkit-text-stroke: 0.3px #000; -webkit-font-smoothing: none; } img { filter: grayscale(100%) contrast(500%) brightness(1.15); }" : ""}
+            }
+          </style>
+        </head>
+        <body>
+          ${invoiceHTML}
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+    setTimeout(() => {
+      printWindow.focus()
+      printWindow.print()
+    }, 800)
   }
 
   if (loading) return <div className="text-center py-20 text-gray-400">লোড হচ্ছে...</div>
