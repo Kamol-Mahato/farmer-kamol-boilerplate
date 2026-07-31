@@ -10,6 +10,7 @@ import MobileBottomNav from "./MobileBottomNav"
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton"
 import AgentModeBanner from "./AgentModeBanner"
 import NotificationPermissionBanner from "./NotificationPermissionBanner"
+import ChatWidget from "./ChatWidget"
 
 export default function ConditionalLayout({
   children,
@@ -33,13 +34,14 @@ export default function ConditionalLayout({
     pathname === "/cart" ||
     pathname === "/en/cart"
 
-    return (
-      <MobileMenuProvider>
-        <AgentModeBanner />
-        <Navbar />
-        <NotificationPermissionBanner />
-        {!hideFloatingCart && <FloatingCartButton />}
-        {!hideFloatingCart && <FloatingWhatsAppButton />}
+  return (
+    <MobileMenuProvider>
+      <AgentModeBanner />
+      <Navbar />
+      <NotificationPermissionBanner />
+      {!hideFloatingCart && <FloatingCartButton />}
+      {!hideFloatingCart && <FloatingWhatsAppButton />}
+      <ChatWidget />
       <div className="h-[76px]" />
       <main className="flex-grow">{children}</main>
       <Footer />
