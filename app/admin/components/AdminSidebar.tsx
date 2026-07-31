@@ -7,6 +7,7 @@ import { useAdminSidebar } from "./AdminSidebarContext"
 const navItems = [
   { label: "ড্যাশবোর্ড", href: "/admin", agentVisible: false },
   { label: "অর্ডার ম্যানেজমেন্ট", href: "/admin/orders", agentHref: "/agent/orders", agentVisible: true },
+  { label: "লাইভ চ্যাট", href: "/admin/chat", agentHref: "/agent/chat", agentVisible: true },
   { label: "পণ্য ম্যানেজমেন্ট", href: "/admin/products", agentVisible: false },
   { label: "কাস্টমার ম্যানেজমেন্ট", href: "/admin/customers", agentHref: "/agent/customers", agentVisible: true },
   { label: "এজেন্ট ম্যানেজমেন্ট", href: "/admin/agents", agentVisible: false },
@@ -64,7 +65,7 @@ export default function AdminSidebar() {
           <nav className="flex flex-col gap-1 mt-8">
             {visibleItems.map((item) => {
               const resolvedHref = isAgent && item.agentHref ? item.agentHref : item.href
-              const isActive = pathname === resolvedHref
+              const isActive = pathname === resolvedHref || pathname.startsWith(resolvedHref + "/")
               return (
                 <Link
                   key={item.href}
