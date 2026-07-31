@@ -61,6 +61,7 @@ model User {
   customerOrders     Order[]             @relation("CustomerToOrder")
   reviews            ProductReview[]
   walletTransactions WalletTransaction[]
+  assignedChats      ChatConversation[]
 }
 
 model Category {
@@ -442,4 +443,40 @@ model CustomerPushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+model ChatConversation {
+  id            Int             @id @default(autoincrement())
+  visitorId     String          @unique
+  visitorName   String?
+  visitorPhone  String?
+  status        ChatStatus      @default(OPEN)
+  assignedToId  Int?
+  lastMessageAt DateTime        @default(now())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  assignedTo    User?           @relation(fields: [assignedToId], references: [id])
+  messages      ChatMessage[]
+}
+
+model ChatMessage {
+  id             Int              @id @default(autoincrement())
+  conversationId Int
+  senderType     ChatSenderType
+  senderId       Int?
+  text           String
+  isRead         Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+enum ChatStatus {
+  OPEN
+  CLOSED
+}
+
+enum ChatSenderType {
+  CUSTOMER
+  ADMIN
+  AGENT
+  SYSTEM
 }
