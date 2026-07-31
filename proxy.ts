@@ -18,8 +18,10 @@ const AGENT_ALLOWED_PREFIXES = [
   "/api/admin/orders",
   "/api/admin/invoice",
   "/api/admin/customers",
+  "/api/admin/chat",
   "/admin/orders",
   "/admin/invoice",
+  "/admin/chat",
   "/agent",
   "/api/agent",
 ]
