@@ -1,4 +1,5 @@
 import { Redis } from "@upstash/redis"
+import { sendTelegramAlert } from "@/lib/telegram"
 
 // 🔒 Upstash Redis — build-time এ env variable না থাকলেও যেন crash না করে, তাই lazy init
 let redis: Redis | null = null
@@ -30,6 +31,9 @@ export async function checkRateLimit(identifier: string): Promise<{ allowed: boo
   } catch (error) {
     // Redis-এ সাময়িক সমস্যা হলেও যেন লগইন বন্ধ না হয়ে যায় (fail-open)
     console.error("Rate limiter check error:", error)
+    await sendTelegramAlert(
+      `⚠️ <b>Rate limiter সমস্যা</b>\nRedis-এ পৌঁছানো যাচ্ছে না, brute-force protection সাময়িকভাবে বন্ধ আছে (fail-open)।\nIdentifier: ${identifier}`
+    )
     return { allowed: true }
   }
 }
@@ -47,6 +51,9 @@ export async function recordFailedAttempt(identifier: string) {
     await getRedis().set(key, record, { ex: LOCK_DURATION_SECONDS })
   } catch (error) {
     console.error("Rate limiter record error:", error)
+    await sendTelegramAlert(
+      `⚠️ <b>Rate limiter সমস্যা</b>\nফেইল্ড অ্যাটেম্পট রেকর্ড করা যায়নি (Redis error)।\nIdentifier: ${identifier}`
+    )
   }
 }
 

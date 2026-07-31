@@ -27,7 +27,7 @@ const AGENT_ALLOWED_PREFIXES = [
 // শুধু এই prefix গুলোতেই admin/agent auth চেক হবে — বাকি কোনো পেজে auth চেক হবে না
 const ADMIN_AGENT_PREFIXES = ["/api/admin", "/admin", "/agent", "/api/agent"]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isAdminOrAgentRoute = ADMIN_AGENT_PREFIXES.some((p) => path.startsWith(p))
 
