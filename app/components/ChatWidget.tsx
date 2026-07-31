@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 
 interface Message {
   id: number
@@ -15,53 +15,33 @@ export default function ChatWidget() {
   const [inputText, setInputText] = useState("")
   const [loading, setLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
-  
-  // 👋 ওয়েলকাম নোটিফিকেশন মেসেজের জন্য স্টেট
   const [showTooltip, setShowTooltip] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // পেজ লোড হওয়ার ২ সেকেন্ড পর পপআপ আসবে এবং ৬ সেকেন্ড পর চলে যাবে
   useEffect(() => {
-    const timerShow = setTimeout(() => {
-      setShowTooltip(true)
-    }, 1500)
-
-    const timerHide = setTimeout(() => {
-      setShowTooltip(false)
-    }, 6500)
-
+    const timerShow = setTimeout(() => setShowTooltip(true), 1500)
+    const timerHide = setTimeout(() => setShowTooltip(false), 6500)
     return () => {
       clearTimeout(timerShow)
       clearTimeout(timerHide)
     }
   }, [])
 
-  // চ্যাট ওপেন করলে টুলটিপ লুকিয়ে যাবে
   const toggleChat = () => {
     if (!isOpen) setShowTooltip(false)
     setIsOpen(!isOpen)
   }
 
-  // অটোমেটিক নিচে স্ক্রোল করার লজিক
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom()
-    }
+    if (isOpen) scrollToBottom()
   }, [messages, isOpen])
 
-  // চ্যাট বক্স প্রথমবার ওপেন হলে কনভারসেশন লোড করবে
-  useEffect(() => {
-    if (isOpen && !initialized) {
-      fetchInitChat()
-    }
-  }, [isOpen, initialized])
-
-  const fetchInitChat = async () => {
+  const fetchInitChat = useCallback(async () => {
     try {
       const res = await fetch("/api/chat/init")
       const data = await res.json()
@@ -72,9 +52,21 @@ export default function ChatWidget() {
     } catch (err) {
       console.error("Failed to load chat history:", err)
     }
-  }
+  }, [])
 
-  // মেসেজ পাঠানোর ফাংশন
+  useEffect(() => {
+    if (isOpen && !initialized) {
+      fetchInitChat()
+    }
+  }, [isOpen, initialized, fetchInitChat])
+
+  // Poll for new staff replies while chat is open
+  useEffect(() => {
+    if (!isOpen || !initialized) return
+    const t = setInterval(fetchInitChat, 8000)
+    return () => clearInterval(t)
+  }, [isOpen, initialized, fetchInitChat])
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!inputText.trim() || loading) return
@@ -82,7 +74,6 @@ export default function ChatWidget() {
     const userText = inputText
     setInputText("")
 
-    // অপটিমিস্টিক ইউআই আপডেট
     const tempMessage: Message = {
       id: Date.now(),
       senderType: "CUSTOMER",
@@ -99,9 +90,9 @@ export default function ChatWidget() {
         body: JSON.stringify({ text: userText }),
       })
 
-      if (!res.ok) {
-        throw new Error("Failed to send message")
-      }
+      if (!res.ok) throw new Error("Failed to send message")
+      // Refresh to get real IDs / any system messages
+      await fetchInitChat()
     } catch (err) {
       console.error("Message send failed:", err)
     } finally {
@@ -109,7 +100,6 @@ export default function ChatWidget() {
     }
   }
 
-  // মেসেজে থাকা ওয়েবসাইট লিংক স্পষ্ট কালারে দেখানোর ফাংশন
   const renderMessageText = (text: string, isCustomer: boolean) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
     return text.split("\n").map((line, i) => (
@@ -141,10 +131,8 @@ export default function ChatWidget() {
 
   return (
     <div className="fixed right-4 bottom-36 md:bottom-20 z-[60]">
-      {/* চ্যাট পপআপ উইন্ডো */}
       {isOpen && (
         <div className="bg-white w-[300px] sm:w-[340px] h-[430px] rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden mb-3 transition-all duration-300">
-          {/* হেডার */}
           <div className="bg-[#055a36] text-white p-3 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse" />
@@ -163,7 +151,6 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          {/* মেসেজ এরিয়া */}
           <div className="flex-1 p-3 overflow-y-auto bg-gray-50 space-y-2.5 text-xs sm:text-sm">
             {messages.map((msg) => {
               const isCustomer = msg.senderType === "CUSTOMER"
@@ -176,6 +163,11 @@ export default function ChatWidget() {
                         : "bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm"
                     }`}
                   >
+                    {(msg.senderType === "ADMIN" || msg.senderType === "AGENT") && (
+                      <span className="block text-[10px] font-semibold text-green-700 mb-0.5">
+                        {msg.senderType === "AGENT" ? "এজেন্ট" : "সাপোর্ট"}
+                      </span>
+                    )}
                     {renderMessageText(msg.text, isCustomer)}
                   </div>
                 </div>
@@ -184,7 +176,6 @@ export default function ChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* ইনপুট বক্স */}
           <form onSubmit={handleSendMessage} className="p-2 bg-white border-t border-gray-100 flex gap-2">
             <input
               type="text"
@@ -206,13 +197,10 @@ export default function ChatWidget() {
         </div>
       )}
 
-      {/* ভাসমান চ্যাট বাটন এবং ওয়েলকাম নোটিফিকেশন */}
       <div className="relative flex items-center justify-end">
-        {/* 👋 ১.৫ সেকেন্ড পর দেখানো এবং ৫ সেকেন্ড পর অটো গায়েব হওয়া নোটিফিকেশন */}
         {showTooltip && !isOpen && (
           <div className="absolute right-14 whitespace-nowrap bg-gray-900 text-white text-[11px] sm:text-xs py-1.5 px-3 rounded-xl shadow-lg flex items-center gap-1.5 animate-bounce transition-all duration-300 border border-gray-700">
             <span>👋 আমরা এখন অনলাইনে আছি, যেকোনো কিছু জিজ্ঞাসা করুন!</span>
-            {/* ছোট অ্যারো বা নির্দেশক */}
             <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[6px] border-l-gray-900" />
           </div>
         )}
