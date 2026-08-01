@@ -36,10 +36,11 @@ export default function PanelNavbar({
   const pathname = usePathname()
   const mobileTitle = getMobileTitle(pathname || "")
   return (
-    <nav className="sticky top-0 z-[60] bg-green-800 text-white py-1.5 px-3 md:px-6 shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center flex-wrap gap-2 md:gap-3">
-      {leftSlot}
-      <Link href={homeHref} className="flex items-center gap-2 md:gap-3 shrink-0">
+    <nav className="sticky top-0 z-[60] w-full bg-green-800 text-white py-1.5 px-3 md:px-4 shadow-md">
+      {/* full width — no max-w-7xl so desktop-site / wide view has no empty right gap */}
+      <div className="w-full flex items-center gap-2 md:gap-3">
+        {leftSlot}
+        <Link href={homeHref} className="flex items-center gap-2 md:gap-3 shrink-0">
           <Image
             src="/uploads/kamol.png"
             alt="Farmer Kamol"
@@ -48,23 +49,34 @@ export default function PanelNavbar({
             className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border-2 border-white-400"
           />
           <div className="flex flex-col leading-tight">
-            <span className="text-base md:text-xl font-extrabold text-white drop-shadow-lg whitespace-nowrap">Farmer Kamol</span>
-            <span className="text-[10px] md:text-xs text-yellow-300 whitespace-nowrap">খামার থেকে আপনার দরজায়</span>
+            <span className="text-base md:text-xl font-extrabold text-white drop-shadow-lg whitespace-nowrap">
+              Farmer Kamol
+            </span>
+            <span className="text-[10px] md:text-xs text-yellow-300 whitespace-nowrap">
+              খামার থেকে আপনার দরজায়
+            </span>
           </div>
         </Link>
+
         {mobileTitle && (
           <div className="flex md:hidden flex-1 justify-center min-w-0">
             <span className="text-sm font-bold text-white truncate">{mobileTitle}</span>
           </div>
         )}
-        <div className="hidden md:flex flex-1 items-center justify-evenly text-sm font-medium px-2">
+
+        <div className="hidden md:flex flex-1 items-center justify-center gap-4 lg:gap-8 text-sm font-medium min-w-0">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-yellow-400 transition">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="hover:text-yellow-400 transition whitespace-nowrap"
+            >
               {link.label}
             </Link>
           ))}
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-auto md:ml-0">
+
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
           {rightSlot}
         </div>
       </div>
