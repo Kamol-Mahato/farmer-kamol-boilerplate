@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("SSLCOMMERZ INIT ERROR:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "পেমেন্ট শুরু করা যায়নি" },
+      { error: "পেমেন্ট শুরু করা যায়নি, একটু পর আবার চেষ্টা করুন" },
       { status: 500 }
     )
   }

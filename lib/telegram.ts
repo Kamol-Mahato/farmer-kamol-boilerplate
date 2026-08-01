@@ -1,3 +1,9 @@
+// 🔒 কাস্টমার/ব্যবহারকারীর লেখা টেক্সট Telegram HTML parse_mode-এ বসানোর আগে escape করা —
+// নাহলে <a>, <b> ইত্যাদি ট্যাগ ব্যবহার করে ফরম্যাটিং/লিংক ইনজেক্ট করা সম্ভব
+export function escapeHtml(text: string) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+}
+
 // 📲 Telegram এ instant notification পাঠানোর হেল্পার ফাংশন
 // সম্পূর্ণ ফ্রি, কোনো approval/cost লাগে না (Telegram Bot API)
 export async function sendTelegramAlert(message: string) {

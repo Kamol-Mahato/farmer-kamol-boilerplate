@@ -57,6 +57,24 @@ export async function recordFailedAttempt(identifier: string) {
   }
 }
 
+export async function checkAndIncrementRate(
+  identifier: string,
+  limit: number,
+  windowSeconds: number
+): Promise<{ allowed: boolean }> {
+  try {
+    const key = `rl:${identifier}`
+    const count = await getRedis().incr(key)
+    if (count === 1) {
+      await getRedis().expire(key, windowSeconds)
+    }
+    return { allowed: count <= limit }
+  } catch (error) {
+    console.error("Chat rate limiter error:", error)
+    return { allowed: true }
+  }
+}
+
 export async function clearAttempts(identifier: string) {
   try {
     await getRedis().del(`ratelimit:${identifier}`)
