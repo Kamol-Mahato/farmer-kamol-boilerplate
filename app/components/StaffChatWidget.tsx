@@ -8,6 +8,7 @@ type LastMessage = {
   id: number
   text: string
   senderType: string
+  senderName?: string | null
   createdAt: string
 } | null
 
@@ -20,12 +21,14 @@ type ConversationItem = {
   lastMessageAt: string
   unreadCount: number
   lastMessage: LastMessage
+  assignedTo?: { id: number; name: string | null } | null
 }
 
 type ChatMessage = {
   id: number
   senderType: "SYSTEM" | "CUSTOMER" | "ADMIN" | "AGENT"
   senderId: number | null
+  senderName?: string | null
   text: string
   isRead: boolean
   createdAt: string
@@ -37,11 +40,10 @@ type ConversationDetail = {
   visitorPhone: string | null
   status: "OPEN" | "CLOSED"
   messages: ChatMessage[]
+  assignedTo?: { id: number; name: string | null } | null
 }
 
-/* ─── Notification sound (browser autoplay-safe) ─── */
 let sharedAudioCtx: AudioContext | null = null
-let audioUnlocked = false
 
 function getAudioCtx(): AudioContext | null {
   if (typeof window === "undefined") return null
@@ -56,19 +58,16 @@ function getAudioCtx(): AudioContext | null {
   }
 }
 
-/** Call after any user gesture so later WS messages can play sound */
 export async function unlockChatAudio() {
   const ctx = getAudioCtx()
   if (!ctx) return
   try {
     if (ctx.state === "suspended") await ctx.resume()
-    // silent buffer to fully unlock on iOS/Safari
     const buffer = ctx.createBuffer(1, 1, 22050)
     const src = ctx.createBufferSource()
     src.buffer = buffer
     src.connect(ctx.destination)
     src.start(0)
-    audioUnlocked = true
   } catch {
     /* ignore */
   }
@@ -79,11 +78,8 @@ function playNotifySound() {
     try {
       const ctx = getAudioCtx()
       if (!ctx) return
-      if (ctx.state === "suspended") {
-        await ctx.resume()
-      }
+      if (ctx.state === "suspended") await ctx.resume()
       const now = ctx.currentTime
-
       const beep = (freq: number, start: number, dur: number) => {
         const osc = ctx.createOscillator()
         const gain = ctx.createGain()
@@ -97,12 +93,10 @@ function playNotifySound() {
         osc.start(now + start)
         osc.stop(now + start + dur + 0.02)
       }
-
-      // soft double-chime
       beep(880, 0, 0.18)
       beep(1174.7, 0.16, 0.22)
     } catch {
-      /* autoplay still blocked */
+      /* blocked */
     }
   }
   void run()
@@ -126,6 +120,11 @@ function preview(text: string, max = 48) {
   return t.length > max ? t.slice(0, max) + "…" : t
 }
 
+function staffLabel(msg: { senderType: string; senderName?: string | null }) {
+  if (msg.senderName) return msg.senderName
+  return msg.senderType === "AGENT" ? "এজেন্ট" : "অ্যাডমিন"
+}
+
 export default function StaffChatWidget() {
   const { open, setOpen, toggle, unreadTotal, setUnreadTotal } = useStaffChat()
   const [conversations, setConversations] = useState<ConversationItem[]>([])
@@ -136,6 +135,7 @@ export default function StaffChatWidget() {
   const [sending, setSending] = useState(false)
   const [live, setLive] = useState(false)
   const [loadingList, setLoadingList] = useState(false)
+  const [lockError, setLockError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -149,7 +149,6 @@ export default function StaffChatWidget() {
     selectedIdRef.current = selectedId
   }, [selectedId])
 
-  // Unlock audio on first user interaction anywhere in the panel
   useEffect(() => {
     const unlock = () => {
       void unlockChatAudio()
@@ -187,9 +186,17 @@ export default function StaffChatWidget() {
   }, [setUnreadTotal])
 
   const fetchDetail = useCallback(async (id: number) => {
+    setLockError(null)
     try {
       const res = await fetch(`/api/admin/chat/${id}`)
       const data = await res.json()
+      if (res.status === 409) {
+        setDetail(null)
+        setSelectedId(null)
+        setLockError(data.error || "এই চ্যাট অন্য এজেন্টের আন্ডারে আছে")
+        void fetchList()
+        return
+      }
       if (res.ok) {
         setDetail(data.conversation)
         setConversations((prev) =>
@@ -199,7 +206,7 @@ export default function StaffChatWidget() {
     } catch {
       /* ignore */
     }
-  }, [])
+  }, [fetchList])
 
   useEffect(() => {
     void fetchList()
@@ -210,7 +217,6 @@ export default function StaffChatWidget() {
     setUnreadTotal(total)
   }, [conversations, setUnreadTotal])
 
-  // WebSocket always on while staff panel is mounted
   useEffect(() => {
     let closedByUs = false
 
@@ -249,6 +255,7 @@ export default function StaffChatWidget() {
               id: msg.id,
               text: msg.text,
               senderType: msg.senderType,
+              senderName: msg.senderName,
               createdAt: msg.createdAt,
             }
 
@@ -303,6 +310,7 @@ export default function StaffChatWidget() {
 
   async function openConversation(id: number) {
     void unlockChatAudio()
+    setLockError(null)
     setSelectedId(id)
     setReplyText("")
     await fetchDetail(id)
@@ -324,6 +332,7 @@ export default function StaffChatWidget() {
       id: Date.now(),
       senderType: "ADMIN",
       senderId: null,
+      senderName: "আপনি",
       text,
       isRead: true,
       createdAt: new Date().toISOString(),
@@ -338,6 +347,14 @@ export default function StaffChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       })
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 409) {
+        alert(data.error || "এই চ্যাট অন্য এজেন্টের আন্ডারে আছে")
+        setSelectedId(null)
+        setDetail(null)
+        void fetchList()
+        return
+      }
       if (!res.ok) {
         await fetchDetail(selectedId)
       }
@@ -363,6 +380,7 @@ export default function StaffChatWidget() {
                 </h3>
                 <p className="text-[10px] text-emerald-100">
                   {live ? "WebSocket · লাইভ" : "সংযোগ..."}
+                  {detail?.assignedTo?.name ? ` · ${detail.assignedTo.name}` : ""}
                   {unreadTotal > 0 && !selectedId ? ` · ${unreadTotal} নতুন` : ""}
                 </p>
               </div>
@@ -374,6 +392,7 @@ export default function StaffChatWidget() {
                   onClick={() => {
                     setSelectedId(null)
                     setDetail(null)
+                    setLockError(null)
                   }}
                   className="text-white/90 hover:bg-white/10 rounded-lg px-2 py-1 text-xs"
                 >
@@ -392,6 +411,12 @@ export default function StaffChatWidget() {
               </button>
             </div>
           </div>
+
+          {lockError && (
+            <div className="bg-amber-50 text-amber-900 text-[11px] px-3 py-2 border-b border-amber-100">
+              🔒 {lockError}
+            </div>
+          )}
 
           {!selectedId ? (
             <div className="flex-1 overflow-y-auto bg-gray-50">
@@ -423,6 +448,11 @@ export default function StaffChatWidget() {
                           ? `${c.lastMessage.senderType === "CUSTOMER" ? "👤" : "🛡️"} ${preview(c.lastMessage.text)}`
                           : "মেসেজ নেই"}
                       </p>
+                      {c.assignedTo?.name && (
+                        <p className="text-[10px] text-green-700 mt-0.5 truncate">
+                          👤 {c.assignedTo.name}
+                        </p>
+                      )}
                     </div>
                     <span className="text-[10px] text-gray-400 shrink-0">
                       {formatTime(c.lastMessageAt)}
@@ -449,7 +479,7 @@ export default function StaffChatWidget() {
                       >
                         {isStaff && (
                           <span className="block text-[9px] font-semibold text-emerald-100 mb-0.5">
-                            {msg.senderType === "AGENT" ? "এজেন্ট" : "অ্যাডমিন"}
+                            {staffLabel(msg)}
                           </span>
                         )}
                         <span className="whitespace-pre-wrap break-words">{msg.text}</span>
