@@ -5,6 +5,7 @@ import { verifyVisitorSession } from "@/lib/visitorSession"
 import { ChatSenderType } from "@prisma/client"
 import { sendTelegramAlert } from "@/lib/telegram"
 import { chatEvents } from "@/lib/chatEvents"
+import { checkAndIncrementRate } from "@/lib/rateLimiter"
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,10 @@ export async function POST(req: Request) {
     const visitorId = await verifyVisitorSession(existingToken)
     if (!visitorId) {
       return NextResponse.json({ error: "অবৈধ সেশন" }, { status: 401 })
+    }
+    const { allowed } = await checkAndIncrementRate(`chat-send:${visitorId}`, 15, 60)
+    if (!allowed) {
+      return NextResponse.json({ error: "একটু ধীরে... কিছুক্ষণ পর আবার চেষ্টা করুন" }, { status: 429 })
     }
 
     const body = await req.json()
@@ -87,7 +92,7 @@ export async function POST(req: Request) {
     void sendTelegramAlert(
       `💬 <b>নতুন চ্যাট মেসেজ</b>\n` +
         `কনভারসেশন #${conversation.id}\n` +
-        `${trimmed.slice(0, 300)}${trimmed.length > 300 ? "…" : ""}\n\n` +
+        `${escapeHtml(trimmed.slice(0, 300))}${trimmed.length > 300 ? "…" : ""}\n\n` +
         `Admin: /admin/chat`
     )
 
