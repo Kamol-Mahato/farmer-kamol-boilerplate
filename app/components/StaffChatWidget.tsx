@@ -41,7 +41,10 @@ type ConversationDetail = {
   status: "OPEN" | "CLOSED"
   messages: ChatMessage[]
   assignedTo?: { id: number; name: string | null } | null
+  assignedToId?: number | null
 }
+
+type AgentOption = { id: number; name: string }
 
 let sharedAudioCtx: AudioContext | null = null
 
@@ -136,6 +139,10 @@ export default function StaffChatWidget() {
   const [live, setLive] = useState(false)
   const [loadingList, setLoadingList] = useState(false)
   const [lockError, setLockError] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [agents, setAgents] = useState<AgentOption[]>([])
+  const [assignId, setAssignId] = useState<string>("")
+  const [assigning, setAssigning] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -163,6 +170,27 @@ export default function StaffChatWidget() {
     }
   }, [])
 
+  // অ্যাডমিন হলে এজেন্ট লিস্ট লোড
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/admin/agents")
+        if (!res.ok) {
+          setIsAdmin(false)
+          return
+        }
+        const data = await res.json()
+        const list = (Array.isArray(data) ? data : []).filter(
+          (a: { isActive?: boolean }) => a.isActive !== false
+        ) as { id: number; name: string }[]
+        setAgents(list.map((a) => ({ id: a.id, name: a.name || `এজেন্ট #${a.id}` })))
+        setIsAdmin(true)
+      } catch {
+        setIsAdmin(false)
+      }
+    })()
+  }, [])
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
@@ -185,28 +213,34 @@ export default function StaffChatWidget() {
     }
   }, [setUnreadTotal])
 
-  const fetchDetail = useCallback(async (id: number) => {
-    setLockError(null)
-    try {
-      const res = await fetch(`/api/admin/chat/${id}`)
-      const data = await res.json()
-      if (res.status === 409) {
-        setDetail(null)
-        setSelectedId(null)
-        setLockError(data.error || "এই চ্যাট অন্য এজেন্টের আন্ডারে আছে")
-        void fetchList()
-        return
+  const fetchDetail = useCallback(
+    async (id: number) => {
+      setLockError(null)
+      try {
+        const res = await fetch(`/api/admin/chat/${id}`)
+        const data = await res.json()
+        if (res.status === 409) {
+          setDetail(null)
+          setSelectedId(null)
+          setLockError(data.error || "এই চ্যাট অন্য এজেন্টের আন্ডারে আছে")
+          void fetchList()
+          return
+        }
+        if (res.ok) {
+          setDetail(data.conversation)
+          if (data.me?.isAdmin) setIsAdmin(true)
+          const aid = data.conversation?.assignedToId ?? data.conversation?.assignedTo?.id
+          setAssignId(aid ? String(aid) : "")
+          setConversations((prev) =>
+            prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c))
+          )
+        }
+      } catch {
+        /* ignore */
       }
-      if (res.ok) {
-        setDetail(data.conversation)
-        setConversations((prev) =>
-          prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c))
-        )
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [fetchList])
+    },
+    [fetchList]
+  )
 
   useEffect(() => {
     void fetchList()
@@ -319,6 +353,38 @@ export default function StaffChatWidget() {
   function handleToggle() {
     void unlockChatAudio()
     toggle()
+  }
+
+  async function handleAssign() {
+    if (!selectedId || !assignId || assigning) return
+    setAssigning(true)
+    try {
+      const res = await fetch(`/api/admin/chat/${selectedId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignedToId: Number(assignId) }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error || "অ্যাসাইন করা যায়নি")
+        return
+      }
+      setDetail((prev) =>
+        prev
+          ? {
+              ...prev,
+              assignedTo: data.conversation.assignedTo,
+              assignedToId: data.conversation.assignedToId,
+            }
+          : prev
+      )
+      void fetchList()
+      alert(`✅ অ্যাসাইন হয়েছে: ${data.conversation.assignedTo?.name || ""}`)
+    } catch {
+      alert("অ্যাসাইন করতে সমস্যা হয়েছে")
+    } finally {
+      setAssigning(false)
+    }
   }
 
   async function handleReply(e: React.FormEvent) {
@@ -448,10 +514,12 @@ export default function StaffChatWidget() {
                           ? `${c.lastMessage.senderType === "CUSTOMER" ? "👤" : "🛡️"} ${preview(c.lastMessage.text)}`
                           : "মেসেজ নেই"}
                       </p>
-                      {c.assignedTo?.name && (
+                      {c.assignedTo?.name ? (
                         <p className="text-[10px] text-green-700 mt-0.5 truncate">
                           👤 {c.assignedTo.name}
                         </p>
+                      ) : (
+                        <p className="text-[10px] text-amber-600 mt-0.5">নতুন · আনঅ্যাসাইনড</p>
                       )}
                     </div>
                     <span className="text-[10px] text-gray-400 shrink-0">
@@ -463,6 +531,32 @@ export default function StaffChatWidget() {
             </div>
           ) : (
             <>
+              {isAdmin && (
+                <div className="px-2 py-1.5 border-b bg-emerald-50 flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] text-gray-600 shrink-0">অ্যাসাইন:</span>
+                  <select
+                    value={assignId}
+                    onChange={(e) => setAssignId(e.target.value)}
+                    className="flex-1 min-w-0 text-[11px] border border-gray-200 rounded-lg px-1.5 py-1 bg-white"
+                  >
+                    <option value="">এজেন্ট বাছুন...</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void handleAssign()}
+                    disabled={!assignId || assigning}
+                    className="shrink-0 bg-[#055a36] text-white text-[10px] font-bold px-2 py-1 rounded-lg disabled:opacity-50"
+                  >
+                    {assigning ? "..." : "দিন"}
+                  </button>
+                </div>
+              )}
+
               <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
                 {detail?.messages.map((msg) => {
                   const isStaff = msg.senderType === "ADMIN" || msg.senderType === "AGENT"
