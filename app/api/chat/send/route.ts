@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyVisitorSession } from "@/lib/visitorSession"
 import { ChatSenderType } from "@prisma/client"
-import { sendTelegramAlert } from "@/lib/telegram"
+import { sendTelegramAlert, escapeHtml } from "@/lib/telegram"
 import { chatEvents } from "@/lib/chatEvents"
 import { checkAndIncrementRate } from "@/lib/rateLimiter"
 
