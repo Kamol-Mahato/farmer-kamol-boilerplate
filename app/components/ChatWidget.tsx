@@ -10,6 +10,51 @@ interface Message {
   createdAt: string
 }
 
+/* ─── Soft notify sound (autoplay-safe after first tap) ─── */
+let audioCtx: AudioContext | null = null
+
+async function unlockVisitorAudio() {
+  try {
+    const Ctx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    if (!audioCtx) audioCtx = new Ctx()
+    if (audioCtx.state === "suspended") await audioCtx.resume()
+  } catch {
+    /* ignore */
+  }
+}
+
+function playVisitorNotify() {
+  void (async () => {
+    try {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      if (!audioCtx) audioCtx = new Ctx()
+      if (audioCtx.state === "suspended") await audioCtx.resume()
+      const now = audioCtx.currentTime
+      const beep = (freq: number, start: number, dur: number) => {
+        const osc = audioCtx!.createOscillator()
+        const gain = audioCtx!.createGain()
+        osc.type = "sine"
+        osc.frequency.setValueAtTime(freq, now + start)
+        gain.gain.setValueAtTime(0.0001, now + start)
+        gain.gain.exponentialRampToValueAtTime(0.2, now + start + 0.02)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur)
+        osc.connect(gain)
+        gain.connect(audioCtx!.destination)
+        osc.start(now + start)
+        osc.stop(now + start + dur + 0.02)
+      }
+      beep(988, 0, 0.16)
+      beep(1319, 0.14, 0.2)
+    } catch {
+      /* blocked */
+    }
+  })()
+}
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
@@ -18,10 +63,16 @@ export default function ChatWidget() {
   const [initialized, setInitialized] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
   const [live, setLive] = useState(false)
+  const [unread, setUnread] = useState(0)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isOpenRef = useRef(false)
+
+  useEffect(() => {
+    isOpenRef.current = isOpen
+  }, [isOpen])
 
   useEffect(() => {
     const timerShow = setTimeout(() => setShowTooltip(true), 1500)
@@ -32,8 +83,25 @@ export default function ChatWidget() {
     }
   }, [])
 
+  // Unlock audio on first interaction (so later staff replies can beep)
+  useEffect(() => {
+    const unlock = () => {
+      void unlockVisitorAudio()
+    }
+    window.addEventListener("pointerdown", unlock, { once: true, capture: true })
+    window.addEventListener("touchstart", unlock, { once: true, capture: true })
+    return () => {
+      window.removeEventListener("pointerdown", unlock, true)
+      window.removeEventListener("touchstart", unlock, true)
+    }
+  }, [])
+
   const toggleChat = () => {
-    if (!isOpen) setShowTooltip(false)
+    void unlockVisitorAudio()
+    if (!isOpen) {
+      setShowTooltip(false)
+      setUnread(0)
+    }
     setIsOpen(!isOpen)
   }
 
@@ -58,15 +126,14 @@ export default function ChatWidget() {
     }
   }, [])
 
+  // Init as soon as widget mounts — cookie + conversation ready even if popup closed
   useEffect(() => {
-    if (isOpen && !initialized) {
-      fetchInitChat()
-    }
-  }, [isOpen, initialized, fetchInitChat])
+    void fetchInitChat()
+  }, [fetchInitChat])
 
-  // WebSocket real-time (own server)
+  // WebSocket stays connected after init — even when chat popup is closed
   useEffect(() => {
-    if (!isOpen || !initialized) return
+    if (!initialized) return
 
     let closedByUs = false
 
@@ -91,6 +158,18 @@ export default function ChatWidget() {
             )
             return [...withoutTemp, msg]
           })
+
+          const isStaff =
+            msg.senderType === "ADMIN" ||
+            msg.senderType === "AGENT" ||
+            msg.senderType === "SYSTEM"
+
+          // Popup closed → badge + sound so customer notices the reply
+          if (isStaff && !isOpenRef.current) {
+            setUnread((n) => n + 1)
+            playVisitorNotify()
+            setShowTooltip(true)
+          }
         },
         onError: () => setLive(false),
         onClose: () => {
@@ -112,7 +191,7 @@ export default function ChatWidget() {
       wsRef.current = null
       setLive(false)
     }
-  }, [isOpen, initialized])
+  }, [initialized])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -138,7 +217,6 @@ export default function ChatWidget() {
       })
 
       if (!res.ok) throw new Error("Failed to send message")
-      // Confirmed delivery arrives via WebSocket broadcast
     } catch (err) {
       console.error("Message send failed:", err)
     } finally {
@@ -250,14 +328,18 @@ export default function ChatWidget() {
       <div className="relative flex items-center justify-end">
         {showTooltip && !isOpen && (
           <div className="absolute right-14 whitespace-nowrap bg-gray-900 text-white text-[11px] sm:text-xs py-1.5 px-3 rounded-xl shadow-lg flex items-center gap-1.5 animate-bounce transition-all duration-300 border border-gray-700">
-            <span>👋 আমরা এখন অনলাইনে আছি, যেকোনো কিছু জিজ্ঞাসা করুন!</span>
+            <span>
+              {unread > 0
+                ? `💬 নতুন রিপ্লাই এসেছে (${unread})`
+                : "👋 আমরা এখন অনলাইনে আছি, যেকোনো কিছু জিজ্ঞাসা করুন!"}
+            </span>
             <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[6px] border-l-gray-900" />
           </div>
         )}
 
         <button
           onClick={toggleChat}
-          className="bg-[#055a36] hover:bg-[#034026] text-white w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
+          className="relative bg-[#055a36] hover:bg-[#034026] text-white w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
           aria-label="Toggle Chat"
         >
           {isOpen ? (
@@ -268,6 +350,11 @@ export default function ChatWidget() {
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9a1 1 0 100-2 1 1 0 000 2zm3 0a1 1 0 100-2 1 1 0 000 2zm3 0a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
             </svg>
+          )}
+          {!isOpen && unread > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center border-2 border-white shadow">
+              {unread > 99 ? "99+" : unread}
+            </span>
           )}
         </button>
       </div>
