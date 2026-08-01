@@ -3,6 +3,8 @@ import PanelNavbar from "../components/PanelNavbar"
 import AgentLogoutButton from "./components/AgentLogoutButton"
 import EnablePushButton from "../admin/components/EnablePushButton"
 import AgentBottomNav from "./components/AgentBottomNav"
+import { StaffChatProvider } from "../components/StaffChatProvider"
+import StaffChatWidget from "../components/StaffChatWidget"
 
 export const metadata: Metadata = {
   robots: {
@@ -16,7 +18,7 @@ export default function AgentLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
+    <StaffChatProvider>
       <PanelNavbar
         homeHref="/agent"
         rightSlot={
@@ -41,9 +43,10 @@ export default function AgentLayout({
             href: "/",
           },
         ]}
-        />
-        <div className="pb-16 md:pb-0">{children}</div>
-        <AgentBottomNav />
-      </>
-    )
-  }
+      />
+      <div className="pb-16 md:pb-0">{children}</div>
+      <AgentBottomNav />
+      <StaffChatWidget />
+    </StaffChatProvider>
+  )
+}
