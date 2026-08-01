@@ -16,8 +16,10 @@ export default function ChatWidget() {
   const [loading, setLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
+  const [live, setLive] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const esRef = useRef<EventSource | null>(null)
 
   useEffect(() => {
     const timerShow = setTimeout(() => setShowTooltip(true), 1500)
@@ -60,12 +62,43 @@ export default function ChatWidget() {
     }
   }, [isOpen, initialized, fetchInitChat])
 
-  // Poll for new staff replies while chat is open
+  // 🔴 Real-time SSE — no client polling
   useEffect(() => {
     if (!isOpen || !initialized) return
-    const t = setInterval(fetchInitChat, 8000)
-    return () => clearInterval(t)
-  }, [isOpen, initialized, fetchInitChat])
+
+    const es = new EventSource("/api/chat/stream")
+    esRef.current = es
+
+    es.addEventListener("connected", () => setLive(true))
+
+    es.addEventListener("message", (ev) => {
+      try {
+        const msg = JSON.parse(ev.data) as Message & { conversationId?: number }
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev
+          // drop optimistic temp messages with same text from customer
+          const withoutTemp = prev.filter(
+            (m) =>
+              !(m.id > 1e12 && m.senderType === "CUSTOMER" && m.text === msg.text)
+          )
+          return [...withoutTemp, msg]
+        })
+      } catch {
+        /* ignore bad payload */
+      }
+    })
+
+    es.onerror = () => {
+      setLive(false)
+      // browser auto-reconnects EventSource
+    }
+
+    return () => {
+      es.close()
+      esRef.current = null
+      setLive(false)
+    }
+  }, [isOpen, initialized])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,8 +124,7 @@ export default function ChatWidget() {
       })
 
       if (!res.ok) throw new Error("Failed to send message")
-      // Refresh to get real IDs / any system messages
-      await fetchInitChat()
+      // Real message arrives via SSE; keep optimistic until then
     } catch (err) {
       console.error("Message send failed:", err)
     } finally {
@@ -135,10 +167,14 @@ export default function ChatWidget() {
         <div className="bg-white w-[300px] sm:w-[340px] h-[430px] rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden mb-3 transition-all duration-300">
           <div className="bg-[#055a36] text-white p-3 flex justify-between items-center shadow-md">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse" />
+              <div
+                className={`w-2.5 h-2.5 rounded-full ${live ? "bg-green-400 animate-pulse" : "bg-yellow-300"}`}
+              />
               <div>
                 <h3 className="font-bold text-xs sm:text-sm tracking-wide">Farmer Kamol Support</h3>
-                <p className="text-[9px] sm:text-[10px] text-emerald-100">সাধারণত দ্রুত উত্তর দেওয়া হয়</p>
+                <p className="text-[9px] sm:text-[10px] text-emerald-100">
+                  {live ? "লাইভ · রিয়েল-টাইম" : "সংযোগ হচ্ছে..."}
+                </p>
               </div>
             </div>
             <button
