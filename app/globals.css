@@ -5,13 +5,23 @@
   --foreground: #171717;
 }
 
+html {
+  scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-hind-siliguri), Arial, Helvetica, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
-/* 🖱️ যেকোনো ক্লিক-যোগ্য এলিমেন্টে মাউস গেলেই হাতের/pointer আইকন দেখাবে — পুরো সাইটে (Customer/Admin/Agent) একবারই বসানো হলো */
+/* 🖱️ যেকোনো ক্লিক-যোগ্য এলিমেন্টে মাউস গেলেই হাতের/pointer আইকন দেখাবে */
 button:not(:disabled),
 a,
 [role="button"],
@@ -25,24 +35,11 @@ input[type="button"] {
   cursor: pointer;
 }
 
-/* 🚫 disabled বাটনে যেন উল্টো "নিষিদ্ধ" চিহ্ন দেখায়, ভুল বোঝার সুযোগ না থাকে */
 button:disabled,
 input:disabled {
   cursor: not-allowed;
 }
 
-/* ✨ পুরো সাইটজুড়ে ছোটখাটো Professional পালিশ — একবারই বসানো, সব জায়গায় কাজ করবে */
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* 🖱️ মাউস ক্লিকে না, শুধু কীবোর্ড (Tab) দিয়ে navigate করলে সবুজ ফোকাস রিং দেখাবে */
 :focus:not(:focus-visible) {
   outline: none;
 }
@@ -51,31 +48,26 @@ body {
   outline-offset: 2px;
 }
 
-/* 🎨 লেখা সিলেক্ট করলে ব্র্যান্ড সবুজ হাইলাইট */
 ::selection {
   background-color: #bbf7d0;
   color: #14532d;
 }
 
-/* 📱 মোবাইলে ট্যাপ করলে কুৎসিত ধূসর ফ্ল্যাশ বন্ধ */
 a, button, [role="button"], input, select, textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 👆 বাটনে ক্লিক করলে হালকা press effect (native app-এর মতো ফিল) */
 button:not(:disabled):active,
 [role="button"]:active {
   transform: scale(0.97);
   transition: transform 0.08s ease;
 }
 
-/* 🖼️ ছবি ভুলে টেনে ধরলে ghost drag বন্ধ */
 img {
   -webkit-user-drag: none;
   user-select: none;
 }
 
-/* 🟡 Chrome Autofill-এর কুৎসিত হলুদ ব্যাকগ্রাউন্ড সরানো (Login/Register ফর্মে) */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
@@ -132,11 +124,13 @@ input::placeholder, textarea::placeholder {
     font-weight: 700 !important;
   }
 }
+
 label {
   color: #000000 !important;
   font-weight: 600 !important;
   font-size: 1rem !important;
 }
+
 @keyframes bounce-once {
   0%, 100% { transform: translateY(0); }
   25% { transform: translateY(-12px); }
@@ -147,6 +141,7 @@ label {
 .animate-bounce-once {
   animation: bounce-once 0.8s ease;
 }
+
 @keyframes attention-shake {
   0%, 100% { transform: translateX(0); }
   2% { transform: translateX(-6px); }
@@ -157,10 +152,11 @@ label {
   12% { transform: translateX(3px); }
   14%, 100% { transform: translateX(0); }
 }
+
 .animate-attention-shake {
   animation: attention-shake 3s ease-in-out infinite;
 }
-/* ✅ Global mobile tap feedback — নতুন কোনো বাটনেও আলাদা কোড লাগবে না */
+
 button:not(:disabled),
 a,
 [role="button"] {
@@ -174,16 +170,16 @@ a:active,
   transform: scale(0.94);
   opacity: 0.8;
 }
+
 select.status-pill {
   background-color: var(--pill-bg) !important;
   color: var(--pill-text) !important;
 }
 
 /*
-  📐 Order management tables are very wide (many columns).
-  Without containment, min-width on <table> expands the whole page
-  → empty gap on the right in mobile "Desktop site" view.
-  Keep horizontal scroll ONLY inside the table shell.
+  📐 Wide order tables (admin/agent) must NOT expand the page width.
+  Scroll stays inside the table wrapper only — fixes empty right gap
+  in mobile "Desktop site" view.
 */
 .orders-page-shell {
   width: 100%;
@@ -192,16 +188,18 @@ select.status-pill {
   box-sizing: border-box;
 }
 
-.orders-table-scroll {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
+.orders-table-scroll,
+div.overflow-x-auto {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
 }
 
-.orders-table-scroll > table {
+.orders-table-scroll > table,
+div.overflow-x-auto > table {
   width: max-content;
   min-width: 100%;
 }
