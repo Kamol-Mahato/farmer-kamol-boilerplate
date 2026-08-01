@@ -32,9 +32,9 @@ export default function AdminLayout({
             </div>
           }
         />
-        <div className="flex">
+        <div className="flex w-full min-w-0">
           <AdminSidebar />
-          <main className="flex-1 min-w-0 pb-16 md:pb-0">{children}</main>
+          <main className="flex-1 min-w-0 w-full pb-16 md:pb-0">{children}</main>
         </div>
         <AdminBottomNav />
         <StaffChatWidget />
