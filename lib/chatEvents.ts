@@ -5,6 +5,7 @@ export type ChatMessagePayload = {
   conversationId: number
   senderType: "SYSTEM" | "CUSTOMER" | "ADMIN" | "AGENT"
   senderId: number | null
+  senderName?: string | null
   text: string
   isRead: boolean
   createdAt: string
@@ -17,10 +18,12 @@ export type ChatConversationPayload = {
   visitorPhone: string | null
   status: "OPEN" | "CLOSED"
   lastMessageAt: string
+  assignedToId?: number | null
   lastMessage: {
     id: number
     text: string
     senderType: string
+    senderName?: string | null
     createdAt: string
   } | null
 }
