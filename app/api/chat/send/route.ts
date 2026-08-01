@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 import { verifyVisitorSession } from "@/lib/visitorSession"
 import { ChatSenderType } from "@prisma/client"
 import { sendTelegramAlert } from "@/lib/telegram"
+import { chatEvents } from "@/lib/chatEvents"
 
 export async function POST(req: Request) {
   try {
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
       },
     })
 
-    await prisma.chatConversation.update({
+    const updated = await prisma.chatConversation.update({
       where: { id: conversation.id },
       data: {
         updatedAt: new Date(),
@@ -57,7 +58,32 @@ export async function POST(req: Request) {
       },
     })
 
-    // Non-blocking alert for admin/agent
+    const messagePayload = {
+      id: newMessage.id,
+      conversationId: conversation.id,
+      senderType: "CUSTOMER" as const,
+      senderId: null,
+      text: newMessage.text,
+      isRead: false,
+      createdAt: newMessage.createdAt.toISOString(),
+    }
+
+    chatEvents.emitMessage(messagePayload)
+    chatEvents.emitConversation({
+      id: conversation.id,
+      visitorId: conversation.visitorId,
+      visitorName: conversation.visitorName,
+      visitorPhone: conversation.visitorPhone,
+      status: "OPEN",
+      lastMessageAt: updated.lastMessageAt.toISOString(),
+      lastMessage: {
+        id: newMessage.id,
+        text: newMessage.text,
+        senderType: "CUSTOMER",
+        createdAt: messagePayload.createdAt,
+      },
+    })
+
     void sendTelegramAlert(
       `💬 <b>নতুন চ্যাট মেসেজ</b>\n` +
         `কনভারসেশন #${conversation.id}\n` +
