@@ -2,6 +2,7 @@
  * Custom Node server: Next.js + WebSocket (own server, no Pusher/SSE).
  * Run: npm run dev / npm start  →  tsx server.ts
  */
+import "dotenv/config"
 import { createServer, type IncomingMessage } from "http"
 import { parse } from "url"
 import next from "next"
@@ -34,7 +35,6 @@ function getCookie(req: IncomingMessage, name: string): string | undefined {
 }
 
 app.prepare().then(async () => {
-  // Dynamic imports so Next/Prisma load after env is ready
   const { verifySession } = await import("./lib/session")
   const { verifyVisitorSession } = await import("./lib/visitorSession")
   const { prisma } = await import("./lib/prisma")
@@ -84,7 +84,6 @@ app.prepare().then(async () => {
     }
   }
 
-  // Bridge API routes → WebSocket (same process, global event bus)
   chatEvents.onMessage(broadcastMessage)
   chatEvents.onConversation(broadcastConversation)
 
@@ -94,9 +93,7 @@ app.prepare().then(async () => {
       const agentToken = getCookie(req, "agent_session")
       const visitorToken = getCookie(req, "visitor_session")
 
-      // Staff first
       if (adminToken || agentToken) {
-        // Prefer single role; if both, reject like adminAuth
         if (adminToken && agentToken) {
           send(ws, "error", { message: "Invalid session" })
           ws.close()
@@ -137,7 +134,6 @@ app.prepare().then(async () => {
           select: { id: true },
         })
         if (!conversation) {
-          // Not initialized yet — client should call /api/chat/init first
           send(ws, "error", { message: "Chat not initialized" })
           ws.close()
           return
@@ -164,7 +160,6 @@ app.prepare().then(async () => {
     }
 
     ws.on("message", (raw) => {
-      // Optional client ping / future commands
       try {
         const msg = JSON.parse(String(raw))
         if (msg?.type === "ping") {
@@ -184,7 +179,6 @@ app.prepare().then(async () => {
     })
   })
 
-  // Keepalive ping (protocol-level)
   const pingInterval = setInterval(() => {
     for (const client of clients) {
       if (client.readyState === WebSocket.OPEN) {
@@ -197,7 +191,7 @@ app.prepare().then(async () => {
     }
   }, 30000)
 
-  server.listen(port, hostname, () => {
+  server.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`)
     console.log(`> WebSocket on ws://${hostname}:${port}/ws/chat`)
   })
