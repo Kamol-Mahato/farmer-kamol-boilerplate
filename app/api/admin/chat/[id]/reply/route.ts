@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { ChatSenderType } from "@prisma/client"
+import { chatEvents } from "@/lib/chatEvents"
 
 export async function POST(
   request: Request,
@@ -51,12 +52,38 @@ export async function POST(
       },
     })
 
-    await prisma.chatConversation.update({
+    const updated = await prisma.chatConversation.update({
       where: { id: conversationId },
       data: {
         lastMessageAt: new Date(),
         status: "OPEN",
         assignedToId: conversation.assignedToId ?? user.id,
+      },
+    })
+
+    const messagePayload = {
+      id: message.id,
+      conversationId,
+      senderType: senderType as "ADMIN" | "AGENT",
+      senderId: user.id,
+      text: message.text,
+      isRead: true,
+      createdAt: message.createdAt.toISOString(),
+    }
+
+    chatEvents.emitMessage(messagePayload)
+    chatEvents.emitConversation({
+      id: conversationId,
+      visitorId: conversation.visitorId,
+      visitorName: conversation.visitorName,
+      visitorPhone: conversation.visitorPhone,
+      status: "OPEN",
+      lastMessageAt: updated.lastMessageAt.toISOString(),
+      lastMessage: {
+        id: message.id,
+        text: message.text,
+        senderType,
+        createdAt: messagePayload.createdAt,
       },
     })
 
