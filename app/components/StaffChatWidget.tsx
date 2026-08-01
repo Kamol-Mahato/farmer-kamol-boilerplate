@@ -39,24 +39,73 @@ type ConversationDetail = {
   messages: ChatMessage[]
 }
 
-function playNotifySound() {
+/* ─── Notification sound (browser autoplay-safe) ─── */
+let sharedAudioCtx: AudioContext | null = null
+let audioUnlocked = false
+
+function getAudioCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null
   try {
-    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-    const ctx = new Ctx()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = "sine"
-    osc.frequency.setValueAtTime(880, ctx.currentTime)
-    osc.frequency.setValueAtTime(1175, ctx.currentTime + 0.12)
-    gain.gain.setValueAtTime(0.12, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.start()
-    osc.stop(ctx.currentTime + 0.35)
+    const Ctx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+    if (!sharedAudioCtx) sharedAudioCtx = new Ctx()
+    return sharedAudioCtx
   } catch {
-    /* autoplay / unsupported */
+    return null
   }
+}
+
+/** Call after any user gesture so later WS messages can play sound */
+export async function unlockChatAudio() {
+  const ctx = getAudioCtx()
+  if (!ctx) return
+  try {
+    if (ctx.state === "suspended") await ctx.resume()
+    // silent buffer to fully unlock on iOS/Safari
+    const buffer = ctx.createBuffer(1, 1, 22050)
+    const src = ctx.createBufferSource()
+    src.buffer = buffer
+    src.connect(ctx.destination)
+    src.start(0)
+    audioUnlocked = true
+  } catch {
+    /* ignore */
+  }
+}
+
+function playNotifySound() {
+  const run = async () => {
+    try {
+      const ctx = getAudioCtx()
+      if (!ctx) return
+      if (ctx.state === "suspended") {
+        await ctx.resume()
+      }
+      const now = ctx.currentTime
+
+      const beep = (freq: number, start: number, dur: number) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = "sine"
+        osc.frequency.setValueAtTime(freq, now + start)
+        gain.gain.setValueAtTime(0.0001, now + start)
+        gain.gain.exponentialRampToValueAtTime(0.22, now + start + 0.02)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur)
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.start(now + start)
+        osc.stop(now + start + dur + 0.02)
+      }
+
+      // soft double-chime
+      beep(880, 0, 0.18)
+      beep(1174.7, 0.16, 0.22)
+    } catch {
+      /* autoplay still blocked */
+    }
+  }
+  void run()
 }
 
 function formatTime(iso: string) {
@@ -100,6 +149,21 @@ export default function StaffChatWidget() {
     selectedIdRef.current = selectedId
   }, [selectedId])
 
+  // Unlock audio on first user interaction anywhere in the panel
+  useEffect(() => {
+    const unlock = () => {
+      void unlockChatAudio()
+    }
+    window.addEventListener("pointerdown", unlock, { once: true, capture: true })
+    window.addEventListener("keydown", unlock, { once: true, capture: true })
+    window.addEventListener("touchstart", unlock, { once: true, capture: true })
+    return () => {
+      window.removeEventListener("pointerdown", unlock, true)
+      window.removeEventListener("keydown", unlock, true)
+      window.removeEventListener("touchstart", unlock, true)
+    }
+  }, [])
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
@@ -137,12 +201,10 @@ export default function StaffChatWidget() {
     }
   }, [])
 
-  // Initial unread + list
   useEffect(() => {
     void fetchList()
   }, [fetchList])
 
-  // Recalc badge when conversations change
   useEffect(() => {
     const total = conversations.reduce((s, c) => s + (c.unreadCount || 0), 0)
     setUnreadTotal(total)
@@ -240,9 +302,15 @@ export default function StaffChatWidget() {
   }, [detail?.messages?.length])
 
   async function openConversation(id: number) {
+    void unlockChatAudio()
     setSelectedId(id)
     setReplyText("")
     await fetchDetail(id)
+  }
+
+  function handleToggle() {
+    void unlockChatAudio()
+    toggle()
   }
 
   async function handleReply(e: React.FormEvent) {
@@ -284,7 +352,6 @@ export default function StaffChatWidget() {
     <div className="fixed right-4 bottom-20 md:bottom-6 z-[70]">
       {open && (
         <div className="bg-white w-[min(100vw-2rem,380px)] h-[min(70vh,520px)] rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden mb-3">
-          {/* Header */}
           <div className="bg-[#055a36] text-white px-3 py-2.5 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2 min-w-0">
               <div className={`w-2 h-2 rounded-full shrink-0 ${live ? "bg-green-400 animate-pulse" : "bg-yellow-300"}`} />
@@ -326,7 +393,6 @@ export default function StaffChatWidget() {
             </div>
           </div>
 
-          {/* Body: list or thread */}
           {!selectedId ? (
             <div className="flex-1 overflow-y-auto bg-gray-50">
               {loadingList && conversations.length === 0 ? (
@@ -423,11 +489,10 @@ export default function StaffChatWidget() {
         </div>
       )}
 
-      {/* Floating button — desktop always; mobile also available */}
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={toggle}
+          onClick={handleToggle}
           className="relative bg-[#055a36] hover:bg-[#034026] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition"
           aria-label="লাইভ চ্যাট"
         >
