@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
+import { chatEvents } from "@/lib/chatEvents"
 
 function isAdminRole(role: string) {
   return role === "ADMIN" || role === "SUPER_ADMIN"
@@ -59,7 +60,7 @@ export async function GET(
       data: { isRead: true },
     })
 
-    // প্রথমবার খুললে অ্যাসাইন
+    // প্রথমবার খুললে অ্যাসাইন (যে unread দেখে খুলল)
     if (!conversation.assignedToId) {
       await prisma.chatConversation.update({
         where: { id: conversationId },
@@ -69,7 +70,6 @@ export async function GET(
       conversation.assignedTo = { id: user.id, name: user.name }
     }
 
-    // senderId → নাম ম্যাপ
     const staffIds = [
       ...new Set(
         conversation.messages
@@ -102,6 +102,12 @@ export async function GET(
         ...conversation,
         messages: messagesWithNames,
       },
+      me: {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        isAdmin: isAdminRole(user.role),
+      },
     })
   } catch (error) {
     console.error("ADMIN CHAT DETAIL ERROR:", error)
@@ -126,11 +132,11 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { status, visitorName, visitorPhone, takeOver } = body as {
+    const { status, visitorName, visitorPhone, assignedToId } = body as {
       status?: "OPEN" | "CLOSED"
       visitorName?: string
       visitorPhone?: string
-      takeOver?: boolean
+      assignedToId?: number | null
     }
 
     const existing = await prisma.chatConversation.findUnique({
@@ -141,12 +147,13 @@ export async function PATCH(
       return NextResponse.json({ error: "কনভারসেশন পাওয়া যায়নি" }, { status: 404 })
     }
 
-    // এজেন্ট অন্যের চ্যাট আপডেট করতে পারবে না
+    const admin = isAdminRole(user.role)
+
+    // এজেন্ট শুধু নিজের চ্যাট আপডেট করতে পারবে
     if (
+      !admin &&
       existing.assignedToId &&
-      existing.assignedToId !== user.id &&
-      !isAdminRole(user.role) &&
-      !takeOver
+      existing.assignedToId !== user.id
     ) {
       return NextResponse.json(
         {
@@ -160,12 +167,44 @@ export async function PATCH(
       status?: "OPEN" | "CLOSED"
       visitorName?: string | null
       visitorPhone?: string | null
-      assignedToId?: number
+      assignedToId?: number | null
     } = {}
 
-    // অ্যাডমিন takeOver বা নিজের চ্যাট
-    if (isAdminRole(user.role) || !existing.assignedToId || existing.assignedToId === user.id) {
-      data.assignedToId = user.id
+    // 🎯 অ্যাডমিন: যেকোনো এজেন্ট/নিজেকে অ্যাসাইন
+    if (assignedToId !== undefined) {
+      if (!admin) {
+        return NextResponse.json(
+          { error: "শুধু অ্যাডমিন চ্যাট অ্যাসাইন করতে পারেন" },
+          { status: 403 }
+        )
+      }
+
+      if (assignedToId === null) {
+        data.assignedToId = null
+      } else {
+        const targetId = Number(assignedToId)
+        if (!targetId || Number.isNaN(targetId)) {
+          return NextResponse.json({ error: "অবৈধ এজেন্ট আইডি" }, { status: 400 })
+        }
+        const target = await prisma.user.findUnique({
+          where: { id: targetId },
+          select: { id: true, name: true, role: true, isActive: true },
+        })
+        if (!target || !target.isActive) {
+          return NextResponse.json({ error: "ইউজার পাওয়া যায়নি" }, { status: 404 })
+        }
+        const okRole =
+          target.role === "AGENT" ||
+          target.role === "ADMIN" ||
+          target.role === "SUPER_ADMIN"
+        if (!okRole) {
+          return NextResponse.json(
+            { error: "শুধু এজেন্ট বা অ্যাডমিনকে অ্যাসাইন করা যাবে" },
+            { status: 400 }
+          )
+        }
+        data.assignedToId = target.id
+      }
     }
 
     if (status === "OPEN" || status === "CLOSED") data.status = status
@@ -178,6 +217,17 @@ export async function PATCH(
       include: {
         assignedTo: { select: { id: true, name: true } },
       },
+    })
+
+    chatEvents.emitConversation({
+      id: conversationId,
+      visitorId: updated.visitorId,
+      visitorName: updated.visitorName,
+      visitorPhone: updated.visitorPhone,
+      status: updated.status as "OPEN" | "CLOSED",
+      lastMessageAt: updated.lastMessageAt.toISOString(),
+      assignedToId: updated.assignedToId,
+      lastMessage: null,
     })
 
     return NextResponse.json({ conversation: updated })
