@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { connectChatSocket } from "@/lib/chatSocket"
 
 interface Message {
   id: number
@@ -19,7 +20,8 @@ export default function ChatWidget() {
   const [live, setLive] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const esRef = useRef<EventSource | null>(null)
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const timerShow = setTimeout(() => setShowTooltip(true), 1500)
@@ -62,40 +64,52 @@ export default function ChatWidget() {
     }
   }, [isOpen, initialized, fetchInitChat])
 
-  // 🔴 Real-time SSE — no client polling
+  // WebSocket real-time (own server)
   useEffect(() => {
     if (!isOpen || !initialized) return
 
-    const es = new EventSource("/api/chat/stream")
-    esRef.current = es
+    let closedByUs = false
 
-    es.addEventListener("connected", () => setLive(true))
-
-    es.addEventListener("message", (ev) => {
-      try {
-        const msg = JSON.parse(ev.data) as Message & { conversationId?: number }
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev
-          // drop optimistic temp messages with same text from customer
-          const withoutTemp = prev.filter(
-            (m) =>
-              !(m.id > 1e12 && m.senderType === "CUSTOMER" && m.text === msg.text)
-          )
-          return [...withoutTemp, msg]
-        })
-      } catch {
-        /* ignore bad payload */
+    const connect = () => {
+      if (wsRef.current) {
+        try {
+          wsRef.current.close()
+        } catch {
+          /* ignore */
+        }
       }
-    })
 
-    es.onerror = () => {
-      setLive(false)
-      // browser auto-reconnects EventSource
+      const ws = connectChatSocket({
+        onConnected: () => setLive(true),
+        onMessage: (data) => {
+          const msg = data as Message
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === msg.id)) return prev
+            const withoutTemp = prev.filter(
+              (m) =>
+                !(m.id > 1e12 && m.senderType === "CUSTOMER" && m.text === msg.text)
+            )
+            return [...withoutTemp, msg]
+          })
+        },
+        onError: () => setLive(false),
+        onClose: () => {
+          setLive(false)
+          if (!closedByUs) {
+            reconnectTimer.current = setTimeout(connect, 2000)
+          }
+        },
+      })
+      wsRef.current = ws
     }
 
+    connect()
+
     return () => {
-      es.close()
-      esRef.current = null
+      closedByUs = true
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
+      wsRef.current?.close()
+      wsRef.current = null
       setLive(false)
     }
   }, [isOpen, initialized])
@@ -124,7 +138,7 @@ export default function ChatWidget() {
       })
 
       if (!res.ok) throw new Error("Failed to send message")
-      // Real message arrives via SSE; keep optimistic until then
+      // Confirmed delivery arrives via WebSocket broadcast
     } catch (err) {
       console.error("Message send failed:", err)
     } finally {
@@ -173,7 +187,7 @@ export default function ChatWidget() {
               <div>
                 <h3 className="font-bold text-xs sm:text-sm tracking-wide">Farmer Kamol Support</h3>
                 <p className="text-[9px] sm:text-[10px] text-emerald-100">
-                  {live ? "লাইভ · রিয়েল-টাইম" : "সংযোগ হচ্ছে..."}
+                  {live ? "লাইভ · WebSocket" : "সংযোগ হচ্ছে..."}
                 </p>
               </div>
             </div>
