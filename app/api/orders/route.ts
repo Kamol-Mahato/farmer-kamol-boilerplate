@@ -6,6 +6,7 @@ import { sendTelegramAlert } from "@/lib/telegram"
 import { sendPushToAdmin } from "@/lib/webpush"
 import { getBangladeshDayBoundaries, calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
 import { checkRateLimit, recordFailedAttempt } from "@/lib/rateLimiter"
+import { signOrderPhoneToken } from "@/lib/orderPhoneToken"
 
 // ✅ agent_session কুকি থাকলে (এবং valid AGENT হলে) সেই agent-এর ID রিটার্ন করে
 async function resolveAgentId(): Promise<number | null> {
@@ -184,6 +185,14 @@ export async function POST(request: Request) {
       undefined,
       { orderId: result.id, name, amount: finalCodAmount }
     )
+    const cookieStore2 = await cookies()
+    cookieStore2.set("order_phone_token", await signOrderPhoneToken(phone), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 60,
+      path: "/",
+    })
 
     return NextResponse.json({
       success: true,

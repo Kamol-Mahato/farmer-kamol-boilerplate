@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma"
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import { getBangladeshDayBoundaries, calculateDeliveryCharge, getUnitToKgMultiplier } from "@/lib/orderUtils"
 import { sendTelegramAlert } from "@/lib/telegram"
 import { sendPushToAdmin } from "@/lib/webpush"
 import { checkRateLimit, recordFailedAttempt } from "@/lib/rateLimiter"
+import { signOrderPhoneToken } from "@/lib/orderPhoneToken"
 
 export async function POST(request: Request) {
   try {
@@ -160,6 +162,14 @@ export async function POST(request: Request) {
       "/admin/orders",
       { orderId: result.id, name, amount: finalCodAmount }
     )
+    const cookieStore2 = await cookies()
+    cookieStore2.set("order_phone_token", await signOrderPhoneToken(phone), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 60,
+      path: "/",
+    })
 
     return NextResponse.json({ success: true, orderId: result.id })
   } catch (error: any) {

@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
+import { verifyOrderPhoneToken } from "@/lib/orderPhoneToken"
+import { checkRateLimit, recordFailedAttempt } from "@/lib/rateLimiter"
 import bcrypt from "bcryptjs" // পাসওয়ার্ড সিকিউরিটির জন্য (নোট নিচে দেখুন)
 
 export async function POST(request: Request) {
@@ -11,6 +14,28 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "ফোন নম্বর এবং ন্যূনতম ৬ অক্ষরের পাসওয়ার্ড আবশ্যক" },
         { status: 400 }
+      )
+    }
+    const rateCheck = await checkRateLimit(`set-password:${phone}`)
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "অনেকবার চেষ্টা করা হয়েছে, কিছুক্ষণ পর আবার চেষ্টা করুন" },
+        { status: 429 }
+      )
+    }
+
+    const cookieStore = await cookies()
+    const orderToken = cookieStore.get("order_phone_token")?.value
+    const verifiedPhone = orderToken ? await verifyOrderPhoneToken(orderToken) : null
+
+    if (!verifiedPhone || verifiedPhone !== phone) {
+      await recordFailedAttempt(`set-password:${phone}`)
+      return NextResponse.json(
+        {
+          error:
+            "নিরাপত্তার জন্য, অর্ডার করার সাথে সাথেই শুধু এই ব্রাউজারে পাসওয়ার্ড সেট করা যায়। পরে সেট করতে চাইলে লগইন পেজ থেকে 'পাসওয়ার্ড ভুলে গেছেন' অপশন ব্যবহার করুন।",
+        },
+        { status: 403 }
       )
     }
 
@@ -48,7 +73,7 @@ export async function POST(request: Request) {
         password: hashedPassword, // যদি স্কিমাতে অন্য নাম থাকে তবে সেই নাম দিন
       },
     })
-
+    cookieStore.delete("order_phone_token")
     return NextResponse.json({ success: true, message: "পাসওয়ার্ড সফলভাবে সেট হয়েছে" })
   } catch (error: any) {
     console.error("SET PASSWORD API ERROR:", error)
