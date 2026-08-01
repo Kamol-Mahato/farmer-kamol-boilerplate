@@ -44,7 +44,7 @@ export default function AgentLayout({
           },
         ]}
       />
-      <div className="pb-16 md:pb-0">{children}</div>
+      <div className="w-full min-w-0 pb-16 md:pb-0">{children}</div>
       <AgentBottomNav />
       <StaffChatWidget />
     </StaffChatProvider>
