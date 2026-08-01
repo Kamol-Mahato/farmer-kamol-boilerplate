@@ -1,13 +1,13 @@
 import type { Metadata } from "next"
 import PanelNavbar from "../components/PanelNavbar"
-//import NewOrderNotifier from "./components/NewOrderNotifier"
 import AdminAccountMenu from "./components/AdminAccountMenu"
-import AdminMoreMenu from "./components/AdminMoreMenu"
 import AdminSidebar from "./components/AdminSidebar"
 import AdminSidebarToggleButton from "./components/AdminSidebarToggleButton"
 import AdminBottomNav from "./components/AdminBottomNav"
 import { AdminSidebarProvider } from "./components/AdminSidebarContext"
-  
+import { StaffChatProvider } from "../components/StaffChatProvider"
+import StaffChatWidget from "../components/StaffChatWidget"
+
 export const metadata: Metadata = {
   robots: {
     index: false,
@@ -21,25 +21,24 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <AdminSidebarProvider>
-      <PanelNavbar
-        homeHref="/admin"
-        leftSlot={<AdminSidebarToggleButton />}
-        rightSlot={
-          <div className="flex items-center">
-            {/* 🔒 LOCKED — Bell icon notification আপাতত বন্ধ, শুধু Web Push ব্যবহার হচ্ছে।
-                ভবিষ্যতে paid notification service নেওয়া হলে নিচের কমেন্ট সরিয়ে আবার চালু করা যাবে:
-            <NewOrderNotifier />
-            */}
-            <AdminAccountMenu />
-          </div>
-        }
-      />
-      <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 min-w-0 pb-16 md:pb-0">{children}</main>
-      </div>
-      <AdminBottomNav />
-    </AdminSidebarProvider>
+    <StaffChatProvider>
+      <AdminSidebarProvider>
+        <PanelNavbar
+          homeHref="/admin"
+          leftSlot={<AdminSidebarToggleButton />}
+          rightSlot={
+            <div className="flex items-center">
+              <AdminAccountMenu />
+            </div>
+          }
+        />
+        <div className="flex">
+          <AdminSidebar />
+          <main className="flex-1 min-w-0 pb-16 md:pb-0">{children}</main>
+        </div>
+        <AdminBottomNav />
+        <StaffChatWidget />
+      </AdminSidebarProvider>
+    </StaffChatProvider>
   )
 }
