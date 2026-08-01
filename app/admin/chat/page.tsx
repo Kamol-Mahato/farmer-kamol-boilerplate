@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { connectChatSocket } from "@/lib/chatSocket"
 
 type LastMessage = {
   id: number
@@ -72,6 +73,9 @@ export default function AdminChatPage() {
   const [error, setError] = useState<string | null>(null)
   const [live, setLive] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fetchListRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     selectedIdRef.current = selectedId
@@ -92,6 +96,12 @@ export default function AdminChatPage() {
       setLoadingList(false)
     }
   }, [filter])
+
+  useEffect(() => {
+    fetchListRef.current = () => {
+      void fetchList()
+    }
+  }, [fetchList])
 
   const fetchDetail = useCallback(async (id: number, silent = false) => {
     if (!silent) setLoadingDetail(true)
@@ -118,113 +128,127 @@ export default function AdminChatPage() {
     fetchList()
   }, [fetchList])
 
-  // 🔴 Real-time SSE — zero polling
+  // WebSocket real-time
   useEffect(() => {
-    const es = new EventSource("/api/admin/chat/stream")
+    let closedByUs = false
 
-    es.addEventListener("connected", () => setLive(true))
+    const connect = () => {
+      if (wsRef.current) {
+        try {
+          wsRef.current.close()
+        } catch {
+          /* ignore */
+        }
+      }
 
-    es.addEventListener("message", (ev) => {
-      try {
-        const msg = JSON.parse(ev.data) as ChatMessage & { conversationId: number }
+      const ws = connectChatSocket({
+        onConnected: () => setLive(true),
+        onMessage: (data) => {
+          const msg = data as ChatMessage & { conversationId: number }
 
-        // Update open thread instantly
-        if (selectedIdRef.current === msg.conversationId) {
-          setDetail((prev) => {
-            if (!prev || prev.id !== msg.conversationId) return prev
-            if (prev.messages.some((m) => m.id === msg.id)) return prev
-            const withoutTemp = prev.messages.filter(
-              (m) =>
-                !(m.id > 1e12 && m.text === msg.text && (m.senderType === "ADMIN" || m.senderType === "AGENT"))
-            )
-            return { ...prev, messages: [...withoutTemp, msg] }
+          if (selectedIdRef.current === msg.conversationId) {
+            setDetail((prev) => {
+              if (!prev || prev.id !== msg.conversationId) return prev
+              if (prev.messages.some((m) => m.id === msg.id)) return prev
+              const withoutTemp = prev.messages.filter(
+                (m) =>
+                  !(m.id > 1e12 && m.text === msg.text && (m.senderType === "ADMIN" || m.senderType === "AGENT"))
+              )
+              return { ...prev, messages: [...withoutTemp, msg] }
+            })
+          }
+
+          setConversations((prev) => {
+            const idx = prev.findIndex((c) => c.id === msg.conversationId)
+            const lastMessage = {
+              id: msg.id,
+              text: msg.text,
+              senderType: msg.senderType,
+              createdAt: msg.createdAt,
+            }
+            const isViewing = selectedIdRef.current === msg.conversationId
+            const isCustomer = msg.senderType === "CUSTOMER"
+
+            if (idx === -1) {
+              fetchListRef.current()
+              return prev
+            }
+
+            const next = [...prev]
+            const item = { ...next[idx] }
+            item.lastMessage = lastMessage
+            item.lastMessageAt = msg.createdAt
+            item.status = "OPEN"
+            if (isCustomer && !isViewing) {
+              item.unreadCount = (item.unreadCount || 0) + 1
+            }
+            next.splice(idx, 1)
+            next.unshift(item)
+            return next
           })
-        }
-
-        // Update sidebar list preview + unread
-        setConversations((prev) => {
-          const idx = prev.findIndex((c) => c.id === msg.conversationId)
-          const lastMessage = {
-            id: msg.id,
-            text: msg.text,
-            senderType: msg.senderType,
-            createdAt: msg.createdAt,
-          }
-          const isViewing = selectedIdRef.current === msg.conversationId
-          const isCustomer = msg.senderType === "CUSTOMER"
-
-          if (idx === -1) {
-            // New conversation appeared — soft refresh list once
-            void fetchList()
-            return prev
+        },
+        onConversation: (data) => {
+          const conv = data as {
+            id: number
+            visitorName: string | null
+            visitorPhone: string | null
+            status: "OPEN" | "CLOSED"
+            lastMessageAt: string
+            lastMessage: LastMessage
           }
 
-          const next = [...prev]
-          const item = { ...next[idx] }
-          item.lastMessage = lastMessage
-          item.lastMessageAt = msg.createdAt
-          item.status = "OPEN"
-          if (isCustomer && !isViewing) {
-            item.unreadCount = (item.unreadCount || 0) + 1
+          setConversations((prev) => {
+            const idx = prev.findIndex((c) => c.id === conv.id)
+            if (idx === -1) {
+              fetchListRef.current()
+              return prev
+            }
+            const next = [...prev]
+            next[idx] = {
+              ...next[idx],
+              visitorName: conv.visitorName,
+              visitorPhone: conv.visitorPhone,
+              status: conv.status,
+              lastMessageAt: conv.lastMessageAt,
+              lastMessage: conv.lastMessage,
+            }
+            return next
+          })
+
+          if (selectedIdRef.current === conv.id) {
+            setDetail((prev) =>
+              prev && prev.id === conv.id
+                ? {
+                    ...prev,
+                    status: conv.status,
+                    visitorName: conv.visitorName,
+                    visitorPhone: conv.visitorPhone,
+                  }
+                : prev
+            )
           }
-          next.splice(idx, 1)
-          next.unshift(item)
-          return next
-        })
-      } catch {
-        /* ignore */
-      }
-    })
-
-    es.addEventListener("conversation", (ev) => {
-      try {
-        const conv = JSON.parse(ev.data) as {
-          id: number
-          visitorId: string
-          visitorName: string | null
-          visitorPhone: string | null
-          status: "OPEN" | "CLOSED"
-          lastMessageAt: string
-          lastMessage: LastMessage
-        }
-
-        setConversations((prev) => {
-          const idx = prev.findIndex((c) => c.id === conv.id)
-          if (idx === -1) {
-            void fetchList()
-            return prev
+        },
+        onError: () => setLive(false),
+        onClose: () => {
+          setLive(false)
+          if (!closedByUs) {
+            reconnectTimer.current = setTimeout(connect, 2000)
           }
-          const next = [...prev]
-          next[idx] = {
-            ...next[idx],
-            visitorName: conv.visitorName,
-            visitorPhone: conv.visitorPhone,
-            status: conv.status,
-            lastMessageAt: conv.lastMessageAt,
-            lastMessage: conv.lastMessage,
-          }
-          return next
-        })
+        },
+      })
+      wsRef.current = ws
+    }
 
-        if (selectedIdRef.current === conv.id) {
-          setDetail((prev) =>
-            prev && prev.id === conv.id
-              ? { ...prev, status: conv.status, visitorName: conv.visitorName, visitorPhone: conv.visitorPhone }
-              : prev
-          )
-        }
-      } catch {
-        /* ignore */
-      }
-    })
-
-    es.onerror = () => setLive(false)
+    connect()
 
     return () => {
-      es.close()
+      closedByUs = true
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
+      wsRef.current?.close()
+      wsRef.current = null
       setLive(false)
     }
-  }, [fetchList])
+  }, [])
 
   useEffect(() => {
     if (detail?.messages) scrollToBottom()
@@ -268,7 +292,6 @@ export default function AdminChatPage() {
         setError(data.error || "পাঠাতে ব্যর্থ")
         await fetchDetail(selectedId)
       }
-      // Real message arrives via SSE
     } catch {
       setError("নেটওয়ার্ক সমস্যা")
     } finally {
@@ -306,7 +329,7 @@ export default function AdminChatPage() {
               live ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
             }`}
           >
-            {live ? "● রিয়েল-টাইম" : "○ সংযোগ..."}
+            {live ? "● WebSocket" : "○ সংযোগ..."}
           </span>
         </div>
         <p className="text-sm text-gray-500 mt-1">
