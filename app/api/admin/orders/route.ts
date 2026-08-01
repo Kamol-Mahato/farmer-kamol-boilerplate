@@ -35,8 +35,6 @@ export async function GET(request: Request) {
       where.createdAt = { gte: new Date(startDateParam), lte: new Date(endDateParam) }
     }
 
-    // 🔎 অর্ডার ID সার্চ — পুরো কাস্টম ID (FKYYYYMMDD+dailySeq) অথবা তার শেষ কয়েক সংখ্যা দিয়ে
-    // generateCustomId()-এর সাথে হুবহু মিলিয়ে SQL-এ একই স্ট্রিং বানিয়ে তারপর মেলানো হচ্ছে
     if (searchId.length >= 4) {
       const rows = await prisma.$queryRaw<{ id: number }[]>`
         SELECT id FROM "Order"
@@ -59,6 +57,10 @@ export async function GET(request: Request) {
           district: true,
           upazila: true,
           finalCodAmount: true,
+          totalProductPrice: true,
+          deliveryCharge: true,
+          orderSource: true,
+          courierTrackingId: true,
           orderStatus: true,
           paymentMethod: true,
           paymentStatus: true,
@@ -68,6 +70,7 @@ export async function GET(request: Request) {
           courierPaidAmount: true,
           receivedQty: true,
           customer: { select: { name: true, phone: true } },
+          creator: { select: { name: true, phone: true } },
           orderItems: { select: { quantity: true, product: { select: { name: true, unit: true } } } },
           courierSummary: { select: { courierStatus: true } },
         },
@@ -105,15 +108,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "সঠিক তথ্য দিন" }, { status: 400 })
     }
 
-    // ✅ Amount লাগে এমন স্ট্যাটাসে (Delivered/Paid Return/Partial Delivery) bulk (একসাথে একাধিক) মার্ক করা যাবে না — প্রতিটার আলাদা Collected Amount দরকার
-    // একাধিক অর্ডার একসাথে করতে হলে Bulk CSV Update ব্যবহার করতে হবে
     if (requiresCollectedAmount(status) && orderIds.length > 1) {
       return NextResponse.json(
         { error: "একসাথে একাধিক অর্ডার এই স্ট্যাটাসে মার্ক করা যাবে না। প্রতিটার Collected Amount আলাদাভাবে বসাতে Bulk CSV Update ব্যবহার করুন।" },
         { status: 400 }
       )
     }
-    // ✅ Collected Amount বাধ্যতামূলক এমন স্ট্যাটাসের জন্য
     if (requiresCollectedAmount(status) && (collectedAmount === undefined || collectedAmount === null || isNaN(Number(collectedAmount)))) {
       return NextResponse.json({ error: `${STATUS_LABEL_MAP[status] || status} মার্ক করার আগে Collected Amount দিন` }, { status: 400 })
     }
@@ -139,7 +139,6 @@ export async function POST(request: Request) {
         continue
       }
 
-      // ✅ role-ভিত্তিক transition rule (lib/orderStatusRules.ts)
       const allowedNextStatuses = getAllowedNextStatuses(currentStatus, role)
       if (!allowedNextStatuses.includes(status)) {
         skipped.push({
@@ -177,7 +176,6 @@ export async function POST(request: Request) {
 
       try {
         await prisma.$transaction(async (tx) => {
-          // ✅ Cancelled/Returned-এ ঢুকলে/থেকে বেরোলে স্টক ঠিক রাখা (আগে, বাকি সব হওয়ার আগে)
           await applyStockChangeForStatusTransition(tx, orderIdInt, currentStatus, status)
 
           await tx.order.update({
@@ -223,8 +221,6 @@ export async function POST(request: Request) {
   }
 }
 
-// 🗑️ ভুল TrxID / fake order ডিলিট করার API — Stock ফিরিয়ে দেবে
-// 🔒 শুধু Admin — Agent কখনোই ডিলিট করতে পারবে না
 export async function DELETE(request: Request) {
   const authUser = await verifyAdminOnly()
   if (!authUser) {
@@ -247,14 +243,12 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.$transaction(async (tx) => {
-      // ✅ Stock ফিরিয়ে দেওয়া
       for (const item of order.orderItems) {
         await tx.product.update({
           where: { id: item.productId },
           data: { stockQty: { increment: item.quantity } },
         })
       }
-      // ✅ আগে related records ডিলিট (foreign key error এড়ানোর জন্য)
       await tx.invoice.deleteMany({ where: { orderId: orderIdInt } })
       await tx.courierSummary.deleteMany({ where: { orderId: orderIdInt } })
       await tx.orderItem.deleteMany({ where: { orderId: orderIdInt } })
