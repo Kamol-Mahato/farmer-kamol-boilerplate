@@ -1,6 +1,7 @@
 import { siteConfig } from "@/lib/siteConfig"
 import { prisma } from "@/lib/prisma"
 
+// ✅ .env-এ SSLCOMMERZ_MODE=sandbox/production বদলালেই environment বদলে যাবে, কোড ছুঁতে হবে না
 const SSLCOMMERZ_MODE = process.env.SSLCOMMERZ_MODE || "sandbox"
 
 const SSLCOMMERZ_CONFIG = {
@@ -25,6 +26,7 @@ export async function isPaymentGatewayEnabled(): Promise<boolean> {
   return settings ? settings.enablePaymentGateway : false
 }
 
+// ✅ একটা অর্ডারের জন্য পেমেন্ট সেশন শুরু করা — কাস্টমারকে এই থেকে পাওয়া URL-এ পাঠাতে হবে
 export async function initiateSslcommerzSession(params: {
   orderId: number
   amount: number
@@ -41,6 +43,7 @@ export async function initiateSslcommerzSession(params: {
     throw new Error(`SSLCommerz ${SSLCOMMERZ_MODE} credentials .env-এ সেট করা নেই`)
   }
 
+  // ✅ tran_id ইউনিক রাখা হচ্ছে — আমাদের নিজস্ব orderId + timestamp দিয়ে
   const tranId = `${siteConfig.business.orderIdPrefix}-${params.orderId}-${Date.now()}`
 
   const body = new URLSearchParams({
@@ -74,9 +77,10 @@ export async function initiateSslcommerzSession(params: {
   const data = await res.json()
 
   if (data.status !== "SUCCESS") {
-    throw new Error(`SSLCommerz সেশন শুরু করা যায়নি: ${data.failedreason || "অজানা কারণ"}`)
+    throw new Error(`SSLCommerz সেশন শুরু করা যায়নি: ${data.failedreason || "অজানা কারণ"}`)
   }
 
+  // ✅ পরে validate করার সময় মেলানোর জন্য tran_id সেভ করে রাখা হচ্ছে
   await prisma.order.update({
     where: { id: params.orderId },
     data: { gatewayTxnId: tranId, gatewayName: "SSLCommerz" },
@@ -85,50 +89,51 @@ export async function initiateSslcommerzSession(params: {
   return { gatewayUrl: data.GatewayPageURL as string, tranId }
 }
 
-export async function validateSslcommerzPayment(valId: string) {
+// ✅ Success/IPN callback-এ transaction সত্যিই বৈধ কিনা server-to-server ভেরিফাই করা
+// (browser থেকে আসা success_url কখনো বিশ্বাস করা উচিত না, সবসময় এই validate কল করতে হবে)
+export async function validateSslcommerzTransaction(valId: string) {
   const config = getConfig()
-  if (!config.storeId || !config.storePasswd) {
-    throw new Error("SSLCommerz credentials missing")
-  }
-
-  const body = new URLSearchParams({
+  const params = new URLSearchParams({
     val_id: valId,
-    store_id: config.storeId,
-    store_passwd: config.storePasswd,
+    store_id: config.storeId || "",
+    store_passwd: config.storePasswd || "",
     format: "json",
   })
 
-  const res = await fetch(`${config.baseUrl}/validator/api/validationserverAPI.php`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
-  })
-
-  return await res.json()
+  const res = await fetch(`${config.baseUrl}/validator/api/validationserverAPI.php?${params.toString()}`)
+  const data = await res.json()
+  return data
 }
 
+// ✅ Success callback ও IPN — দুই জায়গা থেকেই এই একই ফাংশন কল হবে, ডুপ্লিকেট কোড এড়াতে
 export async function confirmPaymentFromGateway(tranId: string, valId: string) {
-  const validation = await validateSslcommerzPayment(valId)
-  if (validation.status !== "VALID" && validation.status !== "VALIDATED") {
-    return { ok: false as const, reason: validation.status || "INVALID" }
+  const validation = await validateSslcommerzTransaction(valId)
+
+  const isValid = validation.status === "VALID" || validation.status === "VALIDATED"
+  if (!isValid) {
+    return { success: false, reason: validation.status }
   }
 
   const order = await prisma.order.findFirst({ where: { gatewayTxnId: tranId } })
   if (!order) {
-    return { ok: false as const, reason: "ORDER_NOT_FOUND" }
+    return { success: false, reason: "ORDER_NOT_FOUND" }
   }
 
+  // ✅ ইতিমধ্যে PAID হয়ে থাকলে আবার আপডেট করার দরকার নেই (IPN দুইবার আসতে পারে)
   if (order.paymentStatus === "PAID") {
-    return { ok: true as const, orderId: order.id, alreadyPaid: true }
+    return { success: true, alreadyPaid: true, orderId: order.id }
   }
 
   await prisma.order.update({
     where: { id: order.id },
     data: {
       paymentStatus: "PAID",
-      gatewayValId: valId,
+      paymentAmountPaid: Number(validation.amount) || order.finalCodAmount,
+      gatewayRef: valId,
     },
   })
 
-  return { ok: true as const, orderId: order.id, alreadyPaid: false }
+  return { success: true, alreadyPaid: false, orderId: order.id }
 }
+
+export { SSLCOMMERZ_MODE }
