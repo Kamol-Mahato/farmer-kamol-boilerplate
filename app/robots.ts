@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
+import { siteConfig } from "@/lib/siteConfig";
 
-const BASE_URL = "https://farmerkamol.com";
+const BASE_URL = siteConfig.domain.url;
 
 export default function robots(): MetadataRoute.Robots {
   return {

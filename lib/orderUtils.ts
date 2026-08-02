@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { siteConfig } from "@/lib/siteConfig"
 // ✅ Server-side delivery charge calculation — client থেকে আসা সংখ্যা trust করা হয় না
 // এখন charge গুলো DB (SystemControlCenter) থেকে আসে, hardcode না
 export async function calculateDeliveryCharge(districtId: number | null, quantity: number): Promise<number> {
@@ -42,7 +43,7 @@ export function generateCustomId(createdAt: string | Date, dailySeq: number) {
   const year = bdDate.getUTCFullYear()
   const month = String(bdDate.getUTCMonth() + 1).padStart(2, "0")
   const day = String(bdDate.getUTCDate()).padStart(2, "0")
-  return `FK${year}${month}${day}${String(dailySeq).padStart(1, "0")}`
+  return `${siteConfig.business.orderIdPrefix}${year}${month}${day}${String(dailySeq).padStart(1, "0")}`
 }
 
 // ✅ Bulk CSV Update-এ ব্যবহারকারীরা "FK20260721001" স্টাইলের কাস্টম ID দেবে —
@@ -107,7 +108,8 @@ export async function resolveOrderIdFromCustomId(rawId: string): Promise<number 
     return parseInt(trimmed)
   }
 
-  const match = trimmed.match(/^FK(\d{4})(\d{2})(\d{2})(\d+)$/i)
+  const prefixPattern = new RegExp(`^${siteConfig.business.orderIdPrefix}(\\d{4})(\\d{2})(\\d{2})(\\d+)$`, "i")
+  const match = trimmed.match(prefixPattern)
   if (!match) return null
 
   const [, year, month, day, seqStr] = match

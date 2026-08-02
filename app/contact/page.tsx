@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "যোগাযোগ করুন | Farmer Kamol",
+  title: `যোগাযোগ করুন | ${siteConfig.brand.name}`,
   description:
-    "Farmer Kamol-এর সাথে ফোন, হোয়াটসঅ্যাপ, ফেসবুক বা ইউটিউবে যোগাযোগ করুন। আমাদের খামার: রায়গঞ্জ, সিরাজগঞ্জ।",
+    `${siteConfig.brand.name}-এর সাথে ফোন, হোয়াটসঅ্যাপ, ফেসবুক বা ইউটিউবে যোগাযোগ করুন। আমাদের খামার: ${siteConfig.address.locality}, ${siteConfig.address.region}।`,
   alternates: {
     canonical: "/contact",
     languages: {
@@ -44,12 +45,12 @@ export default function ContactPage() {
             rel="noopener noreferrer"
             className="mt-2 text-lg font-bold text-green-900 underline hover:text-yellow-600 transition"
           >
-            রায়গঞ্জ, সিরাজগঞ্জ
+            {siteConfig.address.locality}, {siteConfig.address.region}
           </a>
   
            <div className="flex gap-2 sm:gap-5 mt-4 sm:mt-10 flex-nowrap justify-center">
             <a
-              href="https://facebook.com/farmerkamol"
+              href={siteConfig.social.facebook}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
@@ -61,7 +62,7 @@ export default function ContactPage() {
             </a>
   
             <a
-              href="https://youtube.com/@FarmerKamol"
+              href={siteConfig.social.youtube}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="YouTube"
@@ -73,7 +74,7 @@ export default function ContactPage() {
             </a>
   
             <a
-              href="tel:+8801737939688"
+              href={`tel:${siteConfig.contact.phone}`}
               aria-label="ফোন করুন"
               className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform"
             >
@@ -94,7 +95,7 @@ export default function ContactPage() {
             </a>
   
             <a
-              href="https://wa.me/8801737939688"
+              href={`https://wa.me/${siteConfig.contact.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
@@ -106,7 +107,7 @@ export default function ContactPage() {
             </a>
   
             <a
-              href="https://www.instagram.com/farmer.kamol"
+              href={siteConfig.social.instagram}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
@@ -129,7 +130,7 @@ export default function ContactPage() {
             </a>
   
             <a
-              href="https://www.tiktok.com/@farmer.kamol"
+              href={siteConfig.social.tiktok}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="TikTok"
@@ -143,8 +144,8 @@ export default function ContactPage() {
 
 <p className="mt-8 text-gray-600 text-sm">
   ফোন / হোয়াটসঅ্যাপ:{" "}
-  <a href="tel:+8801737939688" className="font-bold text-green-800 hover:text-yellow-600 transition">
-    01737939688
+  <a href={`tel:${siteConfig.contact.phone}`} className="font-bold text-green-800 hover:text-yellow-600 transition">
+  {siteConfig.contact.phoneDisplay}
   </a>
 </p>
 </div>

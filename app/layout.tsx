@@ -8,6 +8,7 @@ import TopLoadingBar from "./components/TopLoadingBar"
 import "./globals.css"
 import { headers } from "next/headers"
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { siteConfig } from "@/lib/siteConfig"
 
 const hindSiliguri = Hind_Siliguri({
   weight: ["300", "400", "500", "600", "700"],
@@ -16,42 +17,35 @@ const hindSiliguri = Hind_Siliguri({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://farmerkamol.com"),
+  metadataBase: new URL(siteConfig.domain.url),
   title: {
-    default: "Farmer Kamol - খামার থেকে আপনার দরজায়",
-    template: "%s | Farmer Kamol",
+    default: siteConfig.seo.defaultTitle,
+    template: `%s | ${siteConfig.brand.name}`,
   },
-  description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্য মূল্য।",
+  description: siteConfig.seo.description,
   manifest: "/manifest.json",
-  keywords: [
-    "খাঁটি মধু",
-    "সরিষার তেল",
-    "দেশি ঘি",
-    "চীন হাঁসের বাচ্চা",
-    "সিরাজগঞ্জ খামার",
-    "Farmer Kamol",
-  ],
+  keywords: [...siteConfig.seo.keywords],
   openGraph: {
-    title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
-    description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্যে মূল্যে।",
-    url: "https://farmerkamol.com",
-    siteName: "Farmer Kamol",
+    title: siteConfig.seo.defaultTitle,
+    description: siteConfig.seo.description,
+    url: siteConfig.domain.url,
+    siteName: siteConfig.brand.name,
     locale: "bn_BD",
     type: "website",
     images: [
       {
-        url: "/uploads/og-image.jpg",
+        url: siteConfig.domain.ogImage,
         width: 1200,
         height: 630,
-        alt: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+        alt: siteConfig.seo.defaultTitle,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
-    description: "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্যে মূল্যে।",
-    images: ["/uploads/og-image.jpg"],
+    title: siteConfig.seo.defaultTitle,
+    description: siteConfig.seo.description,
+    images: [siteConfig.domain.ogImage],
   },
 }
 
@@ -74,7 +68,7 @@ export default async function RootLayout({
         <EnterKeyNav />
         <ConditionalLayout>{children}</ConditionalLayout>
         {/* গুগল অ্যানালিটিক্স কম্পোনেন্ট */}
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || 'G-8ZRHT134HL'} />
+        <GoogleAnalytics gaId={siteConfig.analytics.gaId || 'G-8ZRHT134HL'} />
       </body>
     </html>
   )

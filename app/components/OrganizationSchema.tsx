@@ -1,4 +1,5 @@
 import { safeJsonLd } from "@/lib/jsonLd"
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function OrganizationSchema({ lang }: { lang: "bn" | "en" }) {
   const isEn = lang === "en"
@@ -6,48 +7,46 @@ export default function OrganizationSchema({ lang }: { lang: "bn" | "en" }) {
   const schema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    name: "Farmer Kamol",
-    image: "https://farmerkamol.com/uploads/kamol.png",
-    url: isEn ? "https://farmerkamol.com/en" : "https://farmerkamol.com",
-    telephone: "+8801737939688",
-    priceRange: "৳50-৳3000",
+    name: siteConfig.brand.name,
+    image: `${siteConfig.domain.url}${siteConfig.domain.logo}`,
+    url: isEn ? `${siteConfig.domain.url}/en` : siteConfig.domain.url,
+    telephone: siteConfig.contact.phone,
+    priceRange: siteConfig.business.priceRange,
     address: {
       "@type": "PostalAddress",
-      addressLocality: isEn ? "Raiganj" : "রায়গঞ্জ",
-      addressRegion: isEn ? "Sirajganj" : "সিরাজগঞ্জ",
-      addressCountry: "BD",
+      addressLocality: isEn ? siteConfig.address.localityEn : siteConfig.address.locality,
+      addressRegion: isEn ? siteConfig.address.regionEn : siteConfig.address.region,
+      addressCountry: siteConfig.address.country,
     },
     description: isEn
       ? "Agro-commerce brand based in Raiganj, Sirajganj, Bangladesh, supplying pure honey, ghee, mustard oil, and Chinese duck chicks directly from the farm."
       : "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা সরবরাহকারী কৃষি ব্র্যান্ড।",
-    sameAs: [
-      "https://www.facebook.com/farmerkamol",
-      "https://youtube.com/@FarmerKamol",
-      "https://www.instagram.com/farmer.kamol",
-      "https://www.tiktok.com/@farmer.kamol",
-      "https://wa.me/8801737939688",
-    ],
+      sameAs: [
+        siteConfig.social.facebook,
+        siteConfig.social.youtube,
+        siteConfig.social.instagram,
+        siteConfig.social.tiktok,
+        `https://wa.me/${siteConfig.contact.whatsapp}`,
+      ],
     geo: {
       "@type": "GeoCoordinates",
-      latitude: 24.53776236620221,
-      longitude: 89.40731198780867,
+      latitude: siteConfig.address.latitude,
+      longitude: siteConfig.address.longitude,
     },
-    foundingDate: "2026",
+    foundingDate: siteConfig.brand.foundingYear,
     founder: {
       "@type": "Person",
-      name: "Kamol Kumar Mahato",
+      name: siteConfig.brand.founderName,
     },
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-      ],
-      opens: "00:00",
-      closes: "23:59",
+      dayOfWeek: siteConfig.business.openingHours.days,
+      opens: siteConfig.business.openingHours.opens,
+      closes: siteConfig.business.openingHours.closes,
     },
-    slogan: isEn ? "From the Farm to Your Door" : "খামার থেকে আপনার দরজায়",
-    paymentAccepted: "Cash on Delivery, bKash, Nagad",
-    currenciesAccepted: "BDT",
+    slogan: isEn ? siteConfig.brand.sloganEn : siteConfig.brand.slogan,
+    paymentAccepted: siteConfig.business.paymentAccepted,
+    currenciesAccepted: siteConfig.business.currenciesAccepted,
     areaServed: "Bangladesh",
     knowsLanguage: ["bn", "en"],
   }

@@ -1,7 +1,8 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
+import { siteConfig } from "@/lib/siteConfig";
 
-const BASE_URL = "https://farmerkamol.com";
+const BASE_URL = siteConfig.domain.url;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
