@@ -38,7 +38,7 @@ export const siteConfig = {
     contact: {
       phone: "+8801737939688",
       phoneDisplay: "01737939688",
-      whatsapp: "8801737939688",
+      whatsapp: "88017379396888",
     },
   
     // ঠিকানা

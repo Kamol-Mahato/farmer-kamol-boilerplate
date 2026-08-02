@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Contact Us | Farmer Kamol",
+  title: `Contact Us | ${siteConfig.brand.nameEn}`,
   description:
-    "Contact Farmer Kamol via phone, WhatsApp, Facebook, or YouTube. Our farm: Raiganj, Sirajganj.",
+    `Contact ${siteConfig.brand.nameEn} via phone, WhatsApp, Facebook, or YouTube. Our farm: ${siteConfig.address.localityEn}, ${siteConfig.address.regionEn}.`,
   alternates: {
     canonical: "/en/contact",
     languages: {
@@ -44,7 +45,7 @@ export default function ContactPageEn() {
             rel="noopener noreferrer"
             className="mt-2 text-lg font-bold text-green-900 underline hover:text-yellow-600 transition"
           >
-            Raiganj, Sirajganj
+            {siteConfig.address.localityEn}, {siteConfig.address.regionEn}
           </a>
   
            <div className="flex gap-2 sm:gap-5 mt-4 sm:mt-10 flex-nowrap justify-center">
@@ -73,7 +74,7 @@ export default function ContactPageEn() {
             </a>
   
             <a
-              href="tel:+8801737939688"
+              href={`tel:${siteConfig.contact.phone}`}
               aria-label="Call us"
               className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-gray-800 flex items-center justify-center shadow-md hover:scale-110 transition-transform"
             >
@@ -94,7 +95,7 @@ export default function ContactPageEn() {
             </a>
   
             <a
-              href="https://wa.me/8801737939688"
+              href={`https://wa.me/${siteConfig.contact.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
@@ -143,8 +144,8 @@ export default function ContactPageEn() {
 
 <p className="mt-8 text-gray-600 text-sm">
   Phone / WhatsApp:{" "}
-  <a href="tel:+8801737939688" className="font-bold text-green-800 hover:text-yellow-600 transition">
-    01737939688
+  <a href={`tel:${siteConfig.contact.phone}`} className="font-bold text-green-800 hover:text-yellow-600 transition">
+    {siteConfig.contact.phoneDisplay}
   </a>
 </p>
 </div>
