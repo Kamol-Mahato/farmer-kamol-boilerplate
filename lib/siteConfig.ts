@@ -34,9 +34,7 @@ export const siteConfig = {
   contact: {
     phone: "+8801737939688",
     phoneDisplay: "01737939688",
-    /** WhatsApp wa.me — দেশ কোডসহ, + ছাড়া */
     whatsapp: "8801737939688",
-    /** ব্যবসায়িক / আলাদা লাইন (ঐচ্ছিক) */
     businessPhoneDisplay: "01521406139",
     businessWhatsapp: "8801521406139",
   },
@@ -51,7 +49,6 @@ export const siteConfig = {
     country: "BD",
     latitude: 24.53776236620221,
     longitude: 89.40731198780867,
-    /** Google Maps শেয়ার লিংক */
     mapsUrl: "https://maps.app.goo.gl/m6P53sDikkd5GE6g6",
   },
 
@@ -78,7 +75,6 @@ export const siteConfig = {
     ],
   },
 
-  /** টপ মার্কুই / অ্যানাউন্সমেন্ট — পণ্য লাইন */
   announcement: {
     productLineBn: "খাঁটি মধু - ঘি - সরিষার তেল ও হাঁসের বাচ্চা",
     productLineEn: "Pure Honey, Ghee, Mustard oil & Duck Chicks",
@@ -91,6 +87,33 @@ export const siteConfig = {
       "Delivering natural, healthy food straight from our integrated farm to your doorstep.",
     productCategoriesBn: ["মধু", "ঘি", "সরিষার তেল", "চীনা হাঁসের বাচ্চা"],
     productCategoriesEn: ["Honey", "Ghee", "Mustard Oil", "Duck Chicks"],
+  },
+
+  /** About পেজ — গল্প/মিশন (ক্লায়েন্ট বদলাবে) */
+  about: {
+    founderImage: "/uploads/kamol.png",
+    headerImages: [
+      "/uploads/header-1st-about.jpg",
+      "/uploads/header-2nd-about.jpg",
+      "/uploads/header-3rd-about.jpg",
+    ],
+    sectionImages: {
+      integrated: "/uploads/about-1st-sub.jpg",
+      livestock: "/uploads/about-2nd-sub.jpg",
+      crops: "/uploads/about-3rd-sub.jpg",
+    },
+    storyIntroBn:
+      "আমি কমল । বাংলা সাহিত্যে স্নাতক করেছি, কিন্তু আমার আসল পরিচয় বইয়ের পাতায় নয় — সিরাজগঞ্জের রায়গঞ্জের সারইল গ্রামের মাটিতে। নিজেকে বলি \"মাটির মানুষ\" — ঢাকায় চাকরি করলেও শিকড় থেকে যায় গ্রামের মাঠে, খামারে।",
+    storyBodyBn:
+      "ঢাকায় কুরিয়ার কোম্পানিতে কাজ করার সময় দেখেছি, শহরের মানুষ কতটা মরিয়া এক বোতল খাঁটি মধু বা ভেজালমুক্ত ঘি খুঁজে পেতে। অথচ আমাদের গ্রামে এই প্রকৃতির আশীর্বাদগুলো হাতের কাছেই আছে। এই দূরত্ব ঘুচিয়ে দিতেই জন্ম হয়েছে এই ব্র্যান্ডের — সরাসরি খামার থেকে আপনার দরজায়, কোনো মধ্যস্থতাকারী ছাড়া।",
+    missionBn:
+      "খাঁটি, ভেজালমুক্ত ও স্বচ্ছ প্রক্রিয়ায় উৎপাদিত প্রাকৃতিক খাদ্যপণ্য সরাসরি কৃষকের ঘর থেকে বাংলাদেশের প্রতিটি ঘরে পৌঁছে দেওয়া।",
+    visionBn: [
+      "গ্রামীণ কৃষক ও খামারিদের জন্য নির্ভরযোগ্য বাজার তৈরি করা",
+      "ভেজালমুক্ত খাঁটি পণ্য পৌঁছে দিয়ে ভেজালের বিরুদ্ধে প্রতিরোধ গড়ে তোলা",
+      "আধুনিক কন্টেন্ট ও ই-কমার্সের মাধ্যমে কৃষিকাজকে নতুন প্রজন্মের কাছে আকর্ষণীয় করা",
+      "একদিন সম্পূর্ণভাবে পরিবারের জমিতে ফিরে পুরোদমে কৃষিকাজ করা",
+    ],
   },
 
   business: {
@@ -111,6 +134,12 @@ export const siteConfig = {
       opens: "00:00",
       closes: "23:59",
     },
+  },
+
+  /** localStorage কী — ক্লায়েন্ট সাইটে আলাদা রাখুন যাতে কার্ট মিক্স না হয় */
+  storage: {
+    cartKey: "fk_cart",
+    cartDismissKey: "fk_cart_dismissed_at",
   },
 
   chat: {

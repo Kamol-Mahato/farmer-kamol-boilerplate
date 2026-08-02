@@ -4,9 +4,11 @@ import { ShoppingCart, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { getLocaleFromPath, localizeHref } from "@/lib/i18n"
+import { siteConfig } from "@/lib/siteConfig"
 
-const DISMISS_KEY = "farmer_kamol_cart_dismissed_at"
-const RESHOW_AFTER_MS = 30 * 60 * 1000 // ৩০ মিনিট
+const DISMISS_KEY = siteConfig.storage.cartDismissKey
+const CART_KEY = siteConfig.storage.cartKey
+const RESHOW_AFTER_MS = 30 * 60 * 1000
 
 export default function FloatingCartButton() {
   const pathname = usePathname()
@@ -22,7 +24,6 @@ export default function FloatingCartButton() {
   const [isVisible, setIsVisible] = useState(true)
   const [dismissed, setDismissed] = useState(false)
 
-  // ✅ dismiss করার সময় localStorage-এ timestamp সেভ করা
   const handleClose = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -32,7 +33,6 @@ export default function FloatingCartButton() {
     } catch {}
   }
 
-  // ✅ পেজ লোড হওয়ার সময় dismiss-timestamp চেক করা
   const checkDismissState = () => {
     try {
       const savedAt = localStorage.getItem(DISMISS_KEY)
@@ -43,7 +43,6 @@ export default function FloatingCartButton() {
       const elapsed = Date.now() - parseInt(savedAt, 10)
       if (elapsed < RESHOW_AFTER_MS) {
         setDismissed(true)
-        // ✅ বাকি সময় পার হলে নিজে থেকেই আবার দেখাবে (refresh না করলেও)
         if (reshowTimer.current) clearTimeout(reshowTimer.current)
         reshowTimer.current = setTimeout(() => {
           setDismissed(false)
@@ -60,12 +59,11 @@ export default function FloatingCartButton() {
 
   const checkCart = () => {
     try {
-      const saved = localStorage.getItem("farmer_kamol_cart")
+      const saved = localStorage.getItem(CART_KEY)
       if (saved) {
         const items = JSON.parse(saved)
         const total = items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
         setCartCount(total)
-        // ✅ item add হলে সাথে সাথেই ফিরে আসবে, dismiss-timer বাতিল
         if (total > 0) {
           setDismissed(false)
           try {
@@ -123,7 +121,6 @@ export default function FloatingCartButton() {
     }
   }, [])
 
-  // ✅ এখন সব পাবলিক পেজে দেখাবে (home-only restriction তোলা হয়েছে)
   if (cartCount === 0 && dismissed) return null
   if (cartCount === 0 && !isVisible) return null
 
@@ -144,12 +141,12 @@ export default function FloatingCartButton() {
       )}
       {cartCount === 0 && (
         <button
-        onClick={handleClose}
-        aria-label={locale === "en" ? "Close" : "বন্ধ করুন"}
-        className="absolute -top-1 -left-1 w-4.5 h-4.5 sm:w-6 sm:h-6 bg-gray-700 text-white rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
-      >
-        <X className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
-      </button>
+          onClick={handleClose}
+          aria-label={locale === "en" ? "Close" : "বন্ধ করুন"}
+          className="absolute -top-1 -left-1 w-4.5 h-4.5 sm:w-6 sm:h-6 bg-gray-700 text-white rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
+        >
+          <X className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
+        </button>
       )}
     </Link>
   )
