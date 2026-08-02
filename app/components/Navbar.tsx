@@ -7,6 +7,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import NewOrderNotifier from "../admin/components/NewOrderNotifier"
 import { useMobileMenu } from "./MobileMenuContext"
 import { getLocaleFromPath, localizeHref, switchLocalePath } from "@/lib/i18n"
+import { siteConfig } from "@/lib/siteConfig"
 
 type Menu = {
   id: number
@@ -144,9 +145,9 @@ export default function Navbar() {
       <div className={`fixed top-0 left-0 h-auto max-h-[85vh] overflow-y-auto w-56 bg-green-800 rounded-br-2xl z-[80] transform transition-transform duration-300 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
       <div className="flex items-center justify-between p-3 border-b border-green-700">
       <Link href={href("/")} className="flex items-center gap-2" onClick={() => closeSidebarForNav()}>
-            <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={44} height={44} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400 shrink-0" />
+      <Image src={siteConfig.domain.logo} alt={siteConfig.brand.name} width={44} height={44} priority className="w-11 h-11 rounded-full object-cover border-2 border-white-400 shrink-0" />
             <div className="flex flex-col leading-tight">
-              <span className="text-white font-bold text-sm whitespace-nowrap">Farmer Kamol</span>
+            <span className="text-white font-bold text-sm whitespace-nowrap">Farmer Kamol</span>
               <span className="text-yellow-200 text-[10px] font-bold whitespace-nowrap">{t.tagline}</span>
             </div>
           </Link>
@@ -193,9 +194,9 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             <button className="md:hidden text-white text-2xl" onClick={openSidebar}>☰</button>
             <Link href={href("/")} className="flex items-center gap-1.5">
-              <Image src="/uploads/kamol.png" alt="Farmer Kamol" width={36} height={36} priority className="w-9 h-9 rounded-full object-cover border-2 border-white-400" />
+            <Image src={siteConfig.domain.logo} alt={siteConfig.brand.name} width={36} height={36} priority className="w-9 h-9 rounded-full object-cover border-2 border-white-400" />
               <div className="flex flex-col leading-tight">
-                <span className="text-xs font-extrabold text-white whitespace-nowrap drop-shadow-lg">Farmer Kamol</span>
+              <span className="text-xs font-extrabold text-white whitespace-nowrap drop-shadow-lg">{siteConfig.brand.name}</span>
                 <span className="text-yellow-200 text-[10px] font-bold whitespace-nowrap">{t.tagline}</span>
               </div>
             </Link>

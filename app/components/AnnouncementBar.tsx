@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { getLocaleFromPath, localizeHref } from "@/lib/i18n"
 import { getBengaliDate } from "@/lib/bengaliDate"
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function AnnouncementBar() {
   const pathname = usePathname()
@@ -66,25 +67,25 @@ export default function AnnouncementBar() {
       )}
       <div className="flex-1 overflow-hidden">
         <div className="animate-marquee whitespace-nowrap inline-block">
-          {[...Array(3)].map((_, i) => (
+        {[...Array(3)].map((_, i) => (
             <span key={i}>
               {locale === "en" ? (
                 <>
                   Nomoskar / Assalamu Alaikum Pure Honey, Ghee, Mustard oil & Duck Chicks — straight from our farm to your door. Wellcome &nbsp;
-                  <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">Farmer Kamol</a>
+                  <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">{siteConfig.brand.name}</a>
                   &nbsp;Family. For our products or any inquiry, WhatsApp or call us at:&nbsp;
-                  <a href="tel:+8801737939688" className="text-yellow-400 font-bold hover:underline">
-                    01737939688
+                  <a href={`tel:${siteConfig.contact.phone}`} className="text-yellow-400 font-bold hover:underline">
+                    {siteConfig.contact.phoneDisplay}
                   </a>
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 </>
               ) : (
                 <>
-                  নমস্কার / আসসালামুআলাইকুম, Farmer Kamol এ পেয়ে যাচ্ছেন খাঁটিমধু - ঘি - সরিষার তেল ও হাঁসের বাচ্চা — সরাসরি খামার থেকে আপনার দরজায়।&nbsp;
-                  <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">Farmer Kamol</a>
+                  নমস্কার / আসসালামুআলাইকুম, {siteConfig.brand.name} এ পেয়ে যাচ্ছেন খাঁটিমধু - ঘি - সরিষার তেল ও হাঁসের বাচ্চা — সরাসরি খামার থেকে আপনার দরজায়।&nbsp;
+                  <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">{siteConfig.brand.name}</a>
                   &nbsp;পরিবারে স্বাগতম। আমাদের পণ্য ও যেকোনো প্রয়োজনে WhatsApp অথবা কল করুন:&nbsp;
-                  <a href="tel:+8801737939688" className="text-yellow-400 font-bold hover:underline">
-                    01737939688
+                  <a href={`tel:${siteConfig.contact.phone}`} className="text-yellow-400 font-bold hover:underline">
+                    {siteConfig.contact.phoneDisplay}
                   </a>
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 </>
