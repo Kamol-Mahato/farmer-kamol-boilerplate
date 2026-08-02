@@ -5,6 +5,7 @@ import { connectChatSocket } from "@/lib/chatSocket"
 
 interface Message {
   id: number
+  conversationId?: number
   senderType: "SYSTEM" | "CUSTOMER" | "ADMIN" | "AGENT"
   senderName?: string | null
   text: string
@@ -70,6 +71,7 @@ export default function ChatWidget() {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isOpenRef = useRef(false)
+  const conversationIdRef = useRef<number | null>(null)
 
   useEffect(() => {
     isOpenRef.current = isOpen
@@ -115,8 +117,16 @@ export default function ChatWidget() {
 
   const fetchInitChat = useCallback(async () => {
     try {
-      const res = await fetch("/api/chat/init")
+      // 🔒 ক্যাশড init = দুই ডিভাইসে একই visitorId — আটকানো
+      const res = await fetch("/api/chat/init", {
+        cache: "no-store",
+        credentials: "same-origin",
+        headers: { "Cache-Control": "no-cache" },
+      })
       const data = await res.json()
+      if (data.conversationId) {
+        conversationIdRef.current = Number(data.conversationId)
+      }
       if (data.messages) {
         setMessages(data.messages)
         setInitialized(true)
@@ -148,6 +158,15 @@ export default function ChatWidget() {
         onConnected: () => setLive(true),
         onMessage: (data) => {
           const msg = data as Message
+          // 🔒 অন্য কনভারসেশনের মেসেজ ক্লায়েন্টেও ফেলে দাও (সার্ভার ফিল্টারের ব্যাকআপ)
+          if (
+            msg.conversationId != null &&
+            conversationIdRef.current != null &&
+            Number(msg.conversationId) !== conversationIdRef.current
+          ) {
+            return
+          }
+
           setMessages((prev) => {
             if (prev.some((m) => m.id === msg.id)) return prev
             const withoutTemp = prev.filter(
@@ -209,6 +228,8 @@ export default function ChatWidget() {
     try {
       const res = await fetch("/api/chat/send", {
         method: "POST",
+        cache: "no-store",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: userText }),
       })
