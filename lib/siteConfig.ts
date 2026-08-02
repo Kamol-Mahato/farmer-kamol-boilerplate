@@ -9,8 +9,22 @@ export const siteConfig = {
       slogan: "খামার থেকে আপনার দরজায়",
       sloganEn: "From the Farm to Your Door",
       founderName: "Kamol Kumar Mahato",
+      founderNameBn: "কমল কুমার মাহাতো",
+      youtubeHandle: "@FarmerKamol",
       foundingYear: "2026",
     },
+
+    // পেমেন্ট সংক্রান্ত তথ্য
+  payment: {
+    bkashNumber: "01737939688",
+    nagadNumber: "01737939688",
+    bank: {
+      accountName: "",       // এখনো যোগ করা হয়নি
+      accountNumber: "",     // এখনো যোগ করা হয়নি
+      bankName: "",          // এখনো যোগ করা হয়নি
+      branch: "",            // এখনো যোগ করা হয়নি
+    },
+  },
   
     // ডোমেইন ও URL
     domain: {
@@ -33,6 +47,8 @@ export const siteConfig = {
       localityEn: "Raiganj",
       region: "সিরাজগঞ্জ",
       regionEn: "Sirajganj",
+      village: "সারইল",
+      villageEn: "Sarail",
       country: "BD",
       latitude: 24.53776236620221,
       longitude: 89.40731198780867,

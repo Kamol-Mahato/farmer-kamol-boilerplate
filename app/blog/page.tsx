@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { siteConfig } from "@/lib/siteConfig"
 import Link from "next/link"
 import Image from "next/image"
 import Breadcrumb from "@/app/components/Breadcrumb"
@@ -7,9 +8,9 @@ export const revalidate = 86400
 
 export async function generateMetadata() {
   return {
-    title: "কৃষি বিষয়ক ব্লগ - পশুপালন, পাখি পালন ও ফসল চাষ | Farmer Kamol",
+    title: `কৃষি বিষয়ক ব্লগ - পশুপালন, পাখি পালন ও ফসল চাষ | ${siteConfig.brand.name}`,
     description:
-      "Farmer Kamol-এর ব্লগে পড়ুন পশুপালন, পাখি পালন, ফসল চাষ ও খামারের গল্প সম্পর্কে বাস্তব অভিজ্ঞতা ও গাইড।",
+      `${siteConfig.brand.name}-এর ব্লগে পড়ুন পশুপালন, পাখি পালন, ফসল চাষ ও খামারের গল্প সম্পর্কে বাস্তব অভিজ্ঞতা ও গাইড।`,
     alternates: {
       canonical: "/blog",
       languages: {

@@ -2,6 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function AboutPage() {
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({
@@ -25,7 +26,7 @@ export default function AboutPage() {
           >
             <Image
               src={`/uploads/${img}`}
-              alt={`Farmer Kamol খামারের ছবি ${i + 1} - সিরাজগঞ্জ`}
+              alt={`${siteConfig.brand.name} খামারের ছবি ${i + 1} - ${siteConfig.address.region}`}
               fill
               priority={i === 0}
               sizes="(max-width: 768px) 33vw, 300px"
@@ -46,7 +47,7 @@ export default function AboutPage() {
           <div className="relative flex-shrink-0 mx-auto md:mx-0 group">
           <Image
               src="/uploads/kamol.png"
-              alt="Farmer Kamol -কমল, প্রতিষ্ঠাতা"
+              alt={`${siteConfig.brand.name} - ${siteConfig.brand.founderName}, প্রতিষ্ঠাতা`}
               width={192}
               height={192}
               className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover shadow-lg ring-4 ring-yellow-400/70 transition-transform duration-300 group-hover:scale-105"
@@ -58,8 +59,8 @@ export default function AboutPage() {
               আমি কমল । বাংলা সাহিত্যে স্নাতক করেছি, কিন্তু আমার আসল পরিচয় বইয়ের পাতায় নয় — সিরাজগঞ্জের রায়গঞ্জের সারইল গ্রামের মাটিতে। নিজেকে বলি "মাটির মানুষ" — ঢাকায় চাকরি করলেও শিকড় থেকে যায় গ্রামের মাঠে, খামারে।
             </p>
             <div className={`text-gray-700 leading-relaxed space-y-4 mt-2 ${expanded[0] ? "block" : "hidden"}`}>
-              <p>
-                ঢাকায় কুরিয়ার কোম্পানিতে কাজ করার সময় দেখেছি, শহরের মানুষ কতটা মরিয়া এক বোতল খাঁটি মধু বা ভেজালমুক্ত ঘি খুঁজে পেতে। অথচ আমাদের গ্রামে এই প্রকৃতির আশীর্বাদগুলো হাতের কাছেই আছে। এই দূরত্ব ঘুচিয়ে দিতেই জন্ম Farmer Kamol-এর — সরাসরি খামার থেকে আপনার দরজায়, কোনো মধ্যস্থতাকারী ছাড়া।
+            <p>
+                ঢাকায় কুরিয়ার কোম্পানিতে কাজ করার সময় দেখেছি, শহরের মানুষ কতটা মরিয়া এক বোতল খাঁটি মধু বা ভেজালমুক্ত ঘি খুঁজে পেতে। অথচ আমাদের গ্রামে এই প্রকৃতির আশীর্বাদগুলো হাতের কাছেই আছে। এই দূরত্ব ঘুচিয়ে দিতেই জন্ম {siteConfig.brand.name}-এর — সরাসরি খামার থেকে আপনার দরজায়, কোনো মধ্যস্থতাকারী ছাড়া।
               </p>
               <div>
                 <h3 className="font-bold text-green-900 mb-1">আমাদের মিশন</h3>
@@ -162,7 +163,7 @@ export default function AboutPage() {
           <div className="order-1 md:order-2 relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
           <Image
               src="/uploads/about-1st-sub.jpg"
-              alt="সমন্বিত কৃষি পদ্ধতি - Farmer Kamol খামার, সিরাজগঞ্জ"
+              alt={`সমন্বিত কৃষি পদ্ধতি - ${siteConfig.brand.name} খামার, ${siteConfig.address.region}`}
               fill
               sizes="(max-width: 768px) 100vw, 256px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
@@ -178,7 +179,7 @@ export default function AboutPage() {
           <div className="relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
           <Image
               src="/uploads/about-2nd-sub.jpg"
-              alt="পশুপালন - Farmer Kamol খামার, সিরাজগঞ্জ"
+              alt={`পশুপালন - ${siteConfig.brand.name} খামার, ${siteConfig.address.region}`}
               fill
               sizes="(max-width: 768px) 100vw, 256px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
@@ -270,7 +271,7 @@ export default function AboutPage() {
           <div className="order-1 md:order-2 relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
           <Image
               src="/uploads/about-3rd-sub.jpg"
-              alt="ফসল চাষ - Farmer Kamol খামার, সিরাজগঞ্জ"
+              alt={`ফসল চাষ - ${siteConfig.brand.name} খামার, ${siteConfig.address.region}`}
               fill
               sizes="(max-width: 768px) 100vw, 256px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
@@ -284,8 +285,8 @@ export default function AboutPage() {
 
       {/* ✅ Farmer Kamol লেখা হোমপেজে লিংক হবে */}
       <div className="text-center mt-16">
-        <Link href="/" className="text-green-800 font-bold hover:text-yellow-600 transition">
-          Farmer Kamol হোমপেজে ফিরে যান →
+      <Link href="/" className="text-green-800 font-bold hover:text-yellow-600 transition">
+          {siteConfig.brand.name} হোমপেজে ফিরে যান →
         </Link>
       </div>
     </main>

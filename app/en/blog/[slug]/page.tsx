@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { safeJsonLd } from "@/lib/jsonLd"
 import { cache } from "react"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
@@ -15,10 +16,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const blog = await getBlogEn(slug)
   if (!blog || !blog.titleEn) {
-    return { title: "Blog Not Found - Farmer Kamol" }
+    return { title: `Blog Not Found - ${siteConfig.brand.nameEn}` }
   }
   return {
-    title: `${blog.titleEn} | Farmer Kamol Blog`,
+    title: `${blog.titleEn} | ${siteConfig.brand.nameEn} Blog`,
     description: (blog.contentEn || "").slice(0, 160),
     alternates: {
       canonical: `/en/blog/${blog.slugEn}`,
@@ -43,9 +44,9 @@ export default async function BlogDetailPageEn({ params }: { params: Promise<{ s
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.farmerkamol.com/en" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.farmerkamol.com/en/blog" },
-      { "@type": "ListItem", position: 3, name: blog.titleEn, item: `https://www.farmerkamol.com/en/blog/${blog.slugEn}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: `${siteConfig.domain.url}/en` },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${siteConfig.domain.url}/en/blog` },
+      { "@type": "ListItem", position: 3, name: blog.titleEn, item: `${siteConfig.domain.url}/en/blog/${blog.slugEn}` },
     ],
   }
 
@@ -56,18 +57,18 @@ export default async function BlogDetailPageEn({ params }: { params: Promise<{ s
     image: blog.image ? [blog.image] : undefined,
     datePublished: blog.createdAt.toISOString(),
     dateModified: blog.updatedAt.toISOString(),
-    author: { "@type": "Person", name: "Kamol" },
+    author: { "@type": "Person", name: siteConfig.brand.founderName },
     publisher: {
       "@type": "Organization",
-      name: "Farmer Kamol",
+      name: siteConfig.brand.nameEn,
       logo: {
         "@type": "ImageObject",
-        url: "https://www.farmerkamol.com/uploads/kamol.png",
+        url: `${siteConfig.domain.url}${siteConfig.domain.logo}`,
       },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://www.farmerkamol.com/en/blog/${blog.slugEn}`,
+      "@id": `${siteConfig.domain.url}/en/blog/${blog.slugEn}`,
     },
   }
 

@@ -1,4 +1,5 @@
 "use client"
+import { siteConfig } from "@/lib/siteConfig"
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -24,7 +25,7 @@ export default function AboutPageEn() {
           >
             <Image
               src={`/uploads/${img}`}
-              alt={`Farmer Kamol farm photo ${i + 1} - Sirajganj`}
+              alt={`${siteConfig.brand.nameEn} farm photo ${i + 1} - ${siteConfig.address.regionEn}`}
               fill
               priority={i === 0}
               sizes="(max-width: 768px) 33vw, 300px"
@@ -45,7 +46,7 @@ export default function AboutPageEn() {
           <div className="relative flex-shrink-0 mx-auto md:mx-0 group">
           <Image
               src="/uploads/kamol.png"
-              alt="Farmer Kamol - Kamol, Founder"
+              alt={`${siteConfig.brand.nameEn} - ${siteConfig.brand.founderName}, Founder`}
               width={192}
               height={192}
               className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover shadow-lg ring-4 ring-yellow-400/70 transition-transform duration-300 group-hover:scale-105"
@@ -58,7 +59,7 @@ export default function AboutPageEn() {
             </p>
             <div className={`text-gray-700 leading-relaxed space-y-4 mt-2 ${expanded[0] ? "block" : "hidden"}`}>
               <p>
-                While working at a courier company in Dhaka, I saw how desperately city people searched for a bottle of pure honey or adulteration-free ghee. Yet in our village, these gifts of nature are right at hand. Farmer Kamol was born to close that gap — straight from the farm to your door, with no middlemen.
+              While working at a courier company in Dhaka, I saw how desperately city people searched for a bottle of pure honey or adulteration-free ghee. Yet in our village, these gifts of nature are right at hand. {siteConfig.brand.nameEn} was born to close that gap — straight from the farm to your door, with no middlemen.
               </p>
               <div>
                 <h3 className="font-bold text-green-900 mb-1">Our Mission</h3>
@@ -176,7 +177,7 @@ export default function AboutPageEn() {
           <div className="relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
           <Image
               src="/uploads/about-2nd-sub.jpg"
-              alt="Livestock rearing - Farmer Kamol farm, Sirajganj"
+              alt={`Livestock rearing - ${siteConfig.brand.nameEn} farm, ${siteConfig.address.regionEn}`}
               fill
               sizes="(max-width: 768px) 100vw, 256px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
@@ -268,7 +269,7 @@ export default function AboutPageEn() {
           <div className="order-1 md:order-2 relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
           <Image
               src="/uploads/about-3rd-sub.jpg"
-              alt="Crop cultivation - Farmer Kamol farm, Sirajganj"
+              alt={`Crop cultivation - ${siteConfig.brand.nameEn} farm, ${siteConfig.address.regionEn}`}
               fill
               sizes="(max-width: 768px) 100vw, 256px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
@@ -282,7 +283,7 @@ export default function AboutPageEn() {
 
       <div className="text-center mt-16">
         <Link href="/en" className="text-green-800 font-bold hover:text-yellow-600 transition">
-          ← Back to Farmer Kamol Homepage
+        ← Back to {siteConfig.brand.nameEn} Homepage
         </Link>
       </div>
     </main>

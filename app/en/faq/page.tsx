@@ -1,11 +1,12 @@
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
 import { safeJsonLd } from "@/lib/jsonLd"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "FAQ | Farmer Kamol",
+  title: `FAQ | ${siteConfig.brand.nameEn}`,
   description:
-    "Common questions about Farmer Kamol's products, orders, delivery, and returns. Learn about our pure honey, ghee, mustard oil, and duck chicks from Sirajganj.",
+    `Common questions about ${siteConfig.brand.nameEn}'s products, orders, delivery, and returns. Learn about our pure honey, ghee, mustard oil, and duck chicks from ${siteConfig.address.regionEn}.`,
   alternates: {
     canonical: "/en/faq",
     languages: {
@@ -17,30 +18,30 @@ export const metadata: Metadata = {
 
 const faqGroups = [
   {
-    category: "About Farmer Kamol",
+    category: `About ${siteConfig.brand.nameEn}`,
     items: [
       {
-        q: "What is Farmer Kamol?",
-        a: "Farmer Kamol is an agricultural brand based in Sarail, Raiganj, Sirajganj, delivering pure honey, ghee, mustard oil, and duck chicks directly from the farm to customers, with no middlemen.",
+        q: `What is ${siteConfig.brand.nameEn}?`,
+        a: `${siteConfig.brand.nameEn} is an agricultural brand based in ${siteConfig.address.villageEn}, ${siteConfig.address.localityEn}, ${siteConfig.address.regionEn}, delivering pure honey, ghee, mustard oil, and duck chicks directly from the farm to customers, with no middlemen.`,
       },
       {
-        q: "Do Farmer Kamol's products come from your own farm?",
-        a: "Yes. Farmer Kamol's products are sourced from our own farm and trusted suppliers. Videos of our production and sourcing process are published on our YouTube channel.",
+        q: `Do ${siteConfig.brand.nameEn}'s products come from your own farm?`,
+        a: `Yes. ${siteConfig.brand.nameEn}'s products are sourced from our own farm and trusted suppliers. Videos of our production and sourcing process are published on our YouTube channel.`,
       },
       {
-        q: "Where can I watch Farmer Kamol's videos?",
+        q: `Where can I watch ${siteConfig.brand.nameEn}'s videos?`,
         a: "We regularly publish videos of the farm, honey collection, mustard oil production, and other farming content on our YouTube channel and Facebook page.",
       },
       {
-        q: "What products does Farmer Kamol sell?",
+        q: `What products does ${siteConfig.brand.nameEn} sell?`,
         a: "We currently supply pure honey, ghee, mustard oil, and seasonal duck chicks. More farm products will be added in the future.",
       },
       {
-        q: "Why buy from Farmer Kamol?",
+        q: `Why buy from ${siteConfig.brand.nameEn}?`,
         a: "We place the highest priority on farm-based production, transparency, and customer trust. We regularly share information and videos about our products' source, collection, and preparation.",
       },
       {
-        q: "What is Farmer Kamol's goal?",
+        q: `What is ${siteConfig.brand.nameEn}'s goal?`,
         a: "Our goal is to deliver safe, pure agricultural products directly to customers and to spread farming knowledge to everyone.",
       },
       {
@@ -58,7 +59,7 @@ const faqGroups = [
       },
       {
         q: "How can I tell if honey is pure?",
-        a: "The best way to identify pure honey is to check the source and the seller's credibility. Farmer Kamol publishes real videos of honey collection and processing, so customers get a clear picture of the production process.",
+        a: `The best way to identify pure honey is to check the source and the seller's credibility. ${siteConfig.brand.nameEn} publishes real videos of honey collection and processing, so customers get a clear picture of the production process.`,
       },
       {
         q: "Does crystallized honey mean it's fake?",
@@ -78,7 +79,7 @@ const faqGroups = [
       },
       {
         q: "Where do your products come from?",
-        a: "All our products come from our own farm in Raiganj, Sirajganj. You can watch the production process on our YouTube channel.",
+        a: `All our products come from our own farm in ${siteConfig.address.localityEn}, ${siteConfig.address.regionEn}. You can watch the production process on our YouTube channel.`,
       },
       {
         q: "Are your products adulteration-free?",
@@ -170,11 +171,11 @@ const faqGroups = [
     items: [
       {
         q: "Where is your farm located?",
-        a: "Our farm is located in Sarail village, Raiganj Upazila, Sirajganj District.",
+        a: `Our farm is located in ${siteConfig.address.villageEn} village, ${siteConfig.address.localityEn} Upazila, ${siteConfig.address.regionEn} District.`,
       },
       {
         q: "How can I contact you?",
-        a: "WhatsApp/Phone: 01737939688. You can also message our Facebook and YouTube (@FarmerKamol) pages.",
+        a: `WhatsApp/Phone: ${siteConfig.contact.phoneDisplay}. You can also message our Facebook and YouTube (${siteConfig.brand.youtubeHandle}) pages.`,
       },
     ],
   },
