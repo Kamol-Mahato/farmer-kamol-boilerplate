@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
 import { useState } from "react"
+import { siteConfig } from "@/lib/siteConfig"
 
 type Product = {
   id: number
@@ -11,7 +12,6 @@ type Product = {
   priceType: "FIXED" | "NEGOTIABLE"
 }
 
-// ✅ একই toast logic যা ProductCard এ আছে
 function showCartToast(name: string) {
   const existing = document.getElementById("cart-toast")
   if (existing) existing.remove()
@@ -22,26 +22,17 @@ function showCartToast(name: string) {
       <span style="font-size:22px;">🛒</span>
       <div>
         <div style="font-weight:700;font-size:14px;">${name}</div>
-        <div style="font-size:12px;opacity:0.85;">কার্টে যোগ হয়েছে!</div>
+        <div style="font-size:12px;opacity:0.85;">কার্টে যোগ হয়েছে!</div>
       </div>
       <span style="font-size:20px;margin-left:4px;">✅</span>
     </div>
   `
   toast.style.cssText = `
-    position: fixed;
-    top: 80px;
-    right: 16px;
-    z-index: 9999;
-    background:rgb(21, 23, 2);
-    color: white;
-    padding: 14px 18px;
-    border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    font-family: inherit;
-    min-width: 220px;
-    max-width: 300px;
-    transform: translateX(120%);
-    transition: transform 0.3s cubic-bezier(.22,1,.36,1);
+    position: fixed; top: 80px; right: 16px; z-index: 9999;
+    background:rgb(21, 23, 2); color: white; padding: 14px 18px;
+    border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    font-family: inherit; min-width: 220px; max-width: 300px;
+    transform: translateX(120%); transition: transform 0.3s cubic-bezier(.22,1,.36,1);
     border: 2px solid #22c55e;
   `
   document.body.appendChild(toast)
@@ -57,7 +48,7 @@ function showCartToast(name: string) {
 }
 
 function buildWhatsAppLink(productName: string) {
-  const phone = "8801737939688"
+  const phone = siteConfig.contact.whatsapp
   const message = `আমি "${productName}" সম্পর্কে জানতে চাই`
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
@@ -73,7 +64,7 @@ export default function ProductActions({
   const isOutOfStock = product.stockQty <= 0
 
   function handleAddToCart() {
-    const cart = JSON.parse(localStorage.getItem("farmer_kamol_cart") || "[]")
+    const cart = JSON.parse(localStorage.getItem(siteConfig.storage.cartKey) || "[]")
     const existing = cart.find((i: { id: number }) => i.id === product.id)
     if (existing) {
       existing.quantity += 1
@@ -87,7 +78,7 @@ export default function ProductActions({
         quantity: 1,
       })
     }
-    localStorage.setItem("farmer_kamol_cart", JSON.stringify(cart))
+    localStorage.setItem(siteConfig.storage.cartKey, JSON.stringify(cart))
     window.dispatchEvent(new CustomEvent("cartUpdated"))
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
@@ -120,7 +111,7 @@ export default function ProductActions({
             : "border-green-600 bg-white text-green-700 hover:bg-green-50"
         }`}
       >
-        {added ? "✓ যোগ হয়েছে" : "🛒 Add to Cart"}
+        {added ? "✓ যোগ হয়েছে" : "🛒 Add to Cart"}
       </button>
       <Link
         href={isOutOfStock ? "#" : `/order?productId=${product.id}`}
