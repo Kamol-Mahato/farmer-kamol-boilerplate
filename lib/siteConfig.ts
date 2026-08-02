@@ -2,7 +2,6 @@
 // এই ফাইলটাই siteConfig — নতুন ক্লায়েন্ট সাইটের জন্য প্রথমে শুধু এই ফাইল + .env বদলান
 
 export const siteConfig = {
-  // ব্র্যান্ড পরিচিতি
   brand: {
     name: "Farmer Kamol",
     nameEn: "Farmer Kamol",
@@ -14,7 +13,6 @@ export const siteConfig = {
     foundingYear: "2026",
   },
 
-  // পেমেন্ট সংক্রান্ত তথ্য
   payment: {
     bkashNumber: "01737939688",
     nagadNumber: "01737939688",
@@ -26,7 +24,6 @@ export const siteConfig = {
     },
   },
 
-  // ডোমেইন ও URL
   domain: {
     url: "https://farmerkamol.com",
     host: "farmerkamol.com",
@@ -34,15 +31,16 @@ export const siteConfig = {
     logo: "/uploads/kamol.png",
   },
 
-  // যোগাযোগ তথ্য
   contact: {
     phone: "+8801737939688",
     phoneDisplay: "01737939688",
-    /** WhatsApp wa.me ফরম্যাট — দেশ কোডসহ, + চিহ্ন ছাড়া */
+    /** WhatsApp wa.me — দেশ কোডসহ, + ছাড়া */
     whatsapp: "8801737939688",
+    /** ব্যবসায়িক / আলাদা লাইন (ঐচ্ছিক) */
+    businessPhoneDisplay: "01521406139",
+    businessWhatsapp: "8801521406139",
   },
 
-  // ঠিকানা
   address: {
     locality: "রায়গঞ্জ",
     localityEn: "Raiganj",
@@ -53,9 +51,10 @@ export const siteConfig = {
     country: "BD",
     latitude: 24.53776236620221,
     longitude: 89.40731198780867,
+    /** Google Maps শেয়ার লিংক */
+    mapsUrl: "https://maps.app.goo.gl/m6P53sDikkd5GE6g6",
   },
 
-  // সোশ্যাল লিংক
   social: {
     facebook: "https://www.facebook.com/farmerkamol",
     youtube: "https://youtube.com/@FarmerKamol",
@@ -63,7 +62,6 @@ export const siteConfig = {
     tiktok: "https://www.tiktok.com/@farmer.kamol",
   },
 
-  // মেটাডেটা / SEO
   seo: {
     defaultTitle: "Farmer Kamol - খামার থেকে আপনার দরজায়",
     titleTemplate: "%s | Farmer Kamol",
@@ -80,12 +78,25 @@ export const siteConfig = {
     ],
   },
 
-  // ব্যবসায়িক তথ্য
+  /** টপ মার্কুই / অ্যানাউন্সমেন্ট — পণ্য লাইন */
+  announcement: {
+    productLineBn: "খাঁটি মধু - ঘি - সরিষার তেল ও হাঁসের বাচ্চা",
+    productLineEn: "Pure Honey, Ghee, Mustard oil & Duck Chicks",
+  },
+
+  footer: {
+    descriptionBn:
+      "সমন্বিত কৃষির মাধ্যমে প্রাকৃতিক ও স্বাস্থ্যকর খাদ্যপণ্য সরাসরি আপনার কাছে পৌঁছে দিচ্ছি।",
+    descriptionEn:
+      "Delivering natural, healthy food straight from our integrated farm to your doorstep.",
+    productCategoriesBn: ["মধু", "ঘি", "সরিষার তেল", "চীনা হাঁসের বাচ্চা"],
+    productCategoriesEn: ["Honey", "Ghee", "Mustard Oil", "Duck Chicks"],
+  },
+
   business: {
     priceRange: "৳50-৳3000",
     paymentAccepted: "Cash on Delivery, bKash, Nagad",
     currenciesAccepted: "BDT",
-    /** অর্ডার আইডি প্রিফিক্স — যেমন FK20260803001 */
     orderIdPrefix: "FK",
     openingHours: {
       days: [
@@ -102,7 +113,6 @@ export const siteConfig = {
     },
   },
 
-  // লাইভ চ্যাট UI টেক্সট (সিস্টেম মেসেজ DB-তে থাকতে পারে; UI লেবেল এখান থেকে)
   chat: {
     supportTitle: "Farmer Kamol Support",
     onlineTooltip: "👋 আমরা এখন অনলাইনে আছি, যেকোনো কিছু জিজ্ঞাসা করুন!",
@@ -111,13 +121,11 @@ export const siteConfig = {
     supportLabel: "সাপোর্ট",
   },
 
-  // থিম (CSS-এ ধীরে ব্যবহার করা যাবে)
   theme: {
     primary: "#055a36",
     primaryHover: "#034026",
   },
 
-  // অ্যানালিটিক্স — খালি রাখলে GA লোড হবে না
   analytics: {
     gaId: process.env.NEXT_PUBLIC_GA_ID || "",
   },

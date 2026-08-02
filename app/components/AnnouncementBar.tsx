@@ -57,7 +57,10 @@ export default function AnnouncementBar() {
     <div className="fixed top-0 left-0 w-full bg-green-950 text-white text-sm py-1.5 font-bold z-[60] flex items-center">
       {mounted && (
         <div className="shrink-0 px-1.5 md:px-3 overflow-hidden w-[70px] md:w-[190px] text-left md:text-center flex items-center h-6 md:h-auto">
-          <span key={`m-${rotateIndex}`} className="inline-block animate-fadeIn text-[10px] leading-tight whitespace-pre-line md:hidden">
+          <span
+            key={`m-${rotateIndex}`}
+            className="inline-block animate-fadeIn text-[10px] leading-tight whitespace-pre-line md:hidden"
+          >
             {itemsMobile[rotateIndex]}
           </span>
           <span key={`d-${rotateIndex}`} className="hidden md:inline-block animate-fadeIn md:text-sm">
@@ -67,24 +70,42 @@ export default function AnnouncementBar() {
       )}
       <div className="flex-1 overflow-hidden">
         <div className="animate-marquee whitespace-nowrap inline-block">
-        {[...Array(3)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <span key={i}>
               {locale === "en" ? (
                 <>
-                  Nomoskar / Assalamu Alaikum Pure Honey, Ghee, Mustard oil & Duck Chicks — straight from our farm to your door. Wellcome &nbsp;
-                  <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">{siteConfig.brand.name}</a>
+                  Nomoskar / Assalamu Alaikum {siteConfig.announcement.productLineEn} — straight from
+                  our farm to your door. Welcome&nbsp;
+                  <a
+                    href={localizeHref("/", locale)}
+                    className="text-yellow-400 font-bold hover:underline"
+                  >
+                    {siteConfig.brand.name}
+                  </a>
                   &nbsp;Family. For our products or any inquiry, WhatsApp or call us at:&nbsp;
-                  <a href={`tel:${siteConfig.contact.phone}`} className="text-yellow-400 font-bold hover:underline">
+                  <a
+                    href={`tel:${siteConfig.contact.phone}`}
+                    className="text-yellow-400 font-bold hover:underline"
+                  >
                     {siteConfig.contact.phoneDisplay}
                   </a>
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 </>
               ) : (
                 <>
-                  নমস্কার / আসসালামুআলাইকুম, {siteConfig.brand.name} এ পেয়ে যাচ্ছেন খাঁটিমধু - ঘি - সরিষার তেল ও হাঁসের বাচ্চা — সরাসরি খামার থেকে আপনার দরজায়।&nbsp;
-                  <a href={localizeHref("/", locale)} className="text-yellow-400 font-bold hover:underline">{siteConfig.brand.name}</a>
+                  নমস্কার / আসসালামুআলাইকুম, {siteConfig.brand.name} এ পেয়ে যাচ্ছেন{" "}
+                  {siteConfig.announcement.productLineBn} — সরাসরি খামার থেকে আপনার দরজায়।&nbsp;
+                  <a
+                    href={localizeHref("/", locale)}
+                    className="text-yellow-400 font-bold hover:underline"
+                  >
+                    {siteConfig.brand.name}
+                  </a>
                   &nbsp;পরিবারে স্বাগতম। আমাদের পণ্য ও যেকোনো প্রয়োজনে WhatsApp অথবা কল করুন:&nbsp;
-                  <a href={`tel:${siteConfig.contact.phone}`} className="text-yellow-400 font-bold hover:underline">
+                  <a
+                    href={`tel:${siteConfig.contact.phone}`}
+                    className="text-yellow-400 font-bold hover:underline"
+                  >
                     {siteConfig.contact.phoneDisplay}
                   </a>
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

@@ -1,6 +1,7 @@
 "use client"
 import { usePathname } from "next/navigation"
 import { getLocaleFromPath } from "@/lib/i18n"
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function FloatingWhatsAppButton() {
   const pathname = usePathname()
@@ -8,8 +9,8 @@ export default function FloatingWhatsAppButton() {
 
   return (
     <>
-    <a
-        href="https://wa.me/8801737939688"
+      <a
+        href={`https://wa.me/${siteConfig.contact.whatsapp}`}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={locale === "en" ? "Contact us on WhatsApp" : "WhatsApp-এ যোগাযোগ করুন"}
