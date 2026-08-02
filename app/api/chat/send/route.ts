@@ -7,34 +7,51 @@ import { sendTelegramAlert, escapeHtml } from "@/lib/telegram"
 import { chatEvents } from "@/lib/chatEvents"
 import { checkAndIncrementRate } from "@/lib/rateLimiter"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+export const fetchCache = "force-no-store"
+
+const NO_STORE_HEADERS: HeadersInit = {
+  "Cache-Control": "private, no-store, no-cache, must-revalidate, max-age=0",
+  "CDN-Cache-Control": "no-store",
+  "Cloudflare-CDN-Cache-Control": "no-store",
+  Pragma: "no-cache",
+  Expires: "0",
+  Vary: "Cookie",
+}
+
+function json(data: unknown, status = 200) {
+  return NextResponse.json(data, { status, headers: NO_STORE_HEADERS })
+}
+
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies()
     const existingToken = cookieStore.get("visitor_session")?.value
 
     if (!existingToken) {
-      return NextResponse.json({ error: "অননুমোদিত সেশন" }, { status: 401 })
+      return json({ error: "অননুমোদিত সেশন" }, 401)
     }
 
     const visitorId = await verifyVisitorSession(existingToken)
     if (!visitorId) {
-      return NextResponse.json({ error: "অবৈধ সেশন" }, { status: 401 })
+      return json({ error: "অবৈধ সেশন" }, 401)
     }
     const { allowed } = await checkAndIncrementRate(`chat-send:${visitorId}`, 15, 60)
     if (!allowed) {
-      return NextResponse.json({ error: "একটু ধীরে... কিছুক্ষণ পর আবার চেষ্টা করুন" }, { status: 429 })
+      return json({ error: "একটু ধীরে... কিছুক্ষণ পর আবার চেষ্টা করুন" }, 429)
     }
 
     const body = await req.json()
     const { text } = body
 
     if (!text || text.trim() === "") {
-      return NextResponse.json({ error: "মেসেজ খালি হতে পারে না" }, { status: 400 })
+      return json({ error: "মেসেজ খালি হতে পারে না" }, 400)
     }
 
     const trimmed = String(text).trim()
     if (trimmed.length > 2000) {
-      return NextResponse.json({ error: "মেসেজ খুব বড়" }, { status: 400 })
+      return json({ error: "মেসেজ খুব বড়" }, 400)
     }
 
     const conversation = await prisma.chatConversation.findUnique({
@@ -42,7 +59,7 @@ export async function POST(req: Request) {
     })
 
     if (!conversation) {
-      return NextResponse.json({ error: "কনভারসেশন পাওয়া যায়নি" }, { status: 404 })
+      return json({ error: "কনভারসেশন পাওয়া যায়নি" }, 404)
     }
 
     const newMessage = await prisma.chatMessage.create({
@@ -96,9 +113,9 @@ export async function POST(req: Request) {
         `Admin: /admin/chat`
     )
 
-    return NextResponse.json({ message: newMessage })
+    return json({ message: newMessage })
   } catch (error) {
     console.error("CHAT SEND ERROR:", error)
-    return NextResponse.json({ error: "মেসেজ পাঠাতে সমস্যা হয়েছে" }, { status: 500 })
+    return json({ error: "মেসেজ পাঠাতে সমস্যা হয়েছে" }, 500)
   }
 }
