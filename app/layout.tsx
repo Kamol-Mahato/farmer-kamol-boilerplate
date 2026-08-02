@@ -7,7 +7,7 @@ import EnterKeyNav from "./components/EnterKeyNav"
 import TopLoadingBar from "./components/TopLoadingBar"
 import "./globals.css"
 import { headers } from "next/headers"
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { GoogleAnalytics } from "@next/third-parties/google"
 import { siteConfig } from "@/lib/siteConfig"
 
 const hindSiliguri = Hind_Siliguri({
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.domain.url),
   title: {
     default: siteConfig.seo.defaultTitle,
-    template: `%s | ${siteConfig.brand.name}`,
+    template: siteConfig.seo.titleTemplate,
   },
   description: siteConfig.seo.description,
   manifest: "/manifest.json",
@@ -60,15 +60,18 @@ export default async function RootLayout({
 
   return (
     <html lang={lang}>
-      <body className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}>
-      <OrganizationSchema lang={lang} />
+      <body
+        className={`${hindSiliguri.variable} ${hindSiliguri.className} antialiased bg-gray-50 flex flex-col min-h-screen`}
+      >
+        <OrganizationSchema lang={lang} />
         <Suspense fallback={null}>
           <TopLoadingBar />
         </Suspense>
         <EnterKeyNav />
         <ConditionalLayout>{children}</ConditionalLayout>
-        {/* গুগল অ্যানালিটিক্স কম্পোনেন্ট */}
-        <GoogleAnalytics gaId={siteConfig.analytics.gaId || 'G-8ZRHT134HL'} />
+        {siteConfig.analytics.gaId ? (
+          <GoogleAnalytics gaId={siteConfig.analytics.gaId} />
+        ) : null}
       </body>
     </html>
   )

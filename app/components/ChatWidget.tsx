@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { connectChatSocket } from "@/lib/chatSocket"
+import { siteConfig } from "@/lib/siteConfig"
 
 interface Message {
   id: number
@@ -117,7 +118,6 @@ export default function ChatWidget() {
 
   const fetchInitChat = useCallback(async () => {
     try {
-      // 🔒 ক্যাশড init = দুই ডিভাইসে একই visitorId — আটকানো
       const res = await fetch("/api/chat/init", {
         cache: "no-store",
         credentials: "same-origin",
@@ -158,7 +158,6 @@ export default function ChatWidget() {
         onConnected: () => setLive(true),
         onMessage: (data) => {
           const msg = data as Message
-          // 🔒 অন্য কনভারসেশনের মেসেজ ক্লায়েন্টেও ফেলে দাও (সার্ভার ফিল্টারের ব্যাকআপ)
           if (
             msg.conversationId != null &&
             conversationIdRef.current != null &&
@@ -271,17 +270,25 @@ export default function ChatWidget() {
     ))
   }
 
+  const primary = siteConfig.theme.primary
+  const primaryHover = siteConfig.theme.primaryHover
+
   return (
     <div className="fixed right-4 bottom-36 md:bottom-20 z-[60]">
       {isOpen && (
         <div className="bg-white w-[300px] sm:w-[340px] h-[430px] rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden mb-3 transition-all duration-300">
-          <div className="bg-[#055a36] text-white p-3 flex justify-between items-center shadow-md">
+          <div
+            className="text-white p-3 flex justify-between items-center shadow-md"
+            style={{ backgroundColor: primary }}
+          >
             <div className="flex items-center gap-2">
               <div
                 className={`w-2.5 h-2.5 rounded-full ${live ? "bg-green-400 animate-pulse" : "bg-yellow-300"}`}
               />
               <div>
-                <h3 className="font-bold text-xs sm:text-sm tracking-wide">Farmer Kamol Support</h3>
+                <h3 className="font-bold text-xs sm:text-sm tracking-wide">
+                  {siteConfig.chat.supportTitle}
+                </h3>
                 <p className="text-[9px] sm:text-[10px] text-emerald-100">
                   {live ? "লাইভ · WebSocket" : "সংযোগ হচ্ছে..."}
                 </p>
@@ -305,13 +312,17 @@ export default function ChatWidget() {
                   <div
                     className={`max-w-[85%] px-3 py-2 rounded-2xl text-[12px] sm:text-[12.5px] leading-relaxed ${
                       isCustomer
-                        ? "bg-[#055a36] text-white rounded-br-none shadow-sm"
+                        ? "text-white rounded-br-none shadow-sm"
                         : "bg-white text-gray-800 border border-gray-200 rounded-bl-none shadow-sm"
                     }`}
+                    style={isCustomer ? { backgroundColor: primary } : undefined}
                   >
                     {(msg.senderType === "ADMIN" || msg.senderType === "AGENT") && (
                       <span className="block text-[10px] font-semibold text-green-700 mb-0.5">
-                        {msg.senderName || (msg.senderType === "AGENT" ? "এজেন্ট" : "সাপোর্ট")}
+                        {msg.senderName ||
+                          (msg.senderType === "AGENT"
+                            ? siteConfig.chat.agentLabel
+                            : siteConfig.chat.supportLabel)}
                       </span>
                     )}
                     {renderMessageText(msg.text, isCustomer)}
@@ -327,13 +338,27 @@ export default function ChatWidget() {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="আপনার প্রশ্নটি লিখুন..."
-              className="flex-1 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:border-[#055a36] text-gray-800 transition"
+              placeholder={siteConfig.chat.inputPlaceholder}
+              className="flex-1 border border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none text-gray-800 transition"
+              style={{ borderColor: undefined }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = primary
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = ""
+              }}
             />
             <button
               type="submit"
               disabled={!inputText.trim() || loading}
-              className="bg-[#055a36] text-white p-2 rounded-xl hover:bg-[#034026] disabled:opacity-50 transition cursor-pointer hover:scale-105 active:scale-95"
+              className="text-white p-2 rounded-xl disabled:opacity-50 transition cursor-pointer hover:scale-105 active:scale-95"
+              style={{ backgroundColor: primary }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = primaryHover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = primary
+              }}
             >
               <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
@@ -349,7 +374,7 @@ export default function ChatWidget() {
             <span>
               {unread > 0
                 ? `💬 নতুন রিপ্লাই এসেছে (${unread})`
-                : "👋 আমরা এখন অনলাইনে আছি, যেকোনো কিছু জিজ্ঞাসা করুন!"}
+                : siteConfig.chat.onlineTooltip}
             </span>
             <div className="absolute right-[-5px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[6px] border-l-gray-900" />
           </div>
@@ -357,8 +382,15 @@ export default function ChatWidget() {
 
         <button
           onClick={toggleChat}
-          className="relative bg-[#055a36] hover:bg-[#034026] text-white w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
+          className="relative text-white w-11 h-11 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-95 transition-transform duration-200 cursor-pointer"
+          style={{ backgroundColor: primary }}
           aria-label="Toggle Chat"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = primaryHover
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = primary
+          }}
         >
           {isOpen ? (
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -366,7 +398,11 @@ export default function ChatWidget() {
             </svg>
           ) : (
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9a1 1 0 100-2 1 1 0 000 2zm3 0a1 1 0 100-2 1 1 0 000 2zm3 0a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9a1 1 0 100-2 1 1 0 000 2zm3 0a1 1 0 100-2 1 1 0 000 2zm3 0a1 1 0 100-2 1 1 0 000 2z"
+                clipRule="evenodd"
+              />
             </svg>
           )}
           {!isOpen && unread > 0 && (
