@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { normalizePhone, isValidBDPhone } from "@/lib/phone"
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -81,7 +82,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start pt-10 pb-12 px-2">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-green-800">Farmer Kamol</h1>
+        <h1 className="text-2xl font-bold text-green-800">{siteConfig.brand.name}</h1>
           <p className="text-sm text-yellow-600 mt-1">খামার থেকে আপনার দরজায়</p>
         </div>
         <h2 className="text-xl font-bold text-gray-800 mb-6">নতুন অ্যাকাউন্ট খুলুন</h2>

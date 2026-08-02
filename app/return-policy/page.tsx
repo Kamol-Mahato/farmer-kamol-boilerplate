@@ -1,10 +1,11 @@
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "রিটার্ন পলিসি | Farmer Kamol",
+  title: `রিটার্ন পলিসি | ${siteConfig.brand.name}`,
   description:
-    "Farmer Kamol-এর মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চার রিটার্ন, এক্সচেঞ্জ ও রিফান্ড নীতি জানুন।",
+    `${siteConfig.brand.name}-এর মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চার রিটার্ন, এক্সচেঞ্জ ও রিফান্ড নীতি জানুন।`,
   alternates: {
     canonical: "/return-policy",
     languages: {
@@ -33,7 +34,7 @@ const sections = [
   {
     title: "রিটার্ন প্রক্রিয়া",
     content:
-      "আমাদের হোয়াটসঅ্যাপে (01737939688) সমস্যার বিবরণ ও ছবি/ভিডিও পাঠান। আমাদের টিম যাচাই করে ২৪ ঘণ্টার মধ্যে যোগাযোগ করবে। সমস্যা নিশ্চিত হলে রিপ্লেসমেন্ট বা রিফান্ডের ব্যবস্থা করা হবে।",
+      `আমাদের হোয়াটসঅ্যাপে (${siteConfig.contact.phoneDisplay}) সমস্যার বিবরণ ও ছবি/ভিডিও পাঠান। আমাদের টিম যাচাই করে ২৪ ঘণ্টার মধ্যে যোগাযোগ করবে। সমস্যা নিশ্চিত হলে রিপ্লেসমেন্ট বা রিফান্ডের ব্যবস্থা করা হবে।`,
   },
   {
     title: "রিফান্ড পদ্ধতি",
@@ -53,7 +54,7 @@ const sections = [
   {
     title: "যোগাযোগ",
     content:
-      "রিটার্ন সংক্রান্ত কোনো প্রশ্ন থাকলে হোয়াটসঅ্যাপে (01737939688) যোগাযোগ করুন। আমাদের খামার: সারইল, রায়গঞ্জ, সিরাজগঞ্জ।",
+      `রিটার্ন সংক্রান্ত কোনো প্রশ্ন থাকলে হোয়াটসঅ্যাপে (${siteConfig.contact.phoneDisplay}) যোগাযোগ করুন। আমাদের খামার: ${siteConfig.address.village}, ${siteConfig.address.locality}, ${siteConfig.address.region}।`,
   },
 ];
 

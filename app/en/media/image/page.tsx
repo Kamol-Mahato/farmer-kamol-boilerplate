@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma"
 import GalleryCard from "./components/GalleryCard"
 import type { Metadata } from "next"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "Media Gallery - Farmer Kamol",
-  description: "Explore photo galleries of Farmer Kamol's farm, products, and daily activities.",
+  title: `Media Gallery - ${siteConfig.brand.nameEn}`,
+  description: `Explore photo galleries of ${siteConfig.brand.nameEn}'s farm, products, and daily activities.`,
   alternates: {
     canonical: "/en/media/image",
     languages: {

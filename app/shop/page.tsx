@@ -2,13 +2,14 @@ import { prisma } from "@/lib/prisma"
 import ProductCard from "@/app/components/ProductCard"
 import type { Metadata } from "next"
 import Breadcrumb from "../components/Breadcrumb"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "আমাদের সকল পণ্য - মধু, ঘি, সরিষার তেল | Farmer Kamol",
+  title: `আমাদের সকল পণ্য - মধু, ঘি, সরিষার তেল | ${siteConfig.brand.name}`,
   description:
-    "Farmer Kamol-এর সব পণ্য একসাথে দেখুন — খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা, সরাসরি সিরাজগঞ্জের খামার থেকে।",
+    `${siteConfig.brand.name}-এর সব পণ্য একসাথে দেখুন — খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা, সরাসরি ${siteConfig.address.region}ের খামার থেকে।`,
   alternates: {
     canonical: "/shop",
   },

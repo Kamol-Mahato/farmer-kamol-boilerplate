@@ -1,10 +1,11 @@
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | Farmer Kamol",
+  title: `Terms & Conditions | ${siteConfig.brand.nameEn}`,
   description:
-    "Read the terms and conditions for using the Farmer Kamol website, placing orders, payment, and delivery.",
+    `Read the terms and conditions for using the ${siteConfig.brand.nameEn} website, placing orders, payment, and delivery.`,
   alternates: {
     canonical: "/en/terms",
     languages: {
@@ -18,7 +19,7 @@ const sections = [
   {
     title: "Introduction & Agreement",
     content:
-      "By using the website www.farmerkamol.com, you agree to the terms below. Please read the full terms before placing an order.",
+      `By using the website www.${siteConfig.domain.host}, you agree to the terms below. Please read the full terms before placing an order.`,
   },
   {
     title: "Use of the Website",
@@ -48,12 +49,12 @@ const sections = [
   {
     title: "Intellectual Property",
     content:
-      "All content, logos, images, and videos on this website are the property of Farmer Kamol. Copying or reuse without permission is prohibited.",
+      `All content, logos, images, and videos on this website are the property of ${siteConfig.brand.nameEn}. Copying or reuse without permission is prohibited.`,
   },
   {
     title: "Limitation of Liability",
     content:
-      "Farmer Kamol makes every effort to supply accurate, quality products. However, we are not liable for damages arising from unintentional errors or uncontrollable circumstances (such as natural disasters or courier delays).",
+      `${siteConfig.brand.nameEn} makes every effort to supply accurate, quality products. However, we are not liable for damages arising from unintentional errors or uncontrollable circumstances (such as natural disasters or courier delays).`,
   },
   {
     title: "Changes to Terms",
@@ -68,7 +69,7 @@ const sections = [
   {
     title: "Contact",
     content:
-      "If you have any questions about these terms, contact us on WhatsApp (01737939688). Our farm: Sarail, Raiganj, Sirajganj.",
+      `If you have any questions about these terms, contact us on WhatsApp (${siteConfig.contact.phoneDisplay}). Our farm: ${siteConfig.address.villageEn}, ${siteConfig.address.localityEn}, ${siteConfig.address.regionEn}.`,
   },
 ];
 

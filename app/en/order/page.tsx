@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { districts, upazilasEn } from "@/lib/bd-locations"
 import { translateUnit } from "@/lib/unitTranslate"
 import { normalizePhone, isValidBDPhone } from "@/lib/phone"
+import { siteConfig } from "@/lib/siteConfig"
 
 interface ProductData {
   name: string
@@ -120,7 +121,7 @@ function OrderForm() {
     trxId: "",
   })
   function copyNumber() {
-    navigator.clipboard.writeText("01737939688")
+    navigator.clipboard.writeText(siteConfig.payment.bkashNumber)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -460,7 +461,7 @@ function OrderForm() {
             <div className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Send Money to this number</p>
-                <p className="font-bold text-gray-800 text-base">01737939688</p>
+                <p className="font-bold text-gray-800 text-base">{siteConfig.payment.bkashNumber}</p>
               </div>
               <button
                 type="button"

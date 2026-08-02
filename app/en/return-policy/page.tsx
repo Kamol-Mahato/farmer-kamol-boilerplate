@@ -1,10 +1,11 @@
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Return Policy | Farmer Kamol",
+  title: `Return Policy | ${siteConfig.brand.nameEn}`,
   description:
-    "Learn about Farmer Kamol's return, exchange, and refund policy for honey, ghee, mustard oil, and duck chicks.",
+    `Learn about ${siteConfig.brand.nameEn}'s return, exchange, and refund policy for honey, ghee, mustard oil, and duck chicks.`,
   alternates: {
     canonical: "/en/return-policy",
     languages: {
@@ -33,7 +34,7 @@ const sections = [
   {
     title: "Return Process",
     content:
-      "Send a description of the issue along with photos/video to our WhatsApp (01737939688). Our team will review it and contact you within 24 hours. If the issue is confirmed, we will arrange a replacement or refund.",
+      `Send a description of the issue along with photos/video to our WhatsApp (${siteConfig.contact.phoneDisplay}). Our team will review it and contact you within 24 hours. If the issue is confirmed, we will arrange a replacement or refund.`,
   },
   {
     title: "Refund Method",
@@ -53,7 +54,7 @@ const sections = [
   {
     title: "Contact",
     content:
-      "If you have any questions about returns, contact us on WhatsApp (01737939688). Our farm: Sarail, Raiganj, Sirajganj.",
+      `If you have any questions about returns, contact us on WhatsApp (${siteConfig.contact.phoneDisplay}). Our farm: ${siteConfig.address.villageEn}, ${siteConfig.address.localityEn}, ${siteConfig.address.regionEn}.`,
   },
 ];
 

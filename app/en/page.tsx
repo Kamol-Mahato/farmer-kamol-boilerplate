@@ -7,13 +7,14 @@ import type { Metadata } from "next"
 import NoticeModal from "@/app/en/components/NoticeModal"
 import VideoSection from "@/app/en/components/VideoSection"
 import TopSellerSection from "@/app/en/components/TopSellerSection"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "Farmer Kamol - From Our Farm To Your Door",
+  title: `${siteConfig.brand.nameEn} - ${siteConfig.brand.sloganEn}`,
   description:
-    "Pure honey, ghee, mustard oil, and duck chicks — delivered directly from our farm in Raiganj, Sirajganj, with no middlemen.",
+    `Pure honey, ghee, mustard oil, and duck chicks — delivered directly from our farm in ${siteConfig.address.localityEn}, ${siteConfig.address.regionEn}, with no middlemen.`,
   alternates: {
     canonical: "/en",
     languages: {

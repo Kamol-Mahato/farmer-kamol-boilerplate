@@ -7,13 +7,14 @@ import type { Metadata } from "next"
 import NoticeModal from "./components/NoticeModal" // এটি যোগ করুন
 import VideoSection from "./components/VideoSection"
 import TopSellerSection from "./components/TopSellerSection"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400 // ২৪ ঘণ্টা safety-net; Admin Save করলেই সাথে সাথে revalidatePath() দিয়ে আগে আপডেট হয়ে যাবে
 
 export const metadata: Metadata = {
-  title: "Farmer Kamol - খামার থেকে আপনার দরজায়",
+  title: `${siteConfig.brand.name} - ${siteConfig.brand.slogan}`,
   description:
-    "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা — কোনো মধ্যস্থতাকারী ছাড়া, খামার থেকে আপনার দরজায়।",
+    `${siteConfig.address.region}ের ${siteConfig.address.locality} থেকে সরাসরি খাঁটি মধু, ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা — কোনো মধ্যস্থতাকারী ছাড়া, খামার থেকে আপনার দরজায়।`,
   alternates: {
     canonical: "/",
     languages: {

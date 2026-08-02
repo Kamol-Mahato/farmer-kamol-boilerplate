@@ -2,13 +2,14 @@ import { prisma } from "@/lib/prisma"
 import ProductCard from "@/app/en/components/ProductCard"
 import type { Metadata } from "next"
 import Breadcrumb from "@/app/components/Breadcrumb"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
 export const metadata: Metadata = {
-  title: "All Products - Honey, Ghee, Mustard Oil | Farmer Kamol",
+  title: `All Products - Honey, Ghee, Mustard Oil | ${siteConfig.brand.nameEn}`,
   description:
-    "Browse all Farmer Kamol products — pure honey, homemade ghee, mustard oil, and Muscovy ducks, delivered straight from our farm in Sirajganj.",
+    `Browse all ${siteConfig.brand.nameEn} products — pure honey, homemade ghee, mustard oil, and Muscovy ducks, delivered straight from our farm in ${siteConfig.address.regionEn}.`,
   alternates: {
     canonical: "/en/shop",
     languages: {

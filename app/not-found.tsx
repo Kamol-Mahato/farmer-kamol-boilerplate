@@ -1,11 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
+import { siteConfig } from "@/lib/siteConfig"
 export default function NotFound() {
   return (
     <div className="min-h-[60vh] flex flex-col items-center  px-2 text-center">
       <Image
         src="/uploads/kamol.png"
-        alt="Farmer Kamol"
+        alt={siteConfig.brand.name}
         width={80}
         height={80}
         className="w-14 h-14 rounded-full mb-3 object-cover"

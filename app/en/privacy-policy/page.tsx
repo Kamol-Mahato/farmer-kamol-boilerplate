@@ -1,10 +1,11 @@
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Farmer Kamol",
+  title: `Privacy Policy | ${siteConfig.brand.nameEn}`,
   description:
-    "Learn how Farmer Kamol collects, uses, and protects your personal information — read our full privacy policy.",
+    `Learn how ${siteConfig.brand.nameEn} collects, uses, and protects your personal information — read our full privacy policy.`,
   alternates: {
     canonical: "/en/privacy-policy",
     languages: {
@@ -18,7 +19,7 @@ const sections = [
   {
     title: "Introduction",
     content:
-      "Farmer Kamol (\"we\", \"us\") values the privacy of users of our website www.farmerkamol.com. This policy explains what information we collect, how we use it, and how we protect it. By using our website, you agree to this policy.",
+      `${siteConfig.brand.nameEn} ("we", "us") values the privacy of users of our website www.${siteConfig.domain.host}. This policy explains what information we collect, how we use it, and how we protect it. By using our website, you agree to this policy.`,
   },
   {
     title: "Information We Collect",
@@ -63,7 +64,7 @@ const sections = [
   {
     title: "Contact",
     content:
-      "If you have any questions about privacy, please contact us on WhatsApp (01737939688). Our farm: Sarail, Raiganj, Sirajganj.",
+      `If you have any questions about privacy, please contact us on WhatsApp (${siteConfig.contact.phoneDisplay}). Our farm: ${siteConfig.address.villageEn}, ${siteConfig.address.localityEn}, ${siteConfig.address.regionEn}.`,
   },
 ];
 

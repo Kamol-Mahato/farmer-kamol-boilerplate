@@ -1,10 +1,11 @@
 import PolicyPage from "@/app/components/PolicyPage";
 import { Metadata } from "next";
+import { siteConfig } from "@/lib/siteConfig"
 
 export const metadata: Metadata = {
-  title: "গোপনীয়তা নীতি | Farmer Kamol",
+  title: `গোপনীয়তা নীতি | ${siteConfig.brand.name}`,
   description:
-    "Farmer Kamol আপনার ব্যক্তিগত তথ্য কীভাবে সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখে — জানুন আমাদের সম্পূর্ণ গোপনীয়তা নীতিতে।",
+    `${siteConfig.brand.name} আপনার ব্যক্তিগত তথ্য কীভাবে সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখে — জানুন আমাদের সম্পূর্ণ গোপনীয়তা নীতিতে।`,
   alternates: {
     canonical: "/privacy-policy",
     languages: {
@@ -18,7 +19,7 @@ const sections = [
   {
     title: "ভূমিকা",
     content:
-      "Farmer Kamol (\"আমরা\", \"আমাদের\") আমাদের ওয়েবসাইট www.farmerkamol.com ব্যবহারকারীদের গোপনীয়তা রক্ষাকে গুরুত্ব দেয়। এই নীতিতে বলা আছে আমরা কী তথ্য সংগ্রহ করি, কীভাবে ব্যবহার করি এবং কীভাবে সুরক্ষিত রাখি। আমাদের ওয়েবসাইট ব্যবহার করার মাধ্যমে আপনি এই নীতিতে সম্মত হচ্ছেন।",
+      `${siteConfig.brand.name} ("আমরা", "আমাদের") আমাদের ওয়েবসাইট www.${siteConfig.domain.host} ব্যবহারকারীদের গোপনীয়তা রক্ষাকে গুরুত্ব দেয়। এই নীতিতে বলা আছে আমরা কী তথ্য সংগ্রহ করি, কীভাবে ব্যবহার করি এবং কীভাবে সুরক্ষিত রাখি। আমাদের ওয়েবসাইট ব্যবহার করার মাধ্যমে আপনি এই নীতিতে সম্মত হচ্ছেন।`,
   },
   {
     title: "আমরা কী তথ্য সংগ্রহ করি",
@@ -63,7 +64,7 @@ const sections = [
   {
     title: "যোগাযোগ",
     content:
-      "গোপনীয়তা সংক্রান্ত কোনো প্রশ্ন থাকলে আমাদের হোয়াটসঅ্যাপে (01737939688) যোগাযোগ করুন। আমাদের খামার: সারইল, রায়গঞ্জ, সিরাজগঞ্জ।",
+      `গোপনীয়তা সংক্রান্ত কোনো প্রশ্ন থাকলে আমাদের হোয়াটসঅ্যাপে (${siteConfig.contact.phoneDisplay}) যোগাযোগ করুন। আমাদের খামার: ${siteConfig.address.village}, ${siteConfig.address.locality}, ${siteConfig.address.region}।`,
   },
 ];
 
