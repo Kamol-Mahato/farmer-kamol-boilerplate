@@ -1,19 +1,21 @@
 import type { MetadataRoute } from "next"
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Farmer Kamol - খামার থেকে আপনার দরজায়",
-    short_name: "Farmer Kamol",
-    description:
-      "সিরাজগঞ্জের রায়গঞ্জ থেকে সরাসরি খাঁটি দেশি পণ্য, ন্যায্য মূল্যে।",
+    name: `${siteConfig.brand.name} - ${siteConfig.brand.slogan}`,
+    short_name: siteConfig.brand.name,
+    description: siteConfig.seo.description,
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
-    theme_color: "#16a34a",
+    theme_color: siteConfig.theme.primary,
     icons: [
-      { src: "/icon.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icon.png", sizes: "480x480", type: "image/png", purpose: "maskable" },
+      {
+        src: siteConfig.domain.logo,
+        sizes: "192x192",
+        type: "image/png",
+      },
     ],
   }
 }
