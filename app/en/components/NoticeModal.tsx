@@ -1,16 +1,18 @@
 "use client";
 import { useState, useEffect } from "react";
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function NoticeModal() {
   const [isVisible, setIsVisible] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    const lastShown = localStorage.getItem("farmer_kamol_notice_last_shown");
+    const key = `${siteConfig.storage.cartKey}_notice_last_shown`
+    const lastShown = localStorage.getItem(key);
     const twelveHours = 12 * 60 * 60 * 1000;
     if (!lastShown || Date.now() - parseInt(lastShown) > twelveHours) {
       setIsVisible(true);
-      localStorage.setItem("farmer_kamol_notice_last_shown", Date.now().toString());
+      localStorage.setItem(key, Date.now().toString());
     }
   }, []);
 
@@ -39,10 +41,9 @@ export default function NoticeModal() {
         >
           ✕
         </button>
-
         <h3 className="text-2xl font-bold text-green-800 mb-4">Welcome</h3>
         <p className="text-lg text-gray-700 leading-relaxed">
-          Welcome to "Farmer Kamol" — you'll find all our products right here! Order now, and watch our videos here too. "Thank you"
+          {`Welcome to ${siteConfig.brand.name} — find all our products here and order now!`}
         </p>
       </div>
     </div>
