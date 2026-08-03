@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import { getLocaleFromPath, localizeHref } from "@/lib/i18n"
+import { siteConfig } from "@/lib/siteConfig"
 
 type Product = {
   id: number
@@ -18,7 +19,6 @@ type Product = {
   category: { name: string } | null
 }
 
-// ✅ ProductCard-এর মতোই cart toast
 function showCartToast(name: string) {
   const existing = document.getElementById("cart-toast")
   if (existing) existing.remove()
@@ -30,26 +30,17 @@ function showCartToast(name: string) {
       <span style="font-size:22px;">🛒</span>
       <div>
         <div style="font-weight:700;font-size:14px;">${name}</div>
-        <div style="font-size:12px;opacity:0.85;">কার্টে যোগ হয়েছে!</div>
+        <div style="font-size:12px;opacity:0.85;">কার্টে যোগ হয়েছে!</div>
       </div>
       <span style="font-size:20px;margin-left:4px;">✅</span>
     </div>
   `
   toast.style.cssText = `
-    position: fixed;
-    top: 80px;
-    right: 16px;
-    z-index: 9999;
-    background:rgb(21, 23, 2);
-    color: white;
-    padding: 14px 18px;
-    border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    font-family: inherit;
-    min-width: 220px;
-    max-width: 300px;
-    transform: translateX(120%);
-    transition: transform 0.3s cubic-bezier(.22,1,.36,1);
+    position: fixed; top: 80px; right: 16px; z-index: 9999;
+    background:rgb(21, 23, 2); color: white; padding: 14px 18px;
+    border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    font-family: inherit; min-width: 220px; max-width: 300px;
+    transform: translateX(120%); transition: transform 0.3s cubic-bezier(.22,1,.36,1);
     border: 2px solid #22c55e;
   `
   document.body.appendChild(toast)
@@ -65,7 +56,7 @@ function showCartToast(name: string) {
 }
 
 function buildWhatsAppLink(productName: string) {
-  const phone = "8801737939688"
+  const phone = siteConfig.contact.whatsapp
   const message = `আমি "${productName}" সম্পর্কে জানতে চাই`
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
@@ -78,7 +69,7 @@ function TopSellerCard({ product }: { product: Product }) {
   const mainImage = product.images?.[0]?.imageUrl || "/placeholder.jpg"
 
   function handleAddToCart() {
-    const cart = JSON.parse(localStorage.getItem("farmer_kamol_cart") || "[]")
+    const cart = JSON.parse(localStorage.getItem(siteConfig.storage.cartKey) || "[]")
     const existing = cart.find((i: { id: number }) => i.id === product.id)
 
     if (existing) {
@@ -94,7 +85,7 @@ function TopSellerCard({ product }: { product: Product }) {
       })
     }
 
-    localStorage.setItem("farmer_kamol_cart", JSON.stringify(cart))
+    localStorage.setItem(siteConfig.storage.cartKey, JSON.stringify(cart))
     window.dispatchEvent(new CustomEvent("cartUpdated"))
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
@@ -103,7 +94,6 @@ function TopSellerCard({ product }: { product: Product }) {
 
   return (
     <div className="flex bg-white border-2 border-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition group">
-      {/* বাম পাশে ছবি — বড় করা হলো, hover-এ zoom হবে */}
       <Link href={`/shop/${product.slug}`} className="relative w-2/3 shrink-0 bg-gray-50 overflow-hidden">
       <div className="relative aspect-[16/9] w-full h-full overflow-hidden">
           <Image
@@ -123,7 +113,6 @@ function TopSellerCard({ product }: { product: Product }) {
         </div>
       </Link>
 
-      {/* ডান পাশে ডিটেইলস — সব উপর-নিচ stack */}
       <div className="flex-1 p-2.5 md:p-3 flex flex-col justify-between">
         <div>
           {product.category && (
@@ -168,7 +157,7 @@ function TopSellerCard({ product }: { product: Product }) {
                     : "border-green-600 bg-white text-green-700 hover:bg-green-50"
                 }`}
               >
-                {added ? "✓ যোগ হয়েছে" : "🛒 Add to Cart"}
+                {added ? "✓ যোগ হয়েছে" : "🛒 Add to Cart"}
               </button>
               <Link
                 href={isOutOfStock ? "#" : localizeHref(`/order?productId=${product.id}`, locale)}
@@ -211,7 +200,6 @@ export default function TopSellerSection({ products }: { products: Product[] }) 
     return () => observer.disconnect()
   }, [])
 
-  // ✅ মোবাইলে Hero Slider-এর মতো অটো-স্লাইড, প্রতি ৪ সেকেন্ডে
   useEffect(() => {
     if (!products || products.length <= 1) return
     const timer = setInterval(() => {
@@ -232,18 +220,16 @@ export default function TopSellerSection({ products }: { products: Product[] }) 
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-5">
           <h2 className="inline-flex items-center gap-2 border-2 border-green-700 text-green-700 text-lg md:text-xl font-bold px-6 py-2 rounded-full hover:bg-green-700 hover:text-white transition cursor-default">
-          Farmer Kamol এর জনপ্রিয় পণ্য
+          {siteConfig.brand.name} এর জনপ্রিয় পণ্য
           </h2>
         </div>
 
-        {/* ✅ PC — আগের মতোই পাশাপাশি গ্রিড */}
         <div className="hidden md:grid md:grid-cols-2 gap-6">
           {products.map((product) => (
             <TopSellerCard key={product.id} product={product} />
           ))}
         </div>
 
-        {/* ✅ Mobile — Hero Slider-এর মতো অটো-স্লাইড, একটার পর একটা */}
         <div className="md:hidden relative overflow-hidden">
           <div
             className="flex transition-transform duration-500 ease-out"
