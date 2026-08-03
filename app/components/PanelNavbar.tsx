@@ -2,6 +2,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { siteConfig } from "@/lib/siteConfig"
 
 function getMobileTitle(pathname: string): string {
   const map: { prefix: string; title: string }[] = [
@@ -37,23 +38,22 @@ export default function PanelNavbar({
   const mobileTitle = getMobileTitle(pathname || "")
   return (
     <nav className="sticky top-0 z-[60] w-full bg-green-800 text-white py-1.5 px-3 md:px-4 shadow-md">
-      {/* full width — no max-w-7xl so desktop-site / wide view has no empty right gap */}
       <div className="w-full flex items-center gap-2 md:gap-3">
         {leftSlot}
         <Link href={homeHref} className="flex items-center gap-2 md:gap-3 shrink-0">
           <Image
-            src="/uploads/kamol.png"
-            alt="Farmer Kamol"
+            src={siteConfig.domain.logo}
+            alt={siteConfig.brand.name}
             width={36}
             height={36}
             className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border-2 border-white-400"
           />
           <div className="flex flex-col leading-tight">
             <span className="text-base md:text-xl font-extrabold text-white drop-shadow-lg whitespace-nowrap">
-              Farmer Kamol
+              {siteConfig.brand.name}
             </span>
             <span className="text-[10px] md:text-xs text-yellow-300 whitespace-nowrap">
-              খামার থেকে আপনার দরজায়
+              {siteConfig.brand.slogan}
             </span>
           </div>
         </Link>
