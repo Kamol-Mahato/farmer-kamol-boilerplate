@@ -1,10 +1,11 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { siteConfig } from "@/lib/siteConfig"
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
-  const [step, setStep] = useState(1) // 1: phone, 2: otp, 3: new password
+  const [step, setStep] = useState(1)
   const [phone, setPhone] = useState("")
   const [otp, setOtp] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -29,16 +30,16 @@ export default function ForgotPasswordPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || "সমস্যা হয়েছে")
+        setError(data.error || "সমস্যা হয়েছে")
         setLoading(false)
         return
       }
-      setSuccess("OTP পাঠানো হয়েছে")
+      setSuccess("OTP পাঠানো হয়েছে")
       setStep(2)
       setLoading(false)
     } catch (err) {
       console.error(err)
-      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
+      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
       setLoading(false)
     }
   }
@@ -63,12 +64,12 @@ export default function ForgotPasswordPage() {
         setLoading(false)
         return
       }
-      setSuccess("OTP যাচাই হয়েছে")
+      setSuccess("OTP যাচাই হয়েছে")
       setStep(3)
       setLoading(false)
     } catch (err) {
       console.error(err)
-      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
+      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
       setLoading(false)
     }
   }
@@ -80,11 +81,11 @@ export default function ForgotPasswordPage() {
       return
     }
     if (newPassword !== confirmPassword) {
-      setError("পাসওয়ার্ড দুটি মিলছে না")
+      setError("পাসওয়ার্ড দুটি মিলছে না")
       return
     }
     if (newPassword.length < 6) {
-      setError("পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে")
+      setError("পাসওয়ার্ড কমপক্ষে ৬ ক্যারেক্টার হতে হবে")
       return
     }
     setLoading(true)
@@ -97,14 +98,14 @@ export default function ForgotPasswordPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || "পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে")
+        setError(data.error || "পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে")
         setLoading(false)
         return
       }
       router.push("/admin/login")
     } catch (err) {
       console.error(err)
-      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
+      setError("সমস্যা হয়েছে, আবার চেষ্টা করুন")
       setLoading(false)
     }
   }
@@ -113,8 +114,8 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-12 pb-16 px-1">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-green-800">Farmer Kamol</h1>
-          <p className="text-sm text-yellow-600 mt-1">পাসওয়ার্ড রিসেট</p>
+          <h1 className="text-2xl font-bold text-green-800">{siteConfig.brand.name}</h1>
+          <p className="text-sm text-yellow-600 mt-1">পাসওয়ার্ড রিসেট</p>
         </div>
 
         {error && (
@@ -182,7 +183,7 @@ export default function ForgotPasswordPage() {
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                নতুন পাসওয়ার্ড
+                নতুন পাসওয়ার্ড
               </label>
               <input
                 type="password"
@@ -193,7 +194,7 @@ export default function ForgotPasswordPage() {
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                পাসওয়ার্ড আবার দিন
+                পাসওয়ার্ড আবার দিন
               </label>
               <input
                 type="password"
@@ -208,7 +209,7 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               className="w-full bg-green-700 text-white py-3.5 rounded-lg font-bold text-lg transition-all duration-150 active:bg-green-800 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
             >
-              {loading ? "পরিবর্তন হচ্ছে..." : "পাসওয়ার্ড পরিবর্তন করুন"}
+              {loading ? "পরিবর্তন হচ্ছে..." : "পাসওয়ার্ড পরিবর্তন করুন"}
             </button>
           </>
         )}
