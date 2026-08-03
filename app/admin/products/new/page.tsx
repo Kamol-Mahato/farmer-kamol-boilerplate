@@ -56,7 +56,6 @@ export default function NewProductPage() {
       for (const file of Array.from(files)) {
         const formData = new FormData()
         formData.append("file", file)
-        // নতুন তৈরি করা গ্লোবাল আপলোড এপিআই পাথ এখানে যুক্ত করা হয়েছে
         const res = await fetch("/api/upload", {
           method: "POST",
           body: formData,
@@ -92,31 +91,59 @@ export default function NewProductPage() {
   function generateSlug(name: string) {
     return name
       .toLowerCase()
+      .trim()
       .replace(/\s+/g, "-")
       .replace(/[^\w-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
   }
 
+  // বাংলা নাম → শুধু name; slug স্পর্শ করবে না
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>) {
     const name = e.target.value
     setForm(prev => ({
       ...prev,
       name,
-      slug: generateSlug(name)
     }))
   }
 
+  // English নাম → slug + slugEn দুটোই একই auto-slug
   function handleNameEnChange(e: React.ChangeEvent<HTMLInputElement>) {
     const nameEn = e.target.value
+    const auto = generateSlug(nameEn)
     setForm(prev => ({
       ...prev,
       nameEn,
-      slugEn: generateSlug(nameEn)
+      slug: auto,
+      slugEn: auto,
     }))
   }
 
   async function handleSubmit() {
     if (form.imageUrls.length === 0) {
       setError("দয়া করে পণ্যের একটি ছবি আপলোড করুন।")
+      return
+    }
+
+    let slug = (form.slug || "").trim()
+    let slugEn = (form.slugEn || "").trim()
+    if (!slug && slugEn) slug = slugEn
+    if (!slugEn && slug) slugEn = slug
+
+    if (!form.name.trim()) {
+      setError("পণ্যের বাংলা নাম আবশ্যক")
+      return
+    }
+    if (!slug) {
+      setError("Slug আবশ্যক — English নাম লিখলে অটো তৈরি হবে, অথবা হাতে লিখুন")
+      return
+    }
+    if (!form.pricePerUnit || Number.isNaN(parseFloat(form.pricePerUnit))) {
+      setError("মূল দাম আবশ্যক")
+      return
+    }
+    if (form.stockQty === "" || Number.isNaN(parseFloat(form.stockQty))) {
+      setError("স্টক পরিমাণ আবশ্যক")
       return
     }
 
@@ -129,6 +156,8 @@ export default function NewProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          slug,
+          slugEn: slugEn || null,
           categoryId: form.categoryId ? parseInt(form.categoryId) : null,
           pricePerUnit: parseFloat(form.pricePerUnit),
           discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
@@ -158,7 +187,6 @@ export default function NewProductPage() {
 
       <div className="bg-white rounded-xl shadow p-8">
 
-        {/* পণ্যের নাম */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">পণ্যের নাম *</label>
           <input
@@ -171,7 +199,6 @@ export default function NewProductPage() {
           />
         </div>
 
-        {/* Slug */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Slug (URL)</label>
           <input
@@ -185,7 +212,6 @@ export default function NewProductPage() {
           <p className="text-xs text-gray-400 mt-1">URL: /shop/{form.slug}</p>
         </div>
 
-        {/* ক্যাটাগরি */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">ক্যাটাগরি</label>
           <select
@@ -203,7 +229,6 @@ export default function NewProductPage() {
           </select>
         </div>
 
-        {/* Banglish নাম (ঐচ্ছিক) */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">নাম (Banglish, ঐচ্ছিক)</label>
           <input
@@ -216,7 +241,6 @@ export default function NewProductPage() {
           />
         </div>
 
-        {/* English নাম */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Product Name (English)</label>
           <input
@@ -227,9 +251,9 @@ export default function NewProductPage() {
             placeholder="e.g. Pure Sundarban Honey"
             className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-green-500"
           />
+          <p className="text-xs text-gray-400 mt-1">English নাম লিখলে slug অটো তৈরি হবে (BN ও EN একই slug)</p>
         </div>
 
-        {/* English Slug */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Slug (English URL)</label>
           <input
@@ -243,7 +267,6 @@ export default function NewProductPage() {
           <p className="text-xs text-gray-400 mt-1">URL: /en/shop/{form.slugEn || "..."}</p>
         </div>
 
-        {/* পিসি থেকে ইমেজ আপলোড সেকশন */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">পণ্যের ছবি যোগ করুন (একাধিক) *</label>
           <div className="flex items-center gap-4">
@@ -262,7 +285,6 @@ export default function NewProductPage() {
               <span className="text-sm text-green-600 font-medium">✅ {form.imageUrls.length} টি ছবি আপলোড সফল!</span>
             )}
           </div>
-          {/* প্রিভিউ স্ক্রিন */}
           {form.imageUrls.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-3">
               {form.imageUrls.map((url) => (
@@ -280,7 +302,6 @@ export default function NewProductPage() {
           )}
         </div>
 
-        {/* বিবরণ (বাংলা) */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">বিবরণ (বাংলা)</label>
           <textarea
@@ -293,7 +314,6 @@ export default function NewProductPage() {
           />
         </div>
 
-        {/* বিবরণ (English) */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">Description (English)</label>
           <textarea
@@ -306,7 +326,6 @@ export default function NewProductPage() {
           />
         </div>
 
-        {/* দাম */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">মূল দাম (৳) *</label>
@@ -332,7 +351,6 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Unit ও Stock */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">একক *</label>
@@ -365,46 +383,21 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Options */}
-        <div className="flex gap-6 mb-8">
+        <div className="flex gap-6 mb-8 flex-wrap">
           <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              name="isFeatured"
-              checked={form.isFeatured}
-              onChange={handleChange}
-              className="w-4 h-4 accent-green-600"
-            />
+            <input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={handleChange} className="w-4 h-4 accent-green-600" />
             <span className="text-sm text-gray-700">হোমপেজে ফিচার্ড দেখাবে</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              name="isTopSeller"
-              checked={form.isTopSeller}
-              onChange={handleChange}
-              className="w-4 h-4 accent-green-600"
-            />
+            <input type="checkbox" name="isTopSeller" checked={form.isTopSeller} onChange={handleChange} className="w-4 h-4 accent-green-600" />
             <span className="text-sm text-gray-700">জনপ্রিয় পণ্য সেকশনে দেখাবে</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              name="isActive"
-              checked={form.isActive}
-              onChange={handleChange}
-              className="w-4 h-4 accent-green-600"
-            />
-            <span className="text-sm text-gray-700">সক্রিয়</span>
+            <input type="checkbox" name="isActive" checked={form.isActive} onChange={handleChange} className="w-4 h-4 accent-green-600" />
+            <span className="text-sm text-gray-700">সক্রিয়</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              name="isOutOfStockVisible"
-              checked={form.isOutOfStockVisible}
-              onChange={handleChange}
-              className="w-4 h-4 accent-green-600"
-            />
+            <input type="checkbox" name="isOutOfStockVisible" checked={form.isOutOfStockVisible} onChange={handleChange} className="w-4 h-4 accent-green-600" />
             <span className="text-sm text-gray-700">স্টক শেষে দেখাবে</span>
           </label>
         </div>
