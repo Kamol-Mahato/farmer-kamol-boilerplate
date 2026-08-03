@@ -2,14 +2,14 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import Image from "next/image"
 import Breadcrumb from "@/app/components/Breadcrumb"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
 export async function generateMetadata() {
   return {
-    title: "Farming Blog - Livestock, Poultry & Crop Cultivation | Farmer Kamol",
-    description:
-      "Read real experiences and guides on livestock rearing, poultry farming, crop cultivation, and farm stories on the Farmer Kamol blog.",
+    title: `Farming Blog | ${siteConfig.brand.name}`,
+    description: siteConfig.seo.descriptionEn,
     alternates: {
       canonical: "/en/blog",
       languages: {
@@ -31,7 +31,7 @@ export default async function BlogPageEn({
   const dbCategories = await prisma.blogCategory.findMany({ orderBy: { name: "asc" } })
   const categories = [
     { bn: "সব", en: "All" },
-    ...dbCategories.map(c => ({ bn: c.name, en: c.nameEn || c.name })),
+    ...dbCategories.map((c) => ({ bn: c.name, en: c.nameEn || c.name })),
   ]
 
   const blogs = await prisma.blog.findMany({
@@ -47,15 +47,16 @@ export default async function BlogPageEn({
 
   return (
     <div>
-      <Breadcrumb items={[
-        { label: "Home", href: "/en" },
-        { label: "Blog" },
-      ]} />
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/en" },
+          { label: "Blog" },
+        ]}
+      />
       <div className="max-w-6xl mx-auto px-1 py-16 pt-8 text-center">
         <h1 className="text-2xl font-bold text-green-800 mb-2">Our Farming Blog</h1>
         <p className="text-gray-500 mb-8">Articles on farming, livestock, and daily life on the farm</p>
 
-        {/* Category Filter */}
         <div className="flex gap-2 flex-wrap justify-center mb-8">
           {categories.map((cat) => (
             <Link
@@ -72,7 +73,6 @@ export default async function BlogPageEn({
           ))}
         </div>
 
-        {/* Blog List */}
         {blogs.length === 0 ? (
           <p className="text-gray-400">No blog posts available in English yet.</p>
         ) : (
