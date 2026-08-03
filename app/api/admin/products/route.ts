@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 import { verifyAdminOrAgent } from "@/lib/adminAuth"
 import { sanitizeHtml } from "@/lib/sanitize"
 import { sendPushToCustomers } from "@/lib/webpush"
-                                                                                                                              
+
 export async function GET() {
   const isAuthorized = await verifyAdminOrAgent()
   if (!isAuthorized) {
@@ -48,19 +48,28 @@ export async function POST(request: Request) {
       pricePerUnit,
       unit,
       stockQty,
-      imageUrl, // ফ্রন্টএন্ড ফর্ম থেকে পাঠানো ছবির লিংকটি রিসিভ করা হলো (backward compatibility)
-      imageUrls, // একাধিক ছবির লিংক (নতুন)
+      imageUrl,
+      imageUrls,
       isFeatured,
       isTopSeller,
       isActive,
       isOutOfStockVisible,
     } = body
 
-    if (!name || !slug || !pricePerUnit || !stockQty) {
+    if (!name || !String(name).trim()) {
+      return NextResponse.json({ error: "পণ্যের বাংলা নাম আবশ্যক" }, { status: 400 })
+    }
+    if (!slug || !String(slug).trim()) {
       return NextResponse.json(
-        { error: "নাম, slug, দাম ও স্টক আবশ্যক" },
+        { error: "Slug আবশ্যক — English নাম লিখলে অটো তৈরি হবে" },
         { status: 400 }
       )
+    }
+    if (pricePerUnit === undefined || pricePerUnit === null || pricePerUnit === "" || Number.isNaN(Number(pricePerUnit))) {
+      return NextResponse.json({ error: "মূল দাম আবশ্যক" }, { status: 400 })
+    }
+    if (stockQty === undefined || stockQty === null || stockQty === "" || Number.isNaN(Number(stockQty))) {
+      return NextResponse.json({ error: "স্টক পরিমাণ আবশ্যক" }, { status: 400 })
     }
 
     const product = await prisma.product.create({
@@ -81,8 +90,6 @@ export async function POST(request: Request) {
         isTopSeller,
         isActive,
         isOutOfStockVisible,
-        // ✅ একাধিক ছবি থাকলে সবগুলো সেভ হবে, প্রথমটা isPrimary হিসেবে মার্ক হবে
-        // SEO/AI এর জন্য প্রতিটা ছবির আলাদা alt-friendly নাম তৈরির ভিত্তি হিসেবে নাম+ক্রম রাখা হলো
         images: (imageUrls && imageUrls.length > 0)
           ? {
               create: imageUrls.map((url: string, idx: number) => ({
@@ -100,7 +107,6 @@ export async function POST(request: Request) {
           : undefined,
       },
     })
-    // ✅ প্রোডাক্ট Active থাকলেই customer-দের জানানো হবে (Draft/inactive হলে না)
     if (product.isActive) {
       sendPushToCustomers(
         "নতুন পণ্য এসেছে! 🌾",
