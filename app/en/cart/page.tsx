@@ -51,7 +51,6 @@ function DistrictSearch({ districts, value, onSelect }: {
   )
 }
 
-// ✅ upazilas (bn) and upazilasEn are index-matched arrays — zip them for display
 function UpazilaSearch({ upazilasBn, upazilasList, value, onSelect, disabled }: {
   upazilasBn: string[]
   upazilasList: string[]
@@ -119,9 +118,8 @@ export default function CartPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // ✅ key fix: "farmer_kamol_cart"
   function loadCart() {
-    const stored = JSON.parse(localStorage.getItem("farmer_kamol_cart") || "[]")
+    const stored = JSON.parse(localStorage.getItem(siteConfig.storage.cartKey) || "[]")
     setCart(stored)
     setLoaded(true)
   }
@@ -137,11 +135,10 @@ export default function CartPage() {
   }, [])
 
   useEffect(() => {
-    // ✅ Auto-fill name/address for logged-in customers
     async function fetchProfileForAutofill() {
       try {
         const res = await fetch("/api/customer/profile")
-        if (!res.ok) return // guest — nothing to do
+        if (!res.ok) return
         const data = await res.json()
         setIsLoggedIn(true)
         setForm(prev => ({
@@ -153,7 +150,6 @@ export default function CartPage() {
         }))
         if (data.districtId) setSelectedDistrictId(data.districtId)
       } catch {
-        // silently ignore — form still works for guests
       }
     }
     fetchProfileForAutofill()
@@ -164,16 +160,14 @@ export default function CartPage() {
       item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
     )
     setCart(updated)
-    // ✅ key fix
-    localStorage.setItem("farmer_kamol_cart", JSON.stringify(updated))
+    localStorage.setItem(siteConfig.storage.cartKey, JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent("cartUpdated"))
   }
 
   function removeItem(id: number) {
     const updated = cart.filter(item => item.id !== id)
     setCart(updated)
-    // ✅ key fix
-    localStorage.setItem("farmer_kamol_cart", JSON.stringify(updated))
+    localStorage.setItem(siteConfig.storage.cartKey, JSON.stringify(updated))
     window.dispatchEvent(new CustomEvent("cartUpdated"))
   }
 
@@ -239,8 +233,7 @@ export default function CartPage() {
         setLoading(false)
         return
       }
-      // ✅ key fix
-      localStorage.removeItem("farmer_kamol_cart")
+      localStorage.removeItem(siteConfig.storage.cartKey)
       window.dispatchEvent(new CustomEvent("cartUpdated"))
       setSuccess(true)
       window.scrollTo({ top: 0, behavior: "smooth" })
@@ -256,7 +249,7 @@ export default function CartPage() {
         <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-2xl font-bold text-green-800 mb-2">Order Placed Successfully!</h2>
-          <p className="text-gray-500 mb-6 text-sm">We&apos;ll contact you shortly.</p>
+          <p className="text-gray-500 mb-6 text-sm">We'll contact you shortly.</p>
           <button onClick={() => router.push("/en/shop")} className="bg-green-700 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-600 transition">
             Back to Shop
           </button>
@@ -289,11 +282,11 @@ export default function CartPage() {
               <p className="text-black font-bold text-sm">৳ {item.price} <span className="text-gray-400 text-xs font-normal">/ {item.unit}</span></p>
             </div>
             <div className="flex items-center gap-1.5">
-              <button type="button" onClick={() => updateQuantity(item.id, -1)} className="w-7 h-7 bg-green-100 text-green-800 rounded-full text-base font-bold hover:bg-green-200 flex items-center justify-center">−</button>
+              <button type="button" onClick={() => updateQuantity(item.id, -1)} className="w-7 h-7 bg-green-100 text-green-800 rounded-full text-base font-bold hover:bg-green-200 flex items-center justify-center">\u2212</button>
               <span className="w-6 text-center text-sm font-bold">{item.quantity}</span>
               <button type="button" onClick={() => updateQuantity(item.id, 1)} className="w-7 h-7 bg-green-800 text-white rounded-full text-base font-bold hover:bg-green-700 flex items-center justify-center">+</button>
             </div>
-            <button type="button" onClick={() => removeItem(item.id)} className="text-red-400 hover:text-red-600 text-sm ml-1">✕</button>
+            <button type="button" onClick={() => removeItem(item.id)} className="text-red-400 hover:text-red-600 text-sm ml-1">\u2715</button>
           </div>
         ))}
       </div>
@@ -352,24 +345,8 @@ export default function CartPage() {
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-2">Payment Method *</label>
           <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setForm(f => ({ ...f, paymentMethod: "COD" }))}
-              className={`py-2 rounded-lg text-sm font-bold border-2 transition ${
-                form.paymentMethod === "COD" ? "border-green-600 bg-green-50 text-green-800" : "border-gray-200 text-gray-500"
-              }`}
-            >
-              💵 Cash on Delivery
-            </button>
-            <button
-              type="button"
-              onClick={() => setForm(f => ({ ...f, paymentMethod: "GATEWAY" }))}
-              className={`py-2 rounded-lg text-sm font-bold border-2 transition ${
-                form.paymentMethod === "GATEWAY" ? "border-green-600 bg-green-50 text-green-800" : "border-gray-200 text-gray-500"
-              }`}
-            >
-              📱 Online Payment
-            </button>
+            <button type="button" onClick={() => setForm(f => ({ ...f, paymentMethod: "COD" }))} className={`py-2 rounded-lg text-sm font-bold border-2 transition ${form.paymentMethod === "COD" ? "border-green-600 bg-green-50 text-green-800" : "border-gray-200 text-gray-500"}`}>💵 Cash on Delivery</button>
+            <button type="button" onClick={() => setForm(f => ({ ...f, paymentMethod: "GATEWAY" }))} className={`py-2 rounded-lg text-sm font-bold border-2 transition ${form.paymentMethod === "GATEWAY" ? "border-green-600 bg-green-50 text-green-800" : "border-gray-200 text-gray-500"}`}>📱 Online Payment</button>
           </div>
         </div>
         {form.paymentMethod === "GATEWAY" && (
@@ -377,16 +354,7 @@ export default function CartPage() {
             <p className="text-xs font-bold text-gray-700">Which method did you send money through? *</p>
             <div className="grid grid-cols-3 gap-2">
               {["bKash", "Nagad", "Rocket"].map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, gatewayName: g }))}
-                  className={`py-2 rounded-lg text-xs font-bold border-2 transition ${
-                    form.gatewayName === g ? "border-black-600 bg-green-100 text-bold text-pink-800" : "border-black-200 text-gray-500 bg-white"
-                  }`}
-                >
-                  {g}
-                </button>
+                <button key={g} type="button" onClick={() => setForm(f => ({ ...f, gatewayName: g }))} className={`py-2 rounded-lg text-xs font-bold border-2 transition ${form.gatewayName === g ? "border-black-600 bg-green-100 text-bold text-pink-800" : "border-black-200 text-gray-500 bg-white"}`}>{g}</button>
               ))}
             </div>
             <div className="bg-white rounded-lg p-3 border border-gray-200 flex items-center justify-between">
@@ -394,42 +362,22 @@ export default function CartPage() {
                 <p className="text-xs text-gray-500">Send Money to this number</p>
                 <p className="font-bold text-gray-800 text-base">{siteConfig.payment.bkashNumber}</p>
               </div>
-              <button type="button" onClick={copyNumber} className="bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-green-600 transition">
-                {copied ? "✅ Copied" : "Copy"}
-              </button>
+              <button type="button" onClick={copyNumber} className="bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-green-600 transition">{copied ? "\u2705 Copied" : "Copy"}</button>
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Transaction ID (TrxID) *</label>
-              <input
-                type="text"
-                name="trxId"
-                value={form.trxId}
-                onChange={handleChange}
-                placeholder="e.g. 8N7A6XYZ12"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-500"
-              />
+              <input type="text" name="trxId" value={form.trxId} onChange={handleChange} placeholder="e.g. 8N7A6XYZ12" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-500" />
               <p className="text-[11px] text-gray-400 mt-1">Enter the Transaction ID you received via SMS after sending money.</p>
             </div>
           </div>
         )}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <div className="bg-gray-50 rounded-lg p-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-500">Product Price</span>
-            <span className="font-medium">৳ {totalProductPrice}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Delivery Charge</span>
-            <span className="font-medium">৳ {deliveryCharge}</span>
-          </div>
-          <div className="flex justify-between border-t pt-1 mt-1">
-            <span className="font-bold text-gray-800">Total</span>
-            <span className="font-bold text-green-700">৳ {totalProductPrice + deliveryCharge}</span>
-          </div>
+          <div className="flex justify-between"><span className="text-gray-500">Product Price</span><span className="font-medium">\u09f3 {totalProductPrice}</span></div>
+          <div className="flex justify-between"><span className="text-gray-500">Delivery Charge</span><span className="font-medium">\u09f3 {deliveryCharge}</span></div>
+          <div className="flex justify-between border-t pt-1 mt-1"><span className="font-bold text-gray-800">Total</span><span className="font-bold text-green-700">\u09f3 {totalProductPrice + deliveryCharge}</span></div>
         </div>
-        <button type="submit" disabled={loading} className="bg-green-700 text-white w-full py-3 rounded-xl font-bold text-base hover:bg-green-600 transition disabled:opacity-50">
-          {loading ? "Placing order..." : "✅ Confirm Order"}
-        </button>
+        <button type="submit" disabled={loading} className="bg-green-700 text-white w-full py-3 rounded-xl font-bold text-base hover:bg-green-600 transition disabled:opacity-50">{loading ? "Placing order..." : "\u2705 Confirm Order"}</button>
       </form>
     </div>
   )
