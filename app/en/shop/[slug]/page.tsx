@@ -7,6 +7,7 @@ import ProductActions from "./ProductActions"
 import { safeJsonLd } from "@/lib/jsonLd"
 import { cache } from "react"
 import ReviewForm from "@/app/components/ReviewForm"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
@@ -29,15 +30,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const product = await getProduct(slug)
   if (!product) {
-    return { title: "Product Not Found - Farmer Kamol" }
+    return { title: `Product Not Found - ${siteConfig.brand.name}` }
   }
   const displayName = product.nameEn || product.name
   return {
-    title: `${displayName} - Farmer Kamol`,
+    title: `${displayName} - ${siteConfig.brand.name}`,
     description:
       product.descriptionEn?.slice(0, 160) ||
       product.description?.slice(0, 160) ||
-      `Buy ${displayName} from Farmer Kamol — straight from the farm to your door.`,
+      `Buy ${displayName} from ${siteConfig.brand.name} — straight from the farm to your door.`,
     alternates: {
       canonical: `/en/shop/${slug}`,
       languages: {
@@ -75,7 +76,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
       : 0
 
-  // ✅ Product Schema (structured data for SEO + AI search)
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -83,13 +83,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     image: product.images.map((img) => img.imageUrl),
     description:
       displayDescription ||
-      `${displayName} — straight from the Farmer Kamol farm in Sirajganj.`,
+      `${displayName} — straight from the ${siteConfig.brand.name} farm in ${siteConfig.address.regionEn}.`,
     sku: product.slug,
     category: displayCategory,
     alternateName: product.nameBanglish || undefined,
     brand: {
       "@type": "Brand",
-      name: "Farmer Kamol",
+      name: siteConfig.brand.name,
     },
     ...(product.priceType === "FIXED" && {
       offers: {
@@ -99,7 +99,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         availability: isOutOfStock
           ? "https://schema.org/OutOfStock"
           : "https://schema.org/InStock",
-        url: `https://www.farmerkamol.com/en/shop/${product.slug}`,
+        url: `${siteConfig.domain.url}/en/shop/${product.slug}`,
       },
     }),
     ...(product.reviews.length > 0 && {
@@ -115,9 +115,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.farmerkamol.com/en" },
-      { "@type": "ListItem", position: 2, name: "Shop", item: "https://www.farmerkamol.com/en/shop" },
-      { "@type": "ListItem", position: 3, name: displayName, item: `https://www.farmerkamol.com/en/shop/${product.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: `${siteConfig.domain.url}/en` },
+      { "@type": "ListItem", position: 2, name: "Shop", item: `${siteConfig.domain.url}/en/shop` },
+      { "@type": "ListItem", position: 3, name: displayName, item: `${siteConfig.domain.url}/en/shop/${product.slug}` },
     ],
   }
 
@@ -140,7 +140,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <span className="text-gray-700 font-medium">{displayName}</span>
         </nav>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* Image Gallery */}
           <div>
           <div className="relative aspect-square w-full rounded-2xl bg-gray-50 overflow-hidden mb-3">
               <Image
@@ -174,7 +173,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             )}
           </div>
-          {/* Product Info */}
           <div>
             {displayCategory && (
               <span className="text-xs text-green-700 font-semibold bg-green-100 px-2.5 py-1 rounded-full">
@@ -219,7 +217,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             />
           </div>
         </div>
-        {/* Reviews */}
         <div className="mb-12">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Customer Reviews</h2>
           <ReviewForm productId={product.id} />
@@ -243,7 +240,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             )}
           </div>
-          {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
             <h2 className="text-xl font-bold text-gray-800 mb-4">Related Products</h2>
