@@ -7,6 +7,7 @@ import ProductActions from "./ProductActions"
 import ReviewForm from "@/app/components/ReviewForm"
 import { safeJsonLd } from "@/lib/jsonLd"
 import { cache } from "react"
+import { siteConfig } from "@/lib/siteConfig"
 
 export const revalidate = 86400
 
@@ -29,13 +30,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const product = await getProduct(slug)
   if (!product) {
-    return { title: "পণ্য পাওয়া যায়নি - Farmer Kamol" }
+    return { title: `পণ্য পাওয়া যায়নি - ${siteConfig.brand.name}` }
   }
   return {
-    title: `${product.name} - Farmer Kamol`,
+    title: `${product.name} - ${siteConfig.brand.name}`,
     description:
       product.description?.slice(0, 160) ||
-      `${product.name} কিনুন Farmer Kamol থেকে — খামার থেকে সরাসরি আপনার দরজায়।`,
+      `${product.name} কিনুন ${siteConfig.brand.name} থেকে — খামার থেকে সরাসরি আপনার দরজায়।`,
     alternates: {
       canonical: `/shop/${slug}`,
       languages: {
@@ -70,7 +71,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
       : 0
 
-  // ✅ Product Schema (SEO + AI সার্চের জন্য স্ট্রাকচার্ড ডেটা)
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -78,13 +78,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     image: product.images.map((img) => img.imageUrl),
     description:
       product.description ||
-      `${product.name} — Farmer Kamol থেকে সরাসরি খামার থেকে, সিরাজগঞ্জ।`,
+      `${product.name} — ${siteConfig.brand.name} থেকে সরাসরি খামার থেকে, ${siteConfig.address.region}।`,
     sku: product.slug,
     category: product.category?.name,
     alternateName: product.nameBanglish || undefined,
     brand: {
       "@type": "Brand",
-      name: "Farmer Kamol",
+      name: siteConfig.brand.name,
     },
     ...(product.priceType === "FIXED" && {
       offers: {
@@ -94,7 +94,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         availability: isOutOfStock
           ? "https://schema.org/OutOfStock"
           : "https://schema.org/InStock",
-        url: `https://www.farmerkamol.com/shop/${product.slug}`,
+        url: `${siteConfig.domain.url}/shop/${product.slug}`,
       },
     }),
     ...(product.reviews.length > 0 && {
@@ -110,9 +110,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "হোম", item: "https://www.farmerkamol.com" },
-      { "@type": "ListItem", position: 2, name: "শপ", item: "https://www.farmerkamol.com/shop" },
-      { "@type": "ListItem", position: 3, name: product.name, item: `https://www.farmerkamol.com/shop/${product.slug}` },
+      { "@type": "ListItem", position: 1, name: "হোম", item: `${siteConfig.domain.url}` },
+      { "@type": "ListItem", position: 2, name: "শপ", item: `${siteConfig.domain.url}/shop` },
+      { "@type": "ListItem", position: 3, name: product.name, item: `${siteConfig.domain.url}/shop/${product.slug}` },
     ],
   }
 
@@ -135,7 +135,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <span className="text-gray-700 font-medium">{product.name}</span>
         </nav>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {/* ছবি Gallery */}
           <div>
           <div className="relative aspect-square w-full rounded-2xl bg-gray-50 overflow-hidden mb-3">
               <Image
@@ -169,7 +168,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             )}
           </div>
-          {/* Product Info */}
           <div>
             {product.category && (
               <span className="text-xs text-green-700 font-semibold bg-green-100 px-2.5 py-1 rounded-full">
@@ -213,7 +211,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             />
           </div>
         </div>
-        {/* Reviews */}
         <div className="mb-12">
           <h2 className="text-xl font-bold text-gray-800 mb-4">কাস্টমার রিভিউ</h2>
           <ReviewForm productId={product.id} />
@@ -237,7 +234,6 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               </div>
             )}
           </div>
-          {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
             <h2 className="text-xl font-bold text-gray-800 mb-4">সম্পর্কিত পণ্য</h2>
