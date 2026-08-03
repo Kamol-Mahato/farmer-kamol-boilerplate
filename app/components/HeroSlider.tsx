@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { siteConfig } from "@/lib/siteConfig"
 
 type Product = {
   id: number
@@ -23,7 +24,6 @@ interface YTMessage {
   info?: number
 }
 
-// ✅ যেকোনো ফরম্যাটের YouTube লিংক থেকে সঠিক embed URL বানানো (jsapi enabled — ভিডিও শেষ হওয়া detect করার জন্য)
 function toYoutubeEmbedUrl(url: string) {
   const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{6,})/)
   const videoId = match ? match[1] : null
@@ -31,7 +31,6 @@ function toYoutubeEmbedUrl(url: string) {
   return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&playsinline=1&enablejsapi=1&rel=0`
 }
 
-// ✅ iframe লোড হওয়ার পর YouTube-কে "onStateChange" ইভেন্ট পাঠাতে বলা (postMessage API)
 function startListening(iframe: HTMLIFrameElement | null) {
   if (!iframe || !iframe.contentWindow) return
   iframe.contentWindow.postMessage(JSON.stringify({ event: "listening", id: 1 }), "*")
@@ -42,31 +41,27 @@ type MobileQueueItem =
   | { kind: "video"; videoIdx: number }
   | { kind: "product"; productIdx: number }
 
-  export default function HeroSlider({
-    featuredProducts = [],
-    heroVideos = [],
-  }: {
-    featuredProducts?: Product[]
-    heroVideos?: HeroVideo[]
-  }) {
-    // ===== ভিডিও লোড একটু দেরি করে শুরু হবে, যাতে প্রথমে ছবি/টেক্সট দ্রুত দেখা যায় (Speed Index ফিক্স) =====
-    const [videoReady, setVideoReady] = useState(false)
-    useEffect(() => {
-      const t = setTimeout(() => setVideoReady(true), 500)
-      return () => clearTimeout(t)
-    }, [])
-    // ===== PC: ভিডিও ও প্রোডাক্ট আলাদা আলাদাভাবে চলবে =====
-    const [pcVideoIndex, setPcVideoIndex] = useState(0)
-    const [pcProductIndex, setPcProductIndex] = useState(0)
-    const pcIframeRef = useRef<HTMLIFrameElement>(null)
+export default function HeroSlider({
+  featuredProducts = [],
+  heroVideos = [],
+}: {
+  featuredProducts?: Product[]
+  heroVideos?: HeroVideo[]
+}) {
+  const [videoReady, setVideoReady] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setVideoReady(true), 500)
+    return () => clearTimeout(t)
+  }, [])
+  const [pcVideoIndex, setPcVideoIndex] = useState(0)
+  const [pcProductIndex, setPcProductIndex] = useState(0)
+  const pcIframeRef = useRef<HTMLIFrameElement>(null)
 
-  // ===== Mobile: ভিডিও + প্রোডাক্ট মিলিয়ে একটাই queue =====
   const [mobileQueueIndex, setMobileQueueIndex] = useState(0)
   const mobileIframeRef = useRef<HTMLIFrameElement>(null)
 
   const hasVideos = heroVideos.length > 0
 
-  // Mobile queue বানানো: ভিডিও ১ → সব প্রোডাক্ট → ভিডিও ২ → সব প্রোডাক্ট → ...
   const mobileQueue: MobileQueueItem[] = []
   if (hasVideos) {
     heroVideos.forEach((_, vIdx) => {
@@ -82,7 +77,6 @@ type MobileQueueItem =
   const safeMobileIndex = mobileQueueIndex % mobileTotal
   const currentMobileItem = mobileQueue[safeMobileIndex]
 
-  // ===== PC: প্রোডাক্ট অটো-স্লাইড (২.৫ সেকেন্ড পরপর) =====
   useEffect(() => {
     if (featuredProducts.length === 0) return
     const timer = setInterval(() => {
@@ -91,7 +85,6 @@ type MobileQueueItem =
     return () => clearInterval(timer)
   }, [featuredProducts.length])
 
-  // ===== Mobile: প্রোডাক্ট আইটেমে থাকলে ২ সেকেন্ড পর পরের আইটেমে যাওয়া =====
   useEffect(() => {
     if (!currentMobileItem || currentMobileItem.kind !== "product") return
     const timer = setTimeout(() => {
@@ -100,7 +93,6 @@ type MobileQueueItem =
     return () => clearTimeout(timer)
   }, [safeMobileIndex, currentMobileItem, mobileTotal])
 
-  // ===== YouTube "ভিডিও শেষ" ইভেন্ট শোনা (PC ও Mobile দুই জায়গার জন্য) =====
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
       if (e.origin !== "https://www.youtube.com") return
@@ -110,7 +102,7 @@ type MobileQueueItem =
       } catch {
         return
       }
-      if (data.event !== "onStateChange" || data.info !== 0) return // info === 0 মানে ভিডিও শেষ
+      if (data.event !== "onStateChange" || data.info !== 0) return
       if (e.source === pcIframeRef.current?.contentWindow) {
         setPcVideoIndex(prev => (prev + 1) % (heroVideos.length || 1))
       }
@@ -136,18 +128,18 @@ type MobileQueueItem =
       ? toYoutubeEmbedUrl(heroVideos[currentMobileItem.videoIdx]?.youtubeUrl || "")
       : null
 
-      function renderProductSlide(p: Product, key: number | string, extraClass: string, isPriority: boolean = false) {
-        const imageUrl = p.images?.[0]?.imageUrl || "/uploads/1781611130414-modhu.jpg"
-        return (
-          <div key={key} className={`absolute inset-0 ${extraClass}`}>
-            <Image
-              src={imageUrl}
-              alt={p.name}
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-              priority={isPriority}
-            />
+  function renderProductSlide(p: Product, key: number | string, extraClass: string, isPriority: boolean = false) {
+    const imageUrl = p.images?.[0]?.imageUrl || "/uploads/1781611130414-modhu.jpg"
+    return (
+      <div key={key} className={`absolute inset-0 ${extraClass}`}>
+        <Image
+          src={imageUrl}
+          alt={p.name}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover"
+          priority={isPriority}
+        />
         <div className="absolute bottom-0 right-0 bg-white/60 backdrop-blur-sm px-1.5 py-0.5 md:px-2 md:py-1 rounded-tl-2xl flex flex-col items-end gap-0.5 md:gap-1 text-right">
           <h3 className="text-xs md:text-base font-bold text-green-900">{p.name}</h3>
           <p className="text-black text-[10px] md:text-xs font-semibold">{p.unit}</p>
@@ -166,12 +158,10 @@ type MobileQueueItem =
   return (
     <div className="bg-green-900">
       <h1 className="sr-only">
-        Farmer Kamol - সিরাজগঞ্জের রায়গঞ্জ থেকে খাঁটি মধু, দেশি ঘি, সরিষার তেল ও চীন হাঁসের বাচ্চা, সরাসরি খামার থেকে আপনার দরজায়
+        {`${siteConfig.brand.name} - ${siteConfig.seo.description}`}
       </h1>
 
-      {/* ── PC LAYOUT ── */}
       <div className="hidden md:grid md:grid-cols-2 h-[280px]">
-        {/* বাম — ভিডিও (৩-৪টা ক্রমানুসারে চলবে) */}
         <div className="relative overflow-hidden">
           {pcEmbedUrl && videoReady ? (
             <iframe
@@ -197,7 +187,6 @@ type MobileQueueItem =
           )}
         </div>
 
-        {/* ডান — ফিচার্ড প্রোডাক্ট (স্বাধীনভাবে চলবে, নিজের ‹ › সহ) */}
         <div className="relative overflow-hidden">
           {featuredProducts.length === 0 ? (
             <div className="w-full h-full flex items-center justify-center bg-green-800">
@@ -217,7 +206,6 @@ type MobileQueueItem =
         </div>
       </div>
 
-      {/* ── MOBILE LAYOUT — ভিডিও ও প্রোডাক্ট একই queue-তে, ‹ › দিয়ে পুরো queue-তে ঘোরা যাবে ── */}
       <div className="md:hidden">
         <div className="relative" style={{ paddingTop: "56.25%" }}>
         {currentMobileItem?.kind === "video" && mobileEmbedUrl && videoReady ? (
@@ -235,7 +223,7 @@ type MobileQueueItem =
             renderProductSlide(featuredProducts[currentMobileItem.productIdx], `m-${safeMobileIndex}`, "opacity-100", safeMobileIndex === 0)
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-green-800">
-              <p className="text-green-300 text-sm">কোনো কনটেন্ট নেই</p>
+              <p className="text-green-300 text-sm">কোনো কন্টেন্ট নেই</p>
             </div>
           )}
           {mobileTotal > 1 && (
