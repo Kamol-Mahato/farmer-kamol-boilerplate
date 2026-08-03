@@ -41,7 +41,6 @@ export default function AboutPageEn() {
       </h1>
 
       <div className="max-w-5xl mx-auto px-4 flex flex-col gap-16">
-        {/* ================= SECTION 0 - Our Story ================= */}
         <section className="flex flex-col md:flex-row items-start gap-6">
           <div className="relative flex-shrink-0 mx-auto md:mx-0 group">
           <Image
@@ -76,8 +75,8 @@ export default function AboutPageEn() {
               </div>
               <p className="font-semibold text-green-800">
               We show the production process of every one of our products on our{" "}
-               <a 
-                href="https://youtube.com/@FarmerKamol"
+               <a
+                href={siteConfig.social.youtube}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline hover:text-yellow-600 transition"
@@ -86,7 +85,7 @@ export default function AboutPageEn() {
               </a>{" "}
                 channel{" "}
                 <Link href="/en" className="underline hover:text-yellow-600 transition">
-                  @FarmerKamol
+                  {siteConfig.brand.youtubeHandle}
                 </Link>
                 — transparency is the foundation of our trust.
               </p>
@@ -95,11 +94,10 @@ export default function AboutPageEn() {
               onClick={() => toggle(0)}
               className="mt-3 text-sm font-bold text-yellow-600 hover:text-yellow-700 transition"
             >
-              {expanded[0] ? "▲ Show less" : "▾ Read more"}
+              {expanded[0] ? "\u25b2 Show less" : "\u25be Read more"}
             </button>
           </div>
         </section>
-        {/* ================= SECTION 1 - Integrated Farming ================= */}
         <section className="flex flex-col md:flex-row items-start gap-6">
           <div className="flex-1 order-2 md:order-1">
             <h2 className="text-xl font-bold text-green-800 mb-3">🌱 What Is Integrated Farming?</h2>
@@ -120,7 +118,7 @@ export default function AboutPageEn() {
                 </ol>
               </div>
               <div>
-                <h3 className="font-bold text-green-900 mb-1">🟢 Benefits of Integrated Farming</h3>
+                <h3 className="font-bold text-green-900 mb-1">\ud83d\udfe2 Benefits of Integrated Farming</h3>
                 <ol className="list-decimal list-inside space-y-1">
                   <li>Economically profitable: income from multiple sources at once.</li>
                   <li>Reduces risk: if one output is affected, others can offset the loss.</li>
@@ -130,7 +128,7 @@ export default function AboutPageEn() {
                 </ol>
               </div>
               <div>
-                <h3 className="font-bold text-green-900 mb-1">🟢 What Can Integrated Farming Include?</h3>
+                <h3 className="font-bold text-green-900 mb-1">\ud83d\udfe2 What Can Integrated Farming Include?</h3>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Crop cultivation (rice, vegetables, fruit)</li>
                   <li>Fish farming</li>
@@ -142,26 +140,26 @@ export default function AboutPageEn() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-bold text-green-900 mb-1">🟢 Why It Matters in Bangladesh</h3>
+                <h3 className="font-bold text-green-900 mb-1">\ud83d\udfe2 Why It Matters in Bangladesh</h3>
                 <p>
                   Farmland in Bangladesh is shrinking while food demand keeps rising. Integrated farming allows more output from less land, lowers farmers' costs, reduces the national nutrition gap, and strengthens the rural economy.
                 </p>
               </div>
               <p className="font-semibold text-green-800">
-                👉 Integrated farming = one plot, one farm → many outputs + lower cost + higher profit
+                \ud83d\udc49 Integrated farming = one plot, one farm \u2192 many outputs + lower cost + higher profit
               </p>
             </div>
             <button
               onClick={() => toggle(1)}
               className="mt-3 text-sm font-bold text-yellow-600 hover:text-yellow-700 transition"
             >
-              {expanded[1] ? "▲ Show less" : "▾ Read more"}
+              {expanded[1] ? "\u25b2 Show less" : "\u25be Read more"}
             </button>
           </div>
           <div className="order-1 md:order-2 relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
           <Image
               src="/uploads/about-1st-sub.jpg"
-              alt="Integrated farming method - Farmer Kamol farm, Sirajganj"
+              alt={`Integrated farming - ${siteConfig.brand.nameEn}, ${siteConfig.address.regionEn}`}
               fill
               sizes="(max-width: 768px) 100vw, 256px"
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
@@ -172,7 +170,6 @@ export default function AboutPageEn() {
           </div>
         </section>
 
-        {/* ================= SECTION 2 - Livestock ================= */}
         <section className="flex flex-col md:flex-row items-start gap-6">
           <div className="relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
           <Image
@@ -187,7 +184,7 @@ export default function AboutPageEn() {
             </div>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-green-800 mb-3">🐄 Livestock Rearing</h2>
+            <h2 className="text-xl font-bold text-green-800 mb-3">\ud83d\udc04 Livestock Rearing</h2>
             <p className="text-gray-700 leading-relaxed mb-2">
               Livestock rearing is a key part of integrated farming. It's not just for milk, meat, or eggs — it also plays a major role in economic self-reliance and in producing fertilizer and organic energy.
             </p>
@@ -221,15 +218,14 @@ export default function AboutPageEn() {
               onClick={() => toggle(2)}
               className="mt-3 text-sm font-bold text-yellow-600 hover:text-yellow-700 transition"
             >
-              {expanded[2] ? "▲ Show less" : "▾ Read more"}
+              {expanded[2] ? "\u25b2 Show less" : "\u25be Read more"}
             </button>
           </div>
         </section>
 
-        {/* ================= SECTION 3 - Crop Cultivation ================= */}
         <section className="flex flex-col md:flex-row items-start gap-6">
           <div className="flex-1 order-2 md:order-1">
-            <h2 className="text-xl font-bold text-green-800 mb-3">🌾 Crop Cultivation</h2>
+            <h2 className="text-xl font-bold text-green-800 mb-3">\ud83c\udf3e Crop Cultivation</h2>
             <p className="text-gray-700 leading-relaxed mb-2">
               Crop cultivation is the backbone of our agriculture-based economy. Seasonal and year-round crop farming is one of the core pillars of integrated farming.
             </p>
@@ -263,7 +259,7 @@ export default function AboutPageEn() {
               onClick={() => toggle(3)}
               className="mt-3 text-sm font-bold text-yellow-600 hover:text-yellow-700 transition"
             >
-              {expanded[3] ? "▲ Show less" : "▾ Read more"}
+              {expanded[3] ? "\u25b2 Show less" : "\u25be Read more"}
             </button>
           </div>
           <div className="order-1 md:order-2 relative overflow-hidden rounded-2xl shadow-md w-full md:w-64 aspect-[4/3] flex-shrink-0 group ring-1 ring-green-100">
@@ -283,7 +279,7 @@ export default function AboutPageEn() {
 
       <div className="text-center mt-16">
         <Link href="/en" className="text-green-800 font-bold hover:text-yellow-600 transition">
-        ← Back to {siteConfig.brand.nameEn} Homepage
+        \u2190 Back to {siteConfig.brand.nameEn} Homepage
         </Link>
       </div>
     </main>
