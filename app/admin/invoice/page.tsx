@@ -4,6 +4,7 @@ import { useSearchParams, usePathname } from "next/navigation"
 import QRCode from "qrcode"
 import Barcode from "react-barcode"
 import { generateCustomId } from "@/lib/orderUtils"
+import { siteConfig } from "@/lib/siteConfig"
 
 interface OrderItem {
   id: number
@@ -33,15 +34,15 @@ function A4Invoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
     <div className="invoice-container bg-white p-8 mb-8 border border-gray-200 rounded-xl">
       <div className="flex items-center justify-between border-b-2 border-green-700 pb-4 mb-6">
         <div className="flex items-center gap-3">
-          <img src="/uploads/kamol.png" alt="Farmer Kamol" className="w-16 h-16 rounded-full object-cover border-2 border-green-700" />
+          <img src={siteConfig.domain.logo} alt={siteConfig.brand.name} className="w-16 h-16 rounded-full object-cover border-2 border-green-700" />
           <div>
-            <h1 className="text-2xl font-extrabold text-green-800">Farmer Kamol</h1>
-            <p className="text-xs text-yellow-600 font-semibold">খামার থেকে আপনার দরজায়</p>
-            <p className="text-xs text-gray-400">youtube.com/@FarmerKamol</p>
+            <h1 className="text-2xl font-extrabold text-green-800">{siteConfig.brand.name}</h1>
+            <p className="text-xs text-yellow-600 font-semibold">{siteConfig.brand.slogan}</p>
+            <p className="text-xs text-gray-400">{siteConfig.brand.youtubeHandle}</p>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-lg font-bold text-gray-700">ইনভয়েস</p>
+          <p className="text-lg font-bold text-gray-700">ইনভয়েস</p>
           <p className="text-sm font-bold text-green-700">{customId}</p>
           <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString("bn-BD")}</p>
         </div>
@@ -107,9 +108,9 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
   return (
     <div className="invoice-container bg-white p-4 mb-6 border border-gray-200 rounded-xl mx-auto" style={{ width: "302px" }}>
       <div className="text-center mb-3">
-        <img src="/uploads/kamol.png" alt="logo" className="w-12 h-12 rounded-full mx-auto mb-1 object-cover" />
-        <p className="font-extrabold text-green-800 text-base">FARMER KAMOL</p>
-        <p className="text-xs text-yellow-600">খামার থেকে আপনার দরজায়</p>
+        <img src={siteConfig.domain.logo} alt="logo" className="w-12 h-12 rounded-full mx-auto mb-1 object-cover" />
+        <p className="font-extrabold text-green-800 text-base">{siteConfig.brand.name}</p>
+        <p className="text-xs text-yellow-600">{siteConfig.brand.slogan}</p>
       </div>
       <div className="border-t border-dashed border-gray-400 my-2" />
       <p className="text-xs font-bold text-gray-700">COD: ৳ {order.finalCodAmount}</p>
@@ -125,49 +126,31 @@ function POSInvoice({ order, qrUrl }: { order: Order; qrUrl: string }) {
         <p key={item.id} className="text-xs">{item.product.name} × {item.quantity} = ৳ {item.finalPrice}</p>
       ))}
       <div className="border-t border-dashed border-gray-400 my-2" />
-      <p className="text-[14px] text-center text-gray-500">
-        (ডেলিভারি চার্জ সহ)
-      </p>
-      <p className="text-base font-extrabold text-center text-red-600">
-        কালেক্ট করুন: ৳ {order.finalCodAmount - order.paymentAmountPaid}
-      </p>
+      <p className="text-[14px] text-center text-gray-500">(ডেলিভারি চার্জ সহ)</p>
+      <p className="text-base font-extrabold text-center text-red-600">কালেক্ট করুন: ৳ {order.finalCodAmount - order.paymentAmountPaid}</p>
       <div className="border-t border-dashed border-gray-400 my-2" />
       <div className="mt-2 flex justify-center">
         <Barcode value={customId} width={2} height={60} fontSize={18} />
       </div>
-      <p className="text-center text-xs text-gray-400 mt-2"> ধন্যবাদান্তে farmerkamol.com</p>
+      <p className="text-center text-xs text-gray-400 mt-2"> ধন্যবাদান্তে {siteConfig.domain.host}</p>
     </div>
   )
 }
 
-// 🏷️ স্টিকার: শুধু নাম, নম্বর, COD আর কালেক্ট করুন — Delivery Charge লাইন নেই
-// height ফিক্সড না রেখে content-অনুযায়ী ছোট, POS-এর মতো auto height
 function StickerInvoice({ order }: { order: Order }) {
   const customId = generateCustomId(order.createdAt, order.dailySeq)
   const dueAmount = order.finalCodAmount - order.paymentAmountPaid
   return (
-    <div
-      className="invoice-container bg-white border border-gray-400 rounded p-2"
-      style={{
-        width: "280px",
-        maxWidth: "100%",
-        boxSizing: "border-box",
-        margin: "0 auto",
-        display: "block"
-      }}
-    >
+    <div className="invoice-container bg-white border border-gray-400 rounded p-2" style={{ width: "280px", maxWidth: "100%", boxSizing: "border-box", margin: "0 auto", display: "block" }}>
       <div className="flex items-center gap-2 pb-1 mb-1 border-b border-dashed border-gray-400">
-        <img src="/uploads/kamol.png" alt="logo" className="w-6 h-6 rounded-full object-cover" />
-        <span className="font-extrabold text-green-800 text-xs">FARMER KAMOL</span>
+        <img src={siteConfig.domain.logo} alt="logo" className="w-6 h-6 rounded-full object-cover" />
+        <span className="font-extrabold text-green-800 text-xs">{siteConfig.brand.name}</span>
       </div>
-
       <div className="text-left text-black" style={{ fontSize: "11px", lineHeight: "1.3" }}>
         <p className="font-bold text-xs" style={{ fontSize: "12px" }}>{order.customer.name}</p>
         <p className="font-semibold">{order.customer.phone}</p>
         <p className="font-semibold">COD: ৳ {order.finalCodAmount}</p>
-        <p className="font-extrabold text-red-600 mt-0.5" style={{ fontSize: "12px" }}>
-          কালেক্ট করুন: ৳ {dueAmount}
-        </p>
+        <p className="font-extrabold text-red-600 mt-0.5" style={{ fontSize: "12px" }}>কালেক্ট করুন: ৳ {dueAmount}</p>
       </div>
       <div className="mt-2 pt-1 border-t border-dashed border-gray-400 text-center w-full flex justify-center">
         <Barcode value={customId} width={1.1} height={28} fontSize={9} margin={0} />
@@ -193,7 +176,7 @@ function InvoicePage() {
         ids.map(id => fetch(`/api/admin/invoice?id=${id}`).then(r => r.json()))
       )
       setOrders(results.filter(o => o && o.id))
-      const qr = await QRCode.toDataURL("https://www.youtube.com/@FarmerKamol", { width: 80, margin: 1 })
+      const qr = await QRCode.toDataURL(siteConfig.social.youtube, { width: 80, margin: 1 })
       setQrUrl(qr)
       setLoading(false)
     }
@@ -218,7 +201,7 @@ function InvoicePage() {
     return `
       <html>
         <head>
-          <title>Invoice - Farmer Kamol</title>
+          <title>Invoice - ${siteConfig.brand.name}</title>
           ${styleLinks}
           <style>
             * { box-sizing: border-box; }
@@ -273,7 +256,7 @@ function InvoicePage() {
   }, [loading, orders, qrUrl])
 
   if (loading) return <div className="text-center py-20 text-gray-400">লোড হচ্ছে...</div>
-  if (orders.length === 0) return <div className="text-center py-20 text-red-400">অর্ডার পাওয়া যায়নি</div>
+  if (orders.length === 0) return <div className="text-center py-20 text-red-400">অর্ডার পাওয়া যায়নি</div>
 
   return (
     <div className="bg-gray-100 min-h-screen p-4">
