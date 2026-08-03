@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { siteConfig } from "@/lib/siteConfig"
 
 const SAMPLE_CSV_STATUS = "Order ID,Amount,Status\nFK20260721001,850,DELIVERED\nFK20260721002,,CANCELLED\n"
 const SAMPLE_CSV_COURIER = "Order ID,Courier Paid Amount\nFK20260721001,850\nFK20260721002,700\n"
@@ -35,7 +36,7 @@ export default function AdminBulkUpdatePage() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = "Farmer Kamol Bulk Update Sample File.csv"
+    link.download = `${siteConfig.brand.name} Bulk Update Sample File.csv`
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -62,7 +63,6 @@ export default function AdminBulkUpdatePage() {
     reader.readAsText(file)
   }
 
-  // 🔍 ধাপ ১: প্রিভিউ — সার্ভারে dryRun পাঠিয়ে যাচাই করা, কিছু আপডেট হবে না
   async function handlePreview() {
     if (rows.length === 0) {
       alert("প্রথমে একটা CSV ফাইল আপলোড করুন")
@@ -78,18 +78,17 @@ export default function AdminBulkUpdatePage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || "যাচাই করা যায়নি")
+        alert(data.error || "যাচাই করা যায়নি")
         return
       }
       setPreviewResults(data.results)
     } catch {
-      alert("সার্ভার সমস্যা হয়েছে")
+      alert("সার্ভার সমস্যা হয়েছে")
     } finally {
       setPreviewLoading(false)
     }
   }
 
-  // ✅ ধাপ ২: Submit — আসল আপডেট, শুধু প্রিভিউ সব সবুজ হলেই সক্রিয়
   async function handleSubmit() {
     setSubmitLoading(true)
     try {
@@ -100,16 +99,16 @@ export default function AdminBulkUpdatePage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || "আপডেট করা যায়নি")
+        alert(data.error || "আপডেট করা যায়নি")
         return
       }
       const failed = (data.results as RowResult[]).filter((r) => !r.success)
       if (failed.length > 0) {
-        alert(`কিছু সারি আপডেট হয়নি:\n${failed.map((f) => `${f.orderIdRaw}: ${f.reason}`).join("\n")}`)
+        alert(`কিছু সারি আপডেট হয়নি:\n${failed.map((f) => `${f.orderIdRaw}: ${f.reason}`).join("\n")}`)
       }
       router.push("/admin/orders")
     } catch {
-      alert("সার্ভার সমস্যা হয়েছে")
+      alert("সার্ভার সমস্যা হয়েছে")
     } finally {
       setSubmitLoading(false)
     }
@@ -154,7 +153,7 @@ export default function AdminBulkUpdatePage() {
             onChange={handleFile}
             className="border border-gray-400 rounded-lg text-sm w-full px-3 py-2"
           />
-          {fileName && <p className="text-xs text-gray-500 mt-1">সিলেক্টেড: {fileName} ({rows.length}টি সারি পাওয়া গেছে)</p>}
+          {fileName && <p className="text-xs text-gray-500 mt-1">সিলেক্টেড: {fileName} ({rows.length}টি সারি পাওয়া গেছে)</p>}
         </div>
 
         <button
@@ -166,7 +165,6 @@ export default function AdminBulkUpdatePage() {
         </button>
       </div>
 
-      {/* 🔍 প্রিভিউ টেবিল */}
       {previewResults && (
         <div className="bg-white border border-gray-300 rounded-xl p-6 mt-6">
           <h2 className="font-bold text-gray-800 mb-4">প্রিভিউ — সাবমিট করার আগে যাচাই করে নিন</h2>
