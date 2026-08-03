@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
 import { useState } from "react"
+import { siteConfig } from "@/lib/siteConfig"
 
 type Product = {
   id: number
@@ -12,7 +13,6 @@ type Product = {
   priceType: "FIXED" | "NEGOTIABLE"
 }
 
-// ✅ same toast logic as ProductCard, English version
 function showCartToast(name: string) {
   const existing = document.getElementById("cart-toast")
   if (existing) existing.remove()
@@ -29,20 +29,11 @@ function showCartToast(name: string) {
     </div>
   `
   toast.style.cssText = `
-    position: fixed;
-    top: 80px;
-    right: 16px;
-    z-index: 9999;
-    background:rgb(21, 23, 2);
-    color: white;
-    padding: 14px 18px;
-    border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    font-family: inherit;
-    min-width: 220px;
-    max-width: 300px;
-    transform: translateX(120%);
-    transition: transform 0.3s cubic-bezier(.22,1,.36,1);
+    position: fixed; top: 80px; right: 16px; z-index: 9999;
+    background:rgb(21, 23, 2); color: white; padding: 14px 18px;
+    border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    font-family: inherit; min-width: 220px; max-width: 300px;
+    transform: translateX(120%); transition: transform 0.3s cubic-bezier(.22,1,.36,1);
     border: 2px solid #22c55e;
   `
   document.body.appendChild(toast)
@@ -58,7 +49,7 @@ function showCartToast(name: string) {
 }
 
 function buildWhatsAppLink(productName: string) {
-  const phone = "8801737939688"
+  const phone = siteConfig.contact.whatsapp
   const message = `I would like to know more about "${productName}"`
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 }
@@ -75,7 +66,7 @@ export default function ProductActions({
   const displayName = product.nameEn || product.name
 
   function handleAddToCart() {
-    const cart = JSON.parse(localStorage.getItem("farmer_kamol_cart") || "[]")
+    const cart = JSON.parse(localStorage.getItem(siteConfig.storage.cartKey) || "[]")
     const existing = cart.find((i: { id: number }) => i.id === product.id)
     if (existing) {
       existing.quantity += 1
@@ -89,7 +80,7 @@ export default function ProductActions({
         quantity: 1,
       })
     }
-    localStorage.setItem("farmer_kamol_cart", JSON.stringify(cart))
+    localStorage.setItem(siteConfig.storage.cartKey, JSON.stringify(cart))
     window.dispatchEvent(new CustomEvent("cartUpdated"))
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)

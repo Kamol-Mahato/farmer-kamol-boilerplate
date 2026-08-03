@@ -1,8 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { siteConfig } from "@/lib/siteConfig"
 
-// ✅ Base64 public key কে ব্রাউজারের বোঝার মতো ফরম্যাটে কনভার্ট করে
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
@@ -22,20 +22,15 @@ export default function NotificationPermissionBanner() {
   const router = useRouter()
 
   useEffect(() => {
-    // ✅ ব্রাউজার push সাপোর্ট না করলে কিছুই দেখাবে না
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return
-
-    // ✅ ইউজার আগেই Allow/Block করে ফেললে ব্রাউজার নিজেই মনে রাখে — আর দেখানোর দরকার নেই
     if (Notification.permission !== "default") return
 
-    // ✅ আগে এড়িয়ে/বন্ধ করে থাকলে, ২৪ ঘণ্টা পার না হলে দেখাবে না
     const dismissedAt = localStorage.getItem(DISMISS_KEY)
     if (dismissedAt) {
       const elapsed = Date.now() - parseInt(dismissedAt, 10)
       if (elapsed < TWENTY_FOUR_HOURS) return
     }
 
-    // ✅ ইউজার আসার ২-৩ সেকেন্ড পর ব্যানার দেখাবে
     const timer = setTimeout(() => setVisible(true), 2500)
     return () => clearTimeout(timer)
   }, [])
@@ -62,9 +57,6 @@ export default function NotificationPermissionBanner() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(subscription),
         })
-      } else {
-        // ✅ Block করলেও localStorage-এ রাখার দরকার নেই — Notification.permission
-        // নিজেই "denied" হয়ে যাবে, উপরের useEffect সেটা চেক করেই আর দেখাবে না
       }
     } catch (err) {
       console.error("Notification enable error:", err)
@@ -83,7 +75,7 @@ export default function NotificationPermissionBanner() {
           onClick={handleAllow}
           className="flex-1 text-left text-sm font-bold hover:text-yellow-400 transition"
         >
-          🔔 Farmer Kamol এর সব কিছু জানুন এখানে
+          🔔 {siteConfig.brand.name} এর সব কিছু জানুন এখানে
         </button>
         <button
           onClick={markDismissed}
