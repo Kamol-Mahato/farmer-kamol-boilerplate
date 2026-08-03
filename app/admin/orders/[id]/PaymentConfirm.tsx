@@ -1,9 +1,10 @@
 "use client"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { siteConfig } from "@/lib/siteConfig"
 
-const FACEBOOK_LINK = "https://www.facebook.com/farmerkamol"
-const YOUTUBE_LINK = "https://www.youtube.com/@FarmerKamol"
+const FACEBOOK_LINK = siteConfig.social.facebook
+const YOUTUBE_LINK = siteConfig.social.youtube
 
 interface PaymentConfirmProps {
   orderId: number
@@ -18,7 +19,6 @@ interface PaymentConfirmProps {
   onSuccess?: () => void
 }
 
-// 📱 বাংলাদেশি নম্বরকে WhatsApp এর জন্য আন্তর্জাতিক ফরম্যাটে কনভার্ট করা (01XXXXXXXXX -> 880XXXXXXXXX)
 function toInternationalPhone(phone: string) {
   const digits = phone.replace(/\D/g, "")
   if (digits.startsWith("880")) return digits
@@ -71,7 +71,7 @@ export default function PaymentConfirm({
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error || "পেমেন্ট কনফার্ম করা যায়নি")
+        setError(data.error || "পেমেন্ট কনফার্ম করা যায়নি")
         return
       }
       router.refresh()
@@ -83,15 +83,14 @@ export default function PaymentConfirm({
     }
   }
 
-  // 💬 WhatsApp এ পাঠানোর জন্য আগে থেকে লেখা ধন্যবাদ মেসেজ তৈরি করা
   function buildWhatsAppLink() {
     const phone = toInternationalPhone(customerPhone)
     let message = "প্রিয় গ্রাহক, নমস্কার/আসসালামু আলাইকুম\n\n"
-    message += "আপনার অর্ডার #" + customOrderId + " এর জন্য ৳" + paymentAmountPaid + " টাকা পেমেন্ট আমরা পেয়েছি। ধন্যবাদ আমাদের সাথে থাকার জন্য!\n"
+    message += "আপনার অর্ডার #" + customOrderId + " এর জন্য ৳" + paymentAmountPaid + " টাকা পেমেন্ট আমরা পেয়েছি। ধন্যবাদ আমাদের সাথে থাকার জন্য!\n"
     if (dueAmount > 0) {
-      message += "\nবাকি আছে: ৳" + dueAmount + " (ডেলিভারির সময় পরিশোধ করবেন)\n"
+      message += "\nবাকি আছে: ৳" + dueAmount + " (ডেলিভারির সময় পরিশোধ করবেন)\n"
     }
-    message += "\nআমাদের সাথে যুক্ত থাকুন:\n📘 Facebook: " + FACEBOOK_LINK + "\n▶️ YouTube: " + YOUTUBE_LINK + "\n\n— Farmer Kamol 🌾"
+    message += "\nআমাদের সাথে যুক্ত থাকুন:\n📘 Facebook: " + FACEBOOK_LINK + "\n▶️ YouTube: " + YOUTUBE_LINK + "\n\n— " + siteConfig.brand.name + " 🌾"
 
     return "https://wa.me/" + phone + "?text=" + encodeURIComponent(message)
   }
@@ -104,14 +103,14 @@ export default function PaymentConfirm({
 
       {paymentAmountPaid > 0 && (
         <p className="text-blue-700 text-sm font-bold mt-2">
-          ✅ এখন পর্যন্ত পরিশোধ হয়েছে: ৳ {paymentAmountPaid} {dueAmount > 0 && "(বাকি ৳ " + dueAmount + ")"}
+          ✅ এখন পর্যন্ত পরিশোধ হয়েছে: ৳ {paymentAmountPaid} {dueAmount > 0 && "(বাকি ৳ " + dueAmount + ")"}
         </p>
       )}
 
       {(isFullyPaid || isPartialPaid) ? (
         <div className="mt-3">
           <p className="text-green-700 font-bold text-sm">
-            {isFullyPaid ? "✅ সম্পূর্ণ পেমেন্ট কনফার্ম করা হয়েছে" : "🟡 আংশিক পেমেন্ট কনফার্ম করা হয়েছে"}
+            {isFullyPaid ? "✅ সম্পূর্ণ পেমেন্ট কনফার্ম করা হয়েছে" : "🟡 আংশিক পেমেন্ট কনফার্ম করা হয়েছে"}
           </p>
           <a
             href={buildWhatsAppLink()}
@@ -121,10 +120,10 @@ export default function PaymentConfirm({
             💬 WhatsApp এ ধন্যবাদ মেসেজ পাঠান
           </a>
         </div>
-    ) : (
+      ) : (
         <div className="mt-3">
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            কাস্টমার কত টাকা পাঠিয়েছে? (মোট বিল ৳ {finalCodAmount})
+            কাস্টমার কত টাকা পাঠিয়েছে? (মোট বিল ৳ {finalCodAmount})
           </label>
           <div className="flex gap-2">
             <input
@@ -145,4 +144,5 @@ export default function PaymentConfirm({
         </div>
       )}
     </div>
-  )}
+  )
+}
